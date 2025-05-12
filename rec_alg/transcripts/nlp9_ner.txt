@@ -1,0 +1,589 @@
+In today's video, I will explain you
+Named Entity Recognition, with some
+python coding.
+You have seen this concept before in
+this
+NLP playlist. But let's go over it in
+detail today.
+So, I'm going to be explaining some real
+life use cases of NER and, that way you
+can understand this concept better. The
+first one is search. Let's say you are on
+any news website,
+financial news website. They provide this
+feature where you can type in
+a company name. Let's say I want to
+search for the news for Tesla.
+When I click on it and scroll down,
+I see the latest news on Tesla. And when
+I go to any news, you will see this
+tag you know, that for the news it it's
+it knows that this is the news of
+company Tesla.
+Now CNBC editor might be putting this
+tag explicitly. But I think the better
+example is something like Google news,
+where they are an aggregator website,
+where
+all they get is a text.
+And based on the text,
+you have to derive
+the company that the news is about. So
+essentially you're looking at the text
+and in that text, you're trying to
+extract companies, okay? What
+which companies are mentioned in this
+particular news article? So, here you see
+it it is just tagging
+Tesla as a company.
+Now you might think, "Oh this is easy!" All
+you can do is just search for company
+Tesla or any other company, you can have
+20 000 different companies and just
+search for it.
+But it might not be that straightforward
+because,
+Tesla could be a name of a person also.
+You know Nikola Tesla a
+genius
+scientist.
+So when I see a term tesla in any blog
+or any article, I don't know if it's a
+person or company. So that's when
+the NER system
+uh, can be useful, where the system
+actually tells you what entity it is,
+okay?
+So NER is basically
+Named Entity Recognization where
+you try to extract different entities in
+your in in your text. So here, Elon Musk
+is a person, Tesla is a company.
+There could be a location like New York,
+India these are locations.
+Money,
+name of the drug, the entities could be
+anything. So
+when I have a lot of articles, let's say
+you are building a website such as
+Google news
+and you have a lot of articles and you
+don't know what entities are mentioned,
+maybe you can use NER system and it will
+extract all the entities. For example
+see here
+I have shown different examples right
+where companies, products even look at
+this example where the Pixel 7 is a
+product. So the entity here is product.
+Here there are two entities: Tesla and
+Twitter. So if
+you can extract these entities, then you
+know in the CNBC example we saw, if
+person can type in just a
+name of the company, or name of the
+product, we can show you all relevant
+articles. So this is very useful
+in case of search. The other use uh use
+case is recommendation, which is
+associated with the first use case we
+which we already mentioned.
+You might have seen on many website for
+example on Bloomberg news, I see this
+section where it says
+Stories for You,
+which means these are the stories
+which they are showing based on my
+preferences. This is a recommendation
+system.
+So here
+let's say, I have read article about Elon
+Musk or Hong Kong before,
+then from that article let's say if the
+entities are Elon Musk, location is Hong
+Kong and if I like to read such an
+article, it will
+show me similar articles or having a
+similar entity.
+Uh, same like news. Uh not news, but the
+movie recommendation system.
+I have disney subscription and I like to
+watch National Geographic um
+documentaries.
+So, here when you're looking at a
+documentary
+the entities could be,
+who is the production house? Is it Marvel,
+Pixar, National Geographic?
+Who are the actors in the movie, right? So
+these are
+production house actors, these are
+various entities. And if I have a
+preference of watching movies from
+certain actor or certain production
+house,
+then the recommendation system can
+show me
+the movies or documentaries from those
+preferences.
+The third use case is customer care
+service.
+I built this
+website called codebasics.io for
+it's it's a learning portal, basically.
+And here is an awesome course, I have out
+on
+Power BI data analytics, and there is a
+report issue button. So, if someone is
+facing issue in my course they can
+report an issue, okay?
+Now see
+this can be made simple by
+right now, I know you're in Power BI course,
+so I know actually that the issue is
+related to Power BI. But let's say you
+have a generic form,
+where you can just type in text,
+and I don't know what course you're
+talking about, okay?
+Then what happens like, how do I know
+which course it is?
+So when
+you submit a query
+from codebasics.io website,
+in the backend,
+I am getting these queries from many
+people.
+Well the reality is. we have not seen any
+major issues so far. But let's say you're
+talking about big system, where there are
+multiple people,
+uh filing multiple complaints.
+And let's say you have
+separate customer support team. Let's say
+for Power BI course, I have
+a separate team and for python course
+there is another team, and they both
+handle the queries related to that
+course because they are trained to
+answer the queries in that particular
+course. Now if I can extract the entities,
+which is a course, let's say
+here course is my entity and if I can
+extract the course name, then I can route
+those issues to a relevant ticket. Now
+you can have a drop down, simple drop
+down in the contact us form, and you can
+have user selected. But if you auto
+detect that then it's, uh it looks nice
+you know, so it's it's better,
+all right? So, now let's
+open Jupyter notebook, and write
+code
+in spacy, and we are going to use in
+built NER system and then towards the
+end, we'll talk about how you can build
+your own uh NER system.
+We will now explore
+NER support in spacy. As usual I have
+downloaded spacy's English model
+and now,
+I am going to look at
+all the pipe names.
+So this shows you the
+the components in that NLP pipe
+and we see a component called NER.
+So, we'll see how this particular
+component works.
+You can have a statement like this:
+Tesla is going to acquire twitter. It's
+kind of dangling right now, I don't know
+what's going to happen,
+and if you want to look at all the
+entities here, you can say for entity in
+doc.entities So doc.entities
+contains all the entities,
+in this particular statement.
+And then you can print
+ent.text
+so that is the label.
+And just for a separator, I will use this
+pipe operator,
+and then you can print
+ent.label
+So this prints the actual label, whether
+it's a company whatever.
+And also I'm going to,
+okay let me just try this first.
+So it says Tesla incorporation is
+organization, 45 billion is money.
+And if you want to see
+expanded version of this token,
+you can use spacy.explain spacey.explain
+and then give
+label as an argument.
+It says org means companies,
+money means monetary value, etc.
+You can use
+displacy, we've used this before in our
+tutorial,
+displayc to
+you know visually render the same thing
+in a better way. So it's the same thing
+but I am saying style is equal to ent
+So displayc.render the document, and
+the style I want is ent ent means
+entities.
+So when I do that see it says Tesla Inc
+is org
+and,
+Twitter
+uh 45 billion is money. Twitter it did
+not recognize because, looks like spacy
+is using
+some kind of
+rules or patterns, to recognize companies.
+So if I say twitter.inc
+that's a popular way of representing
+companies in U.S. incorporation.
+Okay, that did not work quite well. So now
+you are realizing here
+that,
+okay let me try this.
+See Twitter when I capitalized it, it
+worked.
+So, you are realizing that
+uh the species out of the box
+named entity recognization is not
+perfect,
+and that's perfectly fine.
+It is using some kind of rules that if
+there is a word
+with first letter as capital, followed by
+inc then that's a company.
+All right, we'll look into
+how you can build your own model little
+later. But let's
+first see what all
+entities that spacy supports. We just
+looked at org and money. If you
+try this particular instruction,
+it will print all the entities that spacy
+supports
+with that particular model, with this
+particular
+trained model, okay this model is a
+pre-trained model and that supports
+these many entities. So language, money
+percentage, product, even
+work of art and so on.
+Let me try
+different steps statement. I used to work
+for Bloomberg and Bloomberg was a
+company name, but Michael Bloomberg was a
+person who founded that company.
+So now, if you print the
+entities, so I will just
+use my most powerful weapon here,
+which is ctrl c control v
+and it says,
+Michael Bloomberg is a person
+[Music]
+this is
+now this is wrong, okay? Michael Bloomberg
+this it should have
+recognized, as a company. But bloomberg is
+saying GPE.
+If I do Bloomberg Inc maybe, it will work.
+See now it says,
+corporate company L.P.
+Okay, yes.
+This is funny, it's saying my Bloomberg
+L.P is a person.
+So you're seeing this is not perfect.
+But it works on many cases. See, 1982 it
+said it is a date.
+So I want to try a different model, now.
+So here in in Google,
+you can say hugging face is a popular
+machine learning NLP library and you can
+say Hugging facee name entity
+recognization.
+And they have some
+BERT based name entity recognization,
+which you can try here. So here
+see it is using this code, which is
+hugging face. We use spacy but this
+particular model is used for
+three type of entities: location,
+organization, person and miscellaneous.
+Four entities.
+And if you do compute,
+Sara is a person, London is this.
+You you can look at different examples
+like, right like say this
+see,
+Clara lives in California. So, Berkeley,
+California both of them it identified as
+a location.
+You can type your own thing as well. You
+can say
+Bloomberg
+founded
+Bloomberg
+in 1980.
+Now here again see this is making mistake.
+But if I do
+because Bloomberg both Bloomberg is saying
+organization. The first one is actually
+person. See now, Michael Bloomberg
+is person.
+So you're realizing that it depends on
+how we have trained the model. When we
+are using this ready-made spacy library,
+we are using this this particular model
+which is already trained, using bunch of
+rules and vocabulary.
+So you might want to set a custom entity.
+For example
+here,
+in this
+it is not recognizing Tesla or Twitter
+as companies, okay?
+And 45 billion is a money. So that's fine.
+Now
+what if
+I want to add those twenties
+specifically, I want to say
+that, "hey spacy
+these two are companies," okay? So you can
+do that.
+So let me first explain you a concept of
+a span.
+Span not spam.
+So span,
+is a class in spacy.
+So when you are looking at, for example
+when you're looking at, it any single
+token, this is a single token,
+and if you look at the type of this
+it is a token.
+But using Python's Slice Index Operator
+let's say you say 2 to 5.
+It is showing you a span
+of tokens like a substring,
+going to acquire. And the way it works is
+it starts with index 2. So see 0 1 2. So
+see going going
+3 4
+So it doesn't go all the way till 5,
+it follows the usual Python convention.
+So start with zero uh, start with 2 go
+all the way till 5, but do not
+include 5.
+And if you look at the type,
+see it is span,
+not spam.
+You can import
+this span
+class from spacy and what you can say
+is my
+t1
+or let's say s1,
+my first pen
+from this document starting from 0 to 1.
+So when I say 0 to 1 it is just one
+token, which is Tesla,
+okay? So in this doc object
+0 to 1
+which is Tesla, you're saying
+it is org.
+And similarly,
+okay where is Twitter? So Twitter is 0
+1 2 3 4 5
+So 5 start from 5 go all the way
+6, but do not include 6.
+And those these two are my
+my,
+org
+entities.
+And there is a function on called set
+ents So on the dock you can set set_ents
+In the bracket,
+specify all the entities that you want
+to set. So s1 s2
+and then say
+default is equal to unmodified. So
+default on whatever default entities are
+there,
+you keep them as is, and do not modify
+them.
+If you want to see your documentation
+use your friend Google spacy
+set
+ents
+shows you
+a documentation, somewhere. I don't know
+where.
+But this Google is not recognizing it
+properly.
+So on the dock,
+maybe set_ents this
+okay?
+How to set entity annotation for tokens
+outside of any provided span? So you can
+read through the description. But this
+will basically
+set those two entities.
+So
+unmodify, default isn't modified. Hold on.
+There was a spelling mistake, and when I
+print the same
+entities again, now it is recognizing
+Tesla and Twitter
+as an organization, okay? So I can just
+rewrite it again,
+because there are t that that you know,
+I fix the spelling for t.
+Now,
+I showed you how to
+use spacy's inbuilt capabilities of NER.
+But let's say you want to build your own
+NER system, because we saw the the out of
+the box NER system
+has some bugs, some issues. Let's say you
+are having a pharmaceutical
+dataset, and you want to set entity for
+a drug.
+You need to do certain things, so that
+you can train your own model. So I'm
+going to go
+very brief
+into that. So how can I build my
+own NER?
+The first approach is simple lookup.
+So this is not a some people say this is
+not NLP. This is not.
+This is a simple hard-coded approach. You
+can have a database of companies,
+location, drugs,
+and as you get more companies or
+locations or drugs in your vocabulary,
+you have a process where
+a an operator manually adds that entity
+into these databases.
+And when you look at the tax and
+tokenize it, you do comparison. It's like
+a very stupid, very naive approach. But it
+works.
+So some folks use this simple lookup and
+you know, as long as it works, you don't
+need to have unnecessary emotional
+attachment for NLP or machine learning.
+Depends on your use case. Maybe for your
+use case simple look lookup is the best
+idea.
+The second approach is Rule Based NER
+and we saw already in spacy that it was
+using some rule, that if there is a
+word followed by inc
+,and the first letter of the word is
+capital, that is a company.
+Similarly,
+let's say if there is a statement like
+this: Thor was born in 1865. However, I
+don't know the real birth date of Thor,
+then you can say if you find this kind
+of pattern was born in something, and
+before was, if there is a proper noun we
+looked at
+POS before, so if you're not seen that
+video, go check it out.
+So if that is a proper noun, then that
+token
+is
+person.
+You can have that kind of rule.
+You can have a rule for phone numbers.
+For phone number best thing is regular
+expression, regex. We have covered regex
+in in this tutorial playlist.
+So regex
+or any other rules.
+But there are basically rule based NER
+and spacy provides a class called
+EntityRuler.
+That can be used
+to write or specify
+all these rules,
+okay?
+And I found this
+nice article,
+which I'm going to show you guys.
+So the article description is there.
+Article link is there in the description.
+So see, here to recognize
+phone number,
+you can use entity ruler class and you
+can specify
+your pattern like this. This is just a
+syntax that you can use to specify that
+pattern,
+and when you do that see it says phone
+number. This is a phone number.
+I'm not covering this because this is
+just the basics of NER. In the future
+maybe we will build our own
+NER system. I'm thinking of building a
+resume parser as a
+as a, project. So in the future we will
+have end-to-end NLP project in this
+playlist,
+where we we will use NER
+and spacy to custom train our model. But
+yeah, the third approach is machine
+learning, where you can use a technique
+called Conditional Random Fields.
+Now I know I don't
+like to use jargons,
+and I'm throwing jargon at you don't.
+Don't worry just keep this thing in your
+mind that, CRF is something that can be
+used
+for
+NER machine learning
+model and BERT is another popular
+approach.
+That's all I had for this tutorial.
+The link for the code is in the video
+description below. I did not get a chance
+to
+create exercises
+for this video. But sometimes when I find
+a time later on, I put exercises. So
+always check video description.
+Maybe I'll add some exercises at a later
+stage. And if you want to help me, what
+you can do is you can go to my GitHub.
+Create your exercise, for the repo. Create
+an exercise give me a pull request,
+and if your pull request gets merged, you
+know the whole world benefits. Not the
+whole world, but at least the people who
+are watching this video and who wants to
+work on exercise,
+will benefit. And I will give you all the
+due credits.
+I hope you like this video. If you did
+please give it a thumbs up and share it
+with your friends. Sharing on LinkedIn is
+a very effective way of sharing good
+resources, that you're finding. I see
+some of my subscribers are doing that,
+that if they find,
+not only my video, but any other video on
+YouTube
+which they find it useful they share it
+on Linkedin, and kind of helps spread the
+word.
+[Music]

@@ -1,0 +1,201 @@
+[Music]
+so far I've introduced the idea of a
+language model and neural language
+models today we get into the attention
+mechanism a method that was originally
+created to improve the performance of
+recurrent neural networks but eventually
+gave rise to
+Transformers up until now I've mainly
+talked about text generation which is
+where I give a prompt and ask the
+language model to generate text and
+response to this
+prompt what I want to do is talk to you
+about a seemingly different task machine
+translation or translating between
+languages you see machine translation
+works pretty similar to text generation
+instead of having one type of RNN cell
+we have two types an encoder and a
+decoder the purpose of each of them is
+what do you think they would be the
+encode encodes the meaning of the
+sentence into a vector which is stored
+in the last encoder's hidden state which
+the decoder takes and outputs the
+translated
+sentence the idea here is that the
+encoded state is a universal
+representation of meaning across
+languages for each decoder State we
+simply take the output of the previous
+cell and feed it into the next in order
+to generate the translated sentence
+[Music]
+a big problem faced with rnns is its
+inability to hold lots of information
+this is especially a problem here since
+the last cell has to hold all the
+information about the sentence its final
+hidden State acts as a bottleneck it
+must represent absolutely everything
+about the meaning of the source text
+since it's the only thing the decoder
+knows about the source text before it's
+actually decoding the text
+to this the attention mechanism was
+created the idea is is for each cell of
+the decoder we give it information about
+each of the encoder States this would
+solve the bottleneck problem since we're
+now accessing all the encoder cells at
+each
+step let's see how we can do this let's
+examine one decoder cell I'll call this
+decoder's hidden State s
+I'll also label all the encoder hidden
+States H1 to
+H4 my goal now is to see how similar
+this decoder state is to all the encoder
+hidden
+States the way we do this is by
+comparing s to each of the encoder
+hidden States one by one and Computing a
+number that tells me how similar each of
+the two vectors are this is typically
+done with a DOT product
+the idea is that I want to use this
+measure of similarity to determine how
+important each of the encoder hidden
+states are to this decoder State the
+terminology is that these similarity
+scores select which encoder States the
+decoder attends
+to so now I have a list of numbers where
+each index I tells me how similar the
+current decoder state is to the it
+encoder state
+given this list of numbers I want to
+find a way to use them as a measure for
+how important each of the encoder hidden
+states
+are the way we do this is by converting
+this list of numbers into a probability
+distribution what I mean is I want to
+convert this list of numbers into a list
+of positive numbers such that the sum
+equals
+one these numbers should have some
+representation of how large the numbers
+are relative to each other
+I would want the largest value to have a
+value closer to
+one the way this is done is by first
+exponentiating all the values in this
+list the effect of this magnifies the
+difference between numbers so if there
+was a really large value it would push
+it way closer to one then we normalize
+dividing by the sum of the exponentiated
+values we call this the soft Max
+function so going back back to the
+attention mechanism we convert the
+similarity score list into a probability
+distribution with the softmax function I
+can then weigh each of these hidden
+states by the softmax function and sum
+them
+up for the final equation I'm
+introducing a new Matrix H this Matrix
+just contains all the encoded hidden
+States in each of the columns by doing s
+transpose H I get a vector containing
+all the scores between each of the
+decoder hidden States and all the
+encoder hidden States then I do a soft
+Max over this and take the I
+element what this leaves me with is a
+vector that contains information from
+each of the encoder hidden states that
+are relevant to the current decoder
+State I'll call this the attention
+Vector I then just join the current
+decoder hidden state with the attention
+vector and call it the new hidden State
+repeat and you get a much better
+translation model
+I want to give you a little bit of
+intuition as to what attention is doing
+in the first
+place let's say I'm trying to translate
+from English to French on the x-axis
+I've written out the English sentence
+and on the Y AIS I've written out the
+French sentence the attention scores are
+represented by the pixel values a
+lighter pixel value would imply a high
+attention score and a darker pixel value
+would imply a lowered attention
+score this image tells me that the
+attention scores sort of direct a
+mapping between words in English and
+words in French for example the word
+economic in English gets the highest
+score when compared to economi in French
+which makes
+sense what I find interesting is how
+it's able to capture the more intricate
+mappings for example the phrase a in
+French corresponds to the English word
+was which we can see by the two highest
+scores for was being a
+and it's even able to capture the tense
+of verbs if I looked at signed it's
+mapped
+to here is the past participle and
+signed is in past
+[Music]
+tense here are some more translations
+from the original 2015 paper on the
+attention mechanism take a look some of
+them are pretty solid
+but it still suffered from a few
+problems rnns had more specifically we
+still needed to compute all the previous
+States before moving to the current
+state which means that I can't compute
+States in
+parallel the next era of language models
+Transformers originated from a paper
+called attention is all you need need
+and well that's exactly what they
+did the issue with recurrent neural
+networks was that the recurrence removed
+any ability of
+parallelism so what if I just remove
+their occurrence but keep just the
+attention
+model the actual model has a bunch of
+intricacies for example I framed the
+entire video as modeling next word
+prediction but doing this is actually
+quite annoying due to the fact that
+there are so many next words I'll leave
+these Concepts to 3 blue one Browns
+video so do give it a watch after this
+one today I introduce the attention
+mechanism the idea was if I'm
+translating between languages I compute
+how similar each of the decoder hidden
+states are to the encoder
+States I then use these scores as
+weights to construct a context Vector
+which I just apply to my hidden State
+and move on as normal Beyond language
+modeling there are so many things to
+talk about in NLP so let me know which
+ones You' like to see a video on in the
+comments
+below thanks for watching
+[Music]

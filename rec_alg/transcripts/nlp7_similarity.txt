@@ -1,0 +1,1399 @@
+and welcome to introduction to document
+similarity my name's David Closter and
+TAS Egan ad is sitting in the back there
+um and she and I will be presenting
+why don't we start think most everybody
+he's been here two other yes over here
+has already been here so we can speed
+through some of this then because either
+you're already set up to access all the
+stuff we need to or
+it's like you're not don't have tops
+anyway so and how are we doing online
+anybody following along online that's
+going to want to hear in more detail
+okay I can see out in there okay
+okay
+so welcome
+we work for cyber infrastructure for
+digital humanities um and that is part
+of research technologies which is part
+of UITs and we are located in the cyber
+infrastructure building which is that
+big building there on the corner of 10th
+and the bypass over there so if you
+consult with us we will probably have
+you meet us there if you want to follow
+along
+you need to access have a carbonate
+account and to access that you need to
+access research stuff stuff you need to
+have a thin Lync client which most of
+you already have or are not following
+along and then if you want to follow
+along on the slides
+the link on the bottom will pull the
+slides for this very presentation
+today again introduction the document
+similarity next week on the 14th
+Valentine's Day oh
+we're gonna be having our hands on text
+extravaganza so
+so this is where I
+says where you come in with your
+this is where you come in with your your
+text issues your text analysis projects
+and things that you need help with and
+your dreams your your goals all those
+things and we will sit down with you and
+help you and
+set up other times to be helped if you
+know we need more time and but anyway
+just show up and I believe TAS he's
+promised food treats so I think she did
+you know that if she's gonna tell me I'm
+having to pay for because I put words in
+her mouth
+and then after that we're gonna be
+switching gears I believe we're having
+some guest speakers come in for a few
+weeks so Rome reborn visiting Rome and
+8320
+and TAS he knows a bit more so okay
+anyway the rest of that it's gonna be
+mostly photogrametry VR and that kind of
+thing so
+so our outline for today we're gonna
+pregame I'll quickly go through that
+since everybody here is already has an
+account or is not going to be following
+along on computers so
+and then what is document similarity
+what is docu something good for and then
+we're going to compare some documents
+and have some fun so
+most of our all of our notebooks are set
+up to be used on research desktop so if
+you're using it on a personal computer
+of some kind you'll need to change a few
+things mostly just file paths and things
+like that and possibly have to download
+and install some packages and things but
+our
+supercomputers here are pretty cool and
+they already have jupiter notebooks and
+our studio pre-installed on them so you
+don't have to mess with trying to figure
+that out
+so the jupiter notebooks we use great
+thing about them is we can annotate them
+and so we can explain exactly what the
+code is doing below so that it makes it
+easier to follow especially if you're a
+beginner or even if you're not and this
+is just a new area you can keep you can
+figure out what's going on so the great
+for teaching as well
+and again we're gonna using python again
+today and i get most of you heard this
+so i will sneak past this but
+monty python's cool so right there and
+if you want to access the scripts here's
+the link but i believe everybody already
+has it so we'll go past that and send
+link locket everybody knows how to do
+this
+and the box setup and so this is the
+folder this is something you might still
+need if you are trying to follow along
+so it's gonna be the intro Docs and your
+similarity folder is what your going to
+drag and drop onto carpet
+there's a jupiter notebook and now for
+something completely different
+sorry transferring the mic um so pretty
+eggs and ham i was looking for an
+example that would be like fun and i
+kept finding like machine learning is
+fun it's like I mean it's cool and stuff
+but then I found one that yeah I thought
+maybe spoke to us a little bit more so
+the reason I want to talk about this is
+um because we're gonna be using some I
+want to I want you to understand a
+little bit behind what's what's
+happening here um
+so when we do documents well actually
+did that go I
+guess so I guess I changed the order I
+said not that
+really sorry so the vector space is too
+defined in terms of the vocabulary used
+in the text each and every word in the
+vocabulary has its own distinct
+orthogonal dimension so literally we are
+like using maths right like mapping it
+into space
+for example if our corpus is the dr.
+Seuss story green eggs and ham then
+after making it lowercase which we've
+talked about in sort of our other stuff
+and does everybody remember like Waialua
+casing is important
+okay good thanks for taking your head so
+because if I'm talking about if I go to
+the banks of the lake right there it's
+gonna be lowercase but now I say
+Lake class a blah blah blah but if I
+want those two things to collapse when
+I'm counting frequency
+the computer sees capital L Lake and
+lowercase L Lake right as different word
+so like with cinnamon analysis I might
+say lowercase F flood and capital all
+capitals flood right like I do want
+those to have different intensity but if
+I'm counting the number of times
+somebody uses the word flood I'm day
+like today right like I want those two
+things to be the same so we lowercase
+everything
+so similarly we do we remove stop words
+and the reason is that stop words make
+up and I'm gonna lie right here because
+I kind of feel like I forgotten look it
+up for me really quickly in the corpus
+of linguistics so Wikipedia entry it's
+like about just look up stop words I
+think something like I
+wanna say like an amazing number sixty
+percent of the corpus like and of the
+for not and right like so all of those
+things so so we want to get rid of them
+because generally if I tell you there
+are twenty seven thousand five hundred
+and forty three those
+for most things that doesn't count it
+turns out when you do authorship
+attribution use of things like stop
+words is actually really important in
+determining a fingerprint but for this
+kind of stuff it's not helpful at all
+and you'll see later that we even
+sometimes customized our stop word list
+stemming is when we get rid of so now we
+want all the floods to collapse even
+more right so I just said flood and
+floods right like I want the singular
+and I want the plural to collapse into
+each other it is flooding I went the
+right I went the gerund to collapse into
+you the flood right so it gets rid of
+all of those kinds of things and that's
+important when we do something like this
+so once you've done that to green eggs
+and ham
+it reduces to 17 words
+which is I mean that's actually really
+lovely right and that's why here
+all right Eric sorry Rob I I was so
+excited about green eggs and ham that
+the mic fell off I'm so so counting the
+number of occurrences of each vocabulary
+word right gives us an embedding so what
+are all these zeros why do i why do I
+have those
+yeah absolutely right where we started
+with like box and bow and go and so
+literally at this point these are
+alphabetical
+there is no box there's a boat there is
+no coat and I'm rhyming just like he
+wants me to but there is absolutely
+right there's green an egg and ham
+so similarly eat them eat them here they
+are
+being read this as a kid I don't know
+what that says I remember being read to
+and not reading it so just get eat and E
+but that collapsed is right to it too
+yeah so all of the other things are zero
+because here they are actually and then
+those are all stop words that fall out
+we usually get rid of to be on words and
+like I said there's a lot of ways to
+think about I'm stop wording and there
+are different stop word lists out there
+and that's its own kind of lecture if
+you want to go down that rabbit hole
+with me sometime
+yeah oh
+because it happened twice
+cuz I said to you I didn't just say eat
+them I said keep them eat them
+yeah
+okay I do not like so again I think what
+you're what you've remembered really
+well is from sentiment analysis the
+question is why are not in like
+taken out and because they're considered
+stop words
+there are some versions of this
+algorithm and I'll have to look more
+into ours and we'll talk about some
+company composition that look at engrams
+right so again that might say oh I do
+want to keep that not because if I say I
+do not hate you green eggs and ham right
+that that not hating
+might be really important so yeah that's
+like like I said and this is where I
+feel like sometimes
+computer scientists or people who are
+data scientists don't always look under
+the hood so that's a really great
+question
+so um
+just this morning David made for me say
+early this morning a really awesome
+matrix of Shakespeare and initially it
+was all alphabetical I
+had a problem with that because in
+general we want there to be some
+ordering as we compare things
+and so this green line down the middle
+is because two gentlemen of verona is a
+hundred percent lake two gentlemen of
+verona okay good least my algorithm is
+working on that level so i would expect
+that to be bright green
+but it was really hard to read when it
+was alphabetized the shakespeare wasn't
+like oh I'm gonna read I'm gonna write
+all's well that ends well and then
+to write something to begin with a B and
+then right so now and this is slightly
+different what's more important to us
+and more a way that people think about
+Shakespeare is the order in which she
+wrote them and you have to vary some
+contestation on some of the dates here
+and there are actually multiple
+witnesses of a fellow that give it some
+different time lines but that's okay
+so and I had forgotten about King Henry
+the eighth I don't like nobody ever does
+is that might be why and so you can see
+actually up in here we did have a
+cluster initially of the Henry's and how
+they compared to each other although you
+can see they're really different than
+she gentlemen Verona so that's what that
+red is indicating um but what I was
+really surprised by was one that Julius
+Caesar is like such an outlier um
+it's like it's about kingship and
+killing in succession and betrayal like
+wow you know I'd have to go back and
+look and there are other things that
+take place like ancient Greece you know
+like ancient Rome like I didn't feel
+like the setting
+because the Antony Cleopatra obviously
+like same time you know let's see
+actually looks like Julius Caesar
+where's the Antony and Cleopatra
+good
+okay so yes it should be the most
+similar that was if that's giving me
+faith so what I was most surprised by
+was this clustering that happened that
+was The Winter's Tale Cymbeline and The
+Tempest I was like ah
+and I I will confess I took my
+qualification my call is a really long
+time ago so yeah I've read out of
+Shakespeare but Cymbeline is not really
+a famous play for good reason it's a hot
+mess it's sort of all over the place you
+can sort of think of it as like a lesser
+SLO
+Winter's Tale is really lovely but the
+same kind of thing like she turns to
+stone and so there are these issues of
+jealousy going on but then I was like
+what the tempest I
+stranded on an island it's supposed to
+be his most like it's like his least
+derivative in the sense that it's the
+only play he didn't plagiarize from
+somewhere else right like we know that
+Romeo and Juliet was written right
+there's an Italian version right we know
+that all his history plays he's taking
+from Chronicles
+so
+everything else has an original source
+and then you get to the test and I think
+maybe it's loosely based on like a
+shipwreck in the Caribbean but that
+doesn't account for like a magical fairy
+named Ariel or Caliban or like any of
+those things that happen on the island
+and so for it to be in that grouping
+it was actually really curious for me so
+and it's about two brothers like I said
+it's just a really I feel like it's a
+different story and like I said I just
+started thinking about this today but I
+think there's a lot of food for thought
+here and I've seen people do topic
+modeling all kinds of things like
+Shakespeare I don't know that I've seen
+Alice they really done on the corpus
+so I've used a lot of big words so
+LSA is a theory or a method used to
+extract the contextual usage and meaning
+of words so one of the examples that you
+see online a lot is if I'm talking about
+gasoline and and a whole bunch of things
+in one text and the next time I'm
+talking about petrol and car is and the
+price of it those two things will
+collapse to the same space often they'll
+be seen as similar so that's really
+useful um you also it's interesting to
+see what words associate with other
+words especially as as people who are
+interested in words so we can do it not
+just on a corpus level but on a word
+level which we'll get to later single
+value decomposition is actually you know
+we just see all the remember all of
+zeroes from the green eggs and ham
+example well um
+computers actually don't really like
+sparsity and sometimes sparsity is not
+really indicative of much and so it gets
+rid of often the lower values of that
+matrix so that it's not dealing with an
+N by n dimension which would take like
+forever and ever to run even on super
+fast computers
+cosine similarity is literally I've now
+calculate remember I was talking about
+orthogonal space making you go back to
+like math class sorry so I have here and
+here I've got two vectors I can
+calculate
+the cosine rate of the angle between
+them and that's what we said we start
+getting cosine values and so what we're
+looking at
+when we look at
+this is
+actually a range of values that
+fluctuate between negative 1 and 1
+so
+because that's what cosine goes between
+right if you remember your your sine
+waves and cosine waves so literally our
+range now is still negative 1 in 1 but
+that's why
+and some people are just talked about
+negative values and what they mean and
+that it's often really interesting to
+see something that approaches like
+negative 1
+and then finally word vectors which
+we'll do at the very end today so it
+does the opposite of other topic models
+and that you get to start with a word
+you're interested in so remember how I
+was like totally obsessed like in my
+earlier talks and I was talking about
+Shakespeare and I was like this is my
+man man topic model
+it's been hard to sort of repeat that
+with multiple algorithms but now what I
+can do is I can put man
+into the word vector algorithm and see
+what the top associated words are I
+don't have to hunt through these topics
+and hope that it comes up
+so
+this is a little bit more about how its
+measured which I think I did say some of
+this
+it does have trouble with
+poly simi polysemy so somebody polysemy
+area I believe it I robbed the bank
+the bank of the river is muddy
+because it literally is the same word
+and now it's like ah do I collapse these
+or not or whatever you know that's that
+is one of its limitations
+okay so what is it good for um
+I'm gonna hand it back over to David
+okay so
+document similarity is especially useful
+to get an overview of a corpus that is
+new to you
+part of this is because it can kind of
+read through a lot faster and give you
+some sense of what you actually have in
+the corpus
+can be used in one way it does is it
+weeds out certain documents or
+highlights others so
+we've had ones where we've run them and
+you get this really stark red line kind
+like with Julius Caesar and
+it's really red and we look at it and
+there's some negative values in that and
+what that tells us a lot of times when
+you get and they get a value is that
+either you're dealing with two different
+languages so you're comparing yo most of
+the corpus might be in English and you
+have one document that's mostly in
+French
+those are gonna be negative because it's
+not going to have a lot of words similar
+or sometimes we get things where you
+know it's if you're looking at against
+somebody's diary and then all of a
+sudden in the diary maybe they have
+their accounting for their business and
+it's just numbers and figures you're
+also going to get that stark red line so
+it highlights that and tells you okay I
+might not actually want to consider this
+as part of the corpus because this isn't
+what I'm interested in right now
+it can also show you ones that are
+really similar so you have some
+documents that just no matter what
+seemed to be really green all the way
+across well why why is this one even two
+maybe another one that's got a red line
+more similar to that than others
+and so instead of you having to go
+through and read a thousand
+documents
+articles or whatever this can give you a
+snapshot of what you have
+it can be used to show
+similarity in word usage across the
+corpus era go comparing what we talked
+about kind of the word vectors man the
+woman and see how those actually in a
+relate because when Shakespeare it's
+gonna be different than say the other
+day is that we've been using a star trek
+so you're probably gonna see dimly some
+differences between those two datasets
+even though it's the same words being
+compared and
+then it can be used to show trends
+across the corpus so that's something
+we're gonna show you a little bit later
+basically are there pockets of
+similarity kind of like what we saw with
+the last bits of Shakespeare there the
+last few seem to really correlate with
+my another right so you're seeing a
+trend and if you even looked at it a
+little closer your eyes pick up patterns
+right because that's what our brains are
+training to do we pick up patterns which
+is one of the useful things about the
+heat map and if you notice it started to
+get a little bit greener as
+Shakespeare's plays went on as kind of
+implying maybe he was starting to run
+out of material or something and was
+rehashing things
+so and you can kind of figure out what
+caused them now you can investigate
+further and you can focus in on those
+few documents or handful of documents
+that are of interest instead of again
+having to go through
+read a thousand things
+and okay so let's have a little little
+bit of fun here
+so this is a heat map what do you what
+do you see you look at it and I'm sure
+first it just looks like a blob of
+colors right
+so first the greener the color the more
+similar at least that's how we have it
+set up a lot of these heat maps you can
+choose your coloring variations but we
+figured green good green means go red
+red means stop you know so the redder it
+is the more dissimilar the documents are
+so
+yeah and this is Star Trek next
+generation the entire series that we
+have here
+so you notice this corner if you look
+greener right and even as you go along
+here on the top and here it's greener
+and this is just because I mean you
+could technically cut this in half
+diagonally because now you're just
+getting in these should kind of resemble
+each other on the other sides of this
+which is good we see that it's working
+but you just notice those those patterns
+and you kind of wonder why
+why is it greener here than over here
+right and then what is this oh
+go back
+this line is really red more red than
+the others why so just that initial
+snapshot already tells us something
+about our our collection right
+so right here if you notice is where
+that change takes place up there so I've
+zoomed in and I notice it's right at
+season 3 episode 1
+what well why what does that matter well
+season 3 of Star Trek's on a new head
+writer and Gene Roddenberry actually
+taking a lot active role in writing on
+the show so now we have a change of
+writing styles and people who are making
+up the stories and everything for the
+show so that explains why you suddenly
+have that cut off right there and
+so now we go to our red line and we're
+wondering why is this episode so
+different from all the others well in
+episode 2 of season 5 they encounter an
+alien race that only speaks an allegory
+so be like if you were angry angry
+instead of saying I'm angry you would
+say Odin strike King and we talked to
+express your anger and so because it's
+really different than any of the other
+dialogues
+yeah
+so these are just some of the things
+that the documents similarity can really
+help you with
+in our code one of the things we have it
+do is uh it actually spits out a CSV
+file and we color it similar to this
+using Excel nothing else this is
+actually just a spit out in the code
+itself and then it saves the CSV but you
+notice the scores so now you can
+actually see the numbers you have the
+perfect ones where it's comparing itself
+to itself and then you have the cosine
+similarity scores so you can see that
+they're all right now you know the
+cloaks are the one you get the more
+similar it is and the colors just help
+your eyes to see those patterns more
+quickly
+0.5 it really depends on your data set
+because in some datasets that might be
+super high I know we were talking about
+an example might be like James Joyce or
+somebody who has a really eclectic and
+diverse vocabulary
+yeah it's gonna be pretty hard to find
+things that are similar whereas somebody
+like Ernest Hemingway maybe doesn't as
+much
+it's not going to be that shocking that
+you're gonna have really high cosine
+similarity scores yeah
+it's actually based on the it's more
+than weird figures they usually break it
+down to what they call a term frequency
+inverse document frequency and what that
+actually does is it allows for words
+that maybe appear a whole lot in one of
+your documents but not so much in the
+rest of the corpus it gives that a bit
+more importance because now it's like
+well why why is this word
+you know happening all over the place
+here but not anywhere else so that it
+recognizes that that is something that's
+important so it actually is weighting
+the words as I'm just simply counting
+so yeah because we've had things where
+we have documents that are you know like
+it's a letter and it's a short one it's
+like two or three sentences and then you
+have other letters that are you know
+multiple paragraphs but it's still by
+the same author and you're wanting to
+compare writing styles you don't want to
+throw that out because that's still
+important but so it's going to help
+eliminate that yeah that discrepancy
+I
+mean I you know I could subject you all
+to Milton but I feel like a he's
+sadly not as I mean if we're gonna study
+dead white men like he's not as
+canonical as he used to be like he used
+to be required the same way that
+Shakespeare was if you were an English
+major right he's not anymore um and I
+was actually thinking about it really
+really early I think was a very first
+time I went to the digital humanities
+Summer Institute I took a class in which
+I was thinking about it was when we were
+sort of looking at like authorship
+attribution and writing style and he was
+using something called Minitab which is
+really really old by the way and
+and some Excel formulary and I was
+thinking about okay if Milton is
+supposedly writing right like he's
+talking about how he's taken on the role
+of being like God's prophet like to man
+then what does it mean what does the
+language of his characters mean can you
+see the fallenness in the language of
+his characters and so I was comparing
+them also to how because of the you know
+the time period that he was in like how
+characters spoke in the King James Bible
+and what it showed was the Adam and Eve
+even pre-fall are sort of closer to
+Satan and how they speak than God in the
+Sun there's just a whole different
+register there and I would love to go
+back and do this now that I have other
+tools I'm just sort of if I cluster it
+by speeches because you do have to pull
+them out because there's all of that
+Latin at permit rate like Zeus she so
+Milton writes in in iambic pentameter
+and unrhymed verse as opposed to
+Shakespeare who often you know does
+rhyme although at least she's writing in
+an eMeter um so here's our Shakespeare
+like I said I don't expect you to know I
+love Milton feel lucky um
+so this is this is where I like I said I
+hadn't really seen anybody lots of
+people talk about Shakespeare because
+it's been in the it's open source right
+like it's pretty 1923 it's a wave a pre
+1923 but I hadn't really seen people
+doing a lot of this and so even seeing
+like oh so right here okay so that's
+just because it's flipping around the
+line right David so
+these two
+yeah so that's just all's well that ends
+well to itself but then we also see okay
+and so a fellow is another really
+interesting play it's one of the ones
+that was subjected to some early machine
+learning that was meant to categorize
+the plays as comedies tragedies or
+histories and it got them all right
+except for a fellow
+which it named is a comedy I
+know right like so like Iago for those
+of you not in the know bad dude right he
+talks about a fellow and Desdemona
+making the beast with two backs right
+likes is really famous metaphor for sex
+he also has many many degrading things
+to say about a fellow because he's black
+so yeah
+not not a good guy and yet one of my
+theories is that the register of is
+again sort of low comedy almost that if
+you think about other plays like a
+midsummer night's dream where you have
+the rude mechanicals literally called
+the rude mechanicals and the kind of
+play that they do Pyramus and Thisbe at
+the very end of it is all about sex
+jokes like there's a crack in the wall a
+in the wall and she's like Oh what
+do we do through the Jake like so I was
+like well maybe it's because Yahoo
+spends all of his time speaking like the
+lower register characters in the
+comedies so it was but it's interesting
+here that it does seem to be dissimilar
+to the early plays but again the henries
+kind of throw that off like literally
+Mayberry next step is just throw the
+Henry's out
+feel like they're their own thing
+and just sort of look at what else it
+registers as closely to you although it
+does seem to have a fair amount of
+dissimilarity and so like I like
+thinking about a fellow I think like
+it's a good litmus test for you know
+what you're doing and why it's happening
+so if I want to go deeper though I've
+talked about like this whole woman man
+thing right like occasionally
+Shakespeare pisses me off as much I love
+him his attitudes so I look at man and
+Shakespeare the number one corollary is
+women that was it go okay
+do I need two extra tap okay so
+and then we've obviously got some names
+and then Cuellar is that literally the
+verb okay so he's who is he quelling but
+why is he not stand I feel like it might
+be a kick well you look at Cuellar
+Shakespeare for me really quickly keep
+going oh but look they're also shallow I
+think that's also a character name so I
+think we might need to look at these
+keep going oh and they're wise well duh
+and they swear but then painter like so
+there's some interesting things here I
+might wire and cena's painters why is
+that a high corollary um so here's women
+we spared to you Henry foolish weren't
+were
+obviously we have handkerchiefs and you
+I can think of several Desdemona and
+Othello among many so Iago steals
+Desdemona's handkerchief and gives it to
+one of the air the characters to prove
+to a fellow that Desdemona is having an
+affair so the handkerchief takes on this
+extra weight also subject to folly but
+were wise we are and we're would write
+like because when do we have value in a
+Shakespeare play when the men are booing
+us
+what
+really like I haven't been so now I mean
+I obviously need to go look at this yeah
+I'm super fascinated by it so it is
+interesting that wise does show up on
+both of them
+and I do and I look at this word maid
+again
+it can be used
+in
+a negative connotation but it's usually
+positive but again it's this bound up
+like being a lady do I want to be
+referred to as a lady like what does
+that mean if someone insists on calling
+me that like what kinds of societal
+expectations are placed upon me if I
+have to be a lady do I have to sit
+nicely and cross my legs and do my nails
+and wear makeup and all those kinds of
+things
+it could also be a limb but so same
+thing maid and maiden right that there
+is this set of expectations there um cuz
+strumpet is what you generally see when
+there's the opposite side of the coin
+okay and then also I wanted to see what
+they have a cosine similarity of and so
+they have cosine similarity of 6.65 but
+I would want to do other comparisons
+right so if we look back up here
+that's pretty high oh
+yeah cuz it showed up right there
+so but notice and this is one of the
+ones she where man like the highest
+corollary may have been women but notice
+how it's lower than even I get wouldn't
+it didn't even make the top ten over
+here so again you just have to think
+about what those mean
+so there's a lot of food for thought
+like I said so you were doing so
+analysis
+yesterday for one of our clients on
+articles about the spanish-american war
+written both in Britain and Spanish
+but published in America
+yo no se
+okay so and what she started what
+started to fall out on this and this is
+obviously we're doing this neither of us
+are really we don't really speak Spanish
+like I have the French sometimes is it
+started to show this allegiance to
+America those those articles cluster and
+our most similar to one another
+stuff that we sent her
+so that was showing mold with that if
+you claim to be a friend with the
+Americanos then that made you more manly
+masculine so
+that was a sign of virility was it yeah
+it was a sign up for like a really you
+know like yeah if you were if you were
+buddy-buddy with the Americans because
+most of these documents are Cubans and
+some there was a Puerto Rican section of
+the Cuban revolutionary party also
+during this whole thing so we call the
+spanish-american war but for them it was
+actually the Cuban there was their War
+of Independence so
+but you know we like to take things and
+claim it was us
+yeah so that actually I mean I think
+it's really interesting we also have a
+another person who is working on the
+speeches of Malcolm X and Martin Luther
+King and again the register is really
+really different if you know anything
+about sort of American civil rights
+history that Martha King both you know
+by virtue of being a black pastor right
+a Southern Baptist is going to use sort
+of the language of God in the language
+of peace and the you know and he's
+eloquent melt Malcolm X is also eloquent
+but in a different way right without
+it's not the biblical liturgy and that
+he is he's not afraid I think to use
+more striking words I mean it's not just
+you know the Black Power movement
+doesn't just have you know that the race
+hand the race fist right like as the
+symbol of power but that the language
+changes especially after the
+assassination of Martin Luther King
+which is when Malcolm X really rises to
+the fore and so I haven't seen
+no
+okay now I'm really embarrassed really
+so I was just reading something last
+night though about how the rhetoric of
+Malcolm X so it's really interesting
+okay so the rhetoric of Malcolm X takes
+on more is more popular after the
+assassination of Martin Luther King
+because I think maybe at that point
+people were tired so if they're
+repeating it okay so my bad reading in
+the middle of the night
+you learn something new every day
+so I'm really interested to see how that
+plays out and if any of their speeches
+sort of have similarities I know I think
+and there are times when they spoke
+together you know and they're you know
+does their register go to and I had
+thought about and I just couldn't do it
+I'm doing a State of the Union
+comparison for all y'all um
+but I I just I couldn't
+because I didn't really want to spend
+that much time thinking about the most
+recent days of states of the union so
+that's been another one that a lot of
+people have done examinations of because
+they're they're usually pretty highly
+crafted I mean it wasn't an accident
+that Nancy Pelosi was like you don't
+have to give this speech it can be
+delivered right there wasn't a tradition
+of giving it publicly for a long time
+and that it is one of the things that is
+usually gone through by many many people
+so and I think it's really interesting
+that as speech writers have taken on at
+this point the the tick of the
+superlative like the double superlative
+because they just know that that's how
+he talks and even in a super scripted
+thing like the State of the Union it
+still happened
+so you know idea which again maybe if
+you get a script for me it would still
+have lots of hand gestures stuff I don't
+know so do y'all have any questions
+mm I do i do notebooks how do you feel
+unless I miss Rainey oh
+yeah so why don't you get on okay
+okay well this time I won't describe as
+much what I'm actually doing cuz you
+guys have all seen how to get on to
+research desktop now this will be the
+fourth time
+you minimize everything
+[Music]
+and I can't that's the right thing no
+sorry I went to see all the way over on
+the other side what I'm actually hitting
+okay a
+little higher
+there we go okay
+[Music]
+all right mine's still up from last time
+yay
+yeah I'm games breaking stuff
+sorry Chris Heller I
+realize didn't have my phone which I
+need in order to use the do oh
+[Music]
+there we go yeah
+[Music]
+I'm just kidding out wouldn't it be
+destroyed by my toddler's I'm three days
+okay so all this is loading here we go
+and
+welcome to research desktop and we are
+going to open Jupiter notebook
+which if you use this a lot of done I
+highly recommend pinning it to the
+desktop there
+this makes it a lot easier
+let's it's bigger for everybody
+okay
+so we're gonna go into down the intro
+dock similarity
+into the notebooks and
+do we want to do the word vectors or the
+dock similarity first
+okay we'll do duck similarity then
+so again it's highly annotated so
+there's a lot of description so I won't
+go into too too much of it right now
+as usually we start off with importing
+our
+packages and things that we need
+most of again is a package called
+sklearn which
+yeah I was gonna do most of our our
+tf-idf right there
+is one of the things gonna do and then
+we have our SVD up here and then our
+cosine similarity
+so it's gonna be doing all of that heavy
+lifting for us
+and we have our stop word list which
+right now is set to English but like
+I've been using us for Spanish as well
+and if you remove the hashtag here and
+we run this
+I gotta run the first lemma so remember
+shift return is one way to just run one
+cell at a time
+or if you want to run all of them you
+can just go up to cell and click run all
+so you can also do run cells and select
+below or you can run all above or all
+below so if you're on one and you want
+to run that one and everything below it
+because you've already gotten to that
+point you can select run all below
+so it gives you some options but I'm
+just going to shift return through since
+we're gonna go through a step at a time
+here
+so if I run this now it's gonna print
+out on the bottom a list of the
+available stop word languages that the
+NL TK package has so we have Arabic I'm
+gonna botch that Azerbaijani Danish
+Dutch English Finnish French German
+Greek you guys can read it there so it
+has a pretty good collection to choose
+from
+so now we're just gonna pull in
+where our data is stored again and as
+I've always said and just reminding
+again right here where it says close
+stutter that's my username that's gonna
+be where you want to put yours in
+because if you have a carbon in account
+that's what it's going to use for that
+folder as your IU username so that
+should be the only thing if you have
+dropped our folder in that you'll need
+to change right now if you change things
+around where you're saving this you'll
+have to change a few other things from
+there but
+so now we are pulling in our stemmer so
+this is going to just chop words word
+endings off in the hopes of making
+things a bit more
+universal so again if you have
+running and run ideas it chops it off so
+they both become a run in that way if
+you're just interested in that idea of
+moving quickly
+it'll keep those and also there as you
+can see they're also available other
+languages so it can stem in and again if
+we remove that hashtag so that little
+hashtag there just comments it out so it
+skips over it it doesn't it doesn't
+actually do that code but now if I
+remove it and run this you can also see
+now the list of the available stemmer
+languages
+now the next step is just the functions
+so we're creating one that's gonna do
+the stemming and then that stemming one
+if you notice is actually down here in
+the one that token eise's and tokenizing
+is just basically splitting it into
+words you can also tokenize them to come
+just whole sentences but this one's
+gonna split it and make it into a list
+of individual words
+so now here is where we're going to pull
+in our
+data set
+you can see it'll take us a minute but
+and again that little Astros just means
+it's thinking and then when it's done it
+pops it has a number and
+just to make sure it's working we're
+gonna just and for this we've actually
+saved it in than what we've in a
+dictionary so it has a key and a value
+and the key you can then tell later in
+the code I want the value that comes
+after this key so you're kind of
+creating a way of actually doing a quick
+lookup of
+your content so and for our case here
+the key is actually the name because if
+you see right here token dick keys I'm
+asking for the first ten keys and so you
+can see the keys are actually the name
+of our text files if I were to say if I
+ever change that da keys to got values
+it would then show us the entire content
+of that file so I would get ten
+different Shakespeare plays so to save
+space we're doing the keys but we know
+it's working at least so we can move on
+so now here we do our term frequency
+inverse document frequency
+on it and then we can
+and that's gonna take it a minute and
+then below we can see some of the output
+when we run it and we'll be able to see
+yeah it takes it a minute so the
+asterisk just means it's still thinking
+now it's done now we can spit out what
+we get and so this is the matrix that's
+created and you can see the numbers or a
+lot of them are zeros
+there we go if we move it over so we can
+see the weighted scores for manhood in
+some of the plays so for example all the
+henrys if you notice
+Henry the sixth part two and part three
+the term manhood is weighted whereas
+it's zero in others it's the highest and
+part three of Henry to six and then and
+our next highest is Richard the third
+after the Henry's so
+we have that we can go and this is just
+gonna show you would actually so it
+gives you the whole list so every word
+and it only gives each word once and
+then gives you the way it score for that
+word
+as it occurs so now we go in and we're
+gonna do our
+singular value decomposition which is
+just SVD and our cosine similarity
+to point out so the number of components
+100 is the threshold that's just one of
+those things that is recommended when
+you do LSA to have that threshold set to
+a hundred and
+basically what that is doing is
+it's telling you how many
+my mine is blinking
+the number the number components on my
+mind is all of a sudden drew blank
+yeah
+yes that's right okay and then
+iterations are just how many times it's
+going through your corpus so it's gonna
+be running the SVD over it multiple
+times
+and then the random state is so that we
+get the same result so it makes it
+reproducible so if you are presenting
+this at a conference or something like
+that and you want somebody to be able to
+beyond like hey here's my code here's
+how I came to this result that way if
+you'd give them your exact data set and
+this code they should be able to
+reproduce the same results because again
+because it's using some
+some math in the background if you don't
+do that your results will be a little
+bit different every time you run it so
+so the random state you set it to you
+can toy with it and get you know kind of
+get certain results that numbers kind of
+up to you but you know
+the answer to everything in the universe
+is 42 so we're gonna make it 42
+and
+this is gonna take a little bit to run
+and then we go down here and all this is
+doing this last one is creating that
+data frame
+which kind of looks like in a colored
+excel file
+so that we can see the colors and get an
+idea so you notice here it's basing it
+on the overall values in all of the
+cells for that so cuz you notice like
+0.84 is red like that doesn't seem like
+that's that different that's actually
+pretty similar but when you have most of
+them and others that are in the point
+nines and that kind of thing and point
+eight is about as low as it gets all of
+a sudden point eight becomes really low
+but again that's dependent on your data
+set so there are others like as you're
+seeing before where a point five might
+be super high so then you're gonna have
+point fives that are really green
+compared to other stuff
+it really just depends
+so now this is just gonna output
+that heat map that we made before
+for Shakespeare and this also up here if
+you notice outputted a CSV file the CSV
+file will not have these colors it will
+just be white like I said you can go in
+and add that your yourself I'm using
+Excel tools and that kind of thing so
+and if you're using something else
+besides Shakespeare you're gonna want to
+change that name of the file
+to match your data set and then the same
+with
+down here we have the name Shakespeare
+dachshund heatmap you probably want to
+change that to something else
+if you're not doing Shakespeare
+as you can see this is taking a little
+bit think through it but
+it'll it'll pop it out here in a second
+but anyway so that's our doc similarity
+matrix
+notebook so and there we go and the nice
+thing is it gives you your file names on
+the side to this and then it gives you
+this nice little legend on the side and
+those numbers will change based on your
+thing so whatever your lowest number is
+that's towards the red what's at the
+bottom so we've had some or where we
+have negative numbers where zero is
+actually at the bottom and you can tell
+it still goes a little below that so
+it's letting you know when that happens
+that you have some negative numbers in
+there which means you have some
+documents that are really different from
+everything else
+but usually it's going to go all the way
+up to one because we have the ones the
+perfect ones going all the way up sorry
+are there any questions about the
+notebook how it works
+or about anything else I know some of
+you've been here for other workshops a
+little Kevin this is something we're in
+digital humanities you're usually not
+going to just use one tool and your
+research that usually each tool kind of
+helps you use the other one
+so as we were talking about the
+project we were helping with the Cuban
+war for independence we also used Lda we
+also used LSA we used the word vector
+so we're using multiple tools in order
+to actually gather and figure out and
+narrow things down and look at what is
+going on in a very large corpus that we
+would take us a really long time to have
+to sit and try to parse through as human
+beings so
+which is why we have bad tuple workshops
+on these things
+any questions any all right I will yeah
+[Music]
+okay
+[Music]
+the dictionaries
+yeah
+[Music]
+well I know at least the stop word list
+especially for NTK is very easy to add
+your own
+yeah you I mean we've actually have some
+where especially with Shakespeare where
+we've had to add an early modern stop
+word because you have the bow you know
+those kinds of things that aren't
+normally in a stock word list also for
+me
+my background is in medieval history so
+I had to do a lot of Latin so I would
+probably find a Latin stop word list and
+I would need to add that um the nice
+thing about the NLT kay stop word list
+is if you just go into their stop word
+list folder because the way they have it
+is you download their data set and it's
+usually just saved somewhere if you just
+do search for NLT Kay data it'll pop up
+and then within that is the stop word
+list and it's just files that are
+labeled English French German so all you
+have to do is throw yours in name it
+that and then when it says English up
+there I would just put it in Latin even
+though you saw or the original list
+doesn't come with that then I can call
+that and it will actually use the Latin
+stop word list that I have made and
+saved in there there's also ways where
+you can because especially on research
+desktop specifically you're not gonna
+have access to that so there are ways to
+make your own list and then just append
+it to your existing list that you've
+made so if you have something where
+again like you have a different
+different dialects depending on region
+of Italian and you want to make a stop
+word list that you know matches those
+regions depending on which one you're
+using that you can call in
+that's very possible and very doable
+the stem errs and limit eyes errs I'm
+not so sure how because those are
+usually really involved especially ulema
+tiser that's a dictionary that somebody
+has made and is usually already labeled
+things as you know these are nouns these
+are verbs these are adjectives these are
+adverbs and different languages so then
+what the infinitive is of a certain word
+so you know like if you have men it's
+gonna change them although it says amend
+a man to that nominative singular
+first-person
+version of the word and the same with
+again verbs are going to be the
+infinitive of that word so
+that's generally how ulema tiser works
+whereas a stemmer just cuts off endings
+in the hope that it'll again bring some
+uniformity that way
+so those things are a lot more difficult
+to then if they don't have it in that
+language
+to make your own and have it work
+that makes sense
+and again a lot of these tools remember
+not they're not gonna be a hundred
+percent all the time because it's still
+dealing with human language and we've
+talked about this with sentiment
+analysis as well not a hundred percent
+because there's times where even humans
+have troubled to say deciphering sarcasm
+so it's really hard to expect the
+computer to do it better
+right so same thing here it's still
+gonna be but it but it definitely these
+are very very useful tools and
+especially trying to help you when you
+have you know larger corpus or a new one
+that you're not quite sure of although
+we always tell you the other caveat is
+test these out on something you do know
+first to make sure it's working
+so
+so what
+know oh
+[Music]
+wow okay
+[Music]
+[Music]
+yeah
+free there's three
+[Music]
+yeah
+so again not a hundred percent but
+there's gonna be a lot but again this is
+going to make your work a bit easier and
+narrow things down for you a bit so you
+look you have fewer places to look and
+fewer
+errors to really to really find like
+you're not having to do that all
+yourself
+any other questions concerns
+yes
+[Music]
+be added to the the script you mean to
+try and figure the difference out
+I think so again it's not gonna be a
+hundred percent
+I mean I know that's part of the reason
+people started doing this was to help
+deal with the the polysemy and the
+tsunami and all that where we have one
+words that are spoken pletely different
+being used in a similar context
+again we also mentioned that is one of
+its struggles though so Bank and Bank
+you know I'm robbing a bank versus the
+bank of a river so
+the way it's gonna actually decipher
+those is is gonna be the what's used
+around it and it's going to determine
+that yeah okay they're spelled the same
+like I have the same characters but
+they're not always used the same way so
+I know that there are machine learning
+things that help deal with that but
+those are a bit more
+those are a bit more intense and
+complicated and you have to train them
+with usually a lot of other purposes so
+it starts to again learn
+how the how these are different what
+they're and then you know training what
+to do with that but
+that's your question
+anything else
+all right yeah thank you for coming
+will end help with projects too but
+mostly don't know
+all right thanks everyone

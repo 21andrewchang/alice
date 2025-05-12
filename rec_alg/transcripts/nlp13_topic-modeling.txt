@@ -1,0 +1,225 @@
+[Music]
+imagine
+you have a huge number of documents
+these could be articles newspaper
+clippings reports
+blogs basically any block of text
+the point is there are millions of these
+documents
+to organize these documents what you
+want to do is determine
+which topics are associated with each
+document
+is a particular document about food
+sport
+religion or all three now
+one way you can solve this problem is by
+reading these millions of documents
+it's not a bad option you will learn a
+lot in your life
+but you probably will never finish
+hence you want to use some automated
+computational approach this is where
+latent dirichlet allocation lda
+for topic modeling can be really useful
+so let's just dive straight in and see
+what lda
+is all about and how it can solve this
+topic modeling problem
+for us to make things easy to understand
+let's imagine we have three documents in
+a more
+general mathematical notation we have
+capital d
+number of documents and we can use
+lowercase d
+to indicate each specific document
+let's now say in our example the
+specific topics we care about
+are the following four science
+sport hope and deceit
+again in a more general mathematical
+notation
+we can say we have capital k number of
+different topics
+and we can use lowercase k to indicate
+each specific topic
+looking at document one the idea of a
+long road
+and the mention of seasons suggests
+we'd ultimately want the lda approach to
+assign
+topics sport and
+maybe hope moving on to document 2.
+here it mentions dennis and lying
+so we'd hope to assign the topics of
+sport and deceit
+in this case finally for document 3
+we are talking about bird species so the
+only likely topic for this document is
+perhaps
+science that's great
+we can solve our task as a human but
+if we want to use lda we do however
+need to introduce a bit of maths again
+instead of having a fixed topic label
+assigned to each document
+why don't we learn an entire
+distribution over topics for each
+document
+so for example let's let theta 1
+be the distribution over topics for
+document 1.
+we'd eventually want theta 1
+distribution to be equal to something
+like 50
+support and 50 hope ie
+theta 1 is equal to 0 0.5
+0.5 0 with the elements of this vector
+being consistent with the topic indices
+indicated here
+similarly then we would want the
+distribution of topics for the second
+document to be mostly about deceit
+and a bit about sport 2 so we would hope
+that lda
+would give us something like theta two
+is equal to
+zero zero point two zero zero point
+eight
+finally we can say for document three
+it is fully about science so we'd hope
+to learn the distribution theta 3
+is equal to 1 0 0 0.
+if we want to define these theta vectors
+in a concise mathematical notation
+we can say each theta d is like a random
+variable
+that we eventually want to learn drawn
+from some dirichlet distribution
+if you aren't familiar with dirichlet
+distributions
+imagine that a dirichlet distribution
+just means
+that any random variable vector drawn
+from this distribution
+must have its elements of sum21 ie
+behaves as a probability mass function
+as is what we want for each theta d here
+okay great we now know that our
+objective
+is to learn each theta vector and we are
+then done
+but it isn't still clear how we achieve
+this
+the lda approach makes the assumption
+that each word
+in each document belongs to a specific
+topic
+to model this idea we say that each
+topic k
+has its own distribution over the entire
+vocabulary of words
+for example let's consider what we mean
+by this for the first topic
+science let's imagine the first few
+words in our vocabulary
+are argon ball and cry
+let's let beta1 be the probability
+distribution
+over words for the first topic science
+we know intuitively that if our topic is
+science
+then the probability of a word being
+argon is higher than ball
+and cry so we would expect the start of
+this vector to be something
+as shown continuing for other topics
+we would expect their distributions to
+have higher probabilities
+associated with different words that
+tend to come up with regard to their
+respective topics
+hence we now have these new set of
+probability distributions
+beta k to learn for each topic
+to be mathematically concise we can
+again say that these distributions are
+also drawn from some dirichlet
+distribution
+so we now have sufficient variables
+defined to actually solve our problem
+using the lda approach we have
+objectively reduced our problem to
+learning the optimal theta
+and beta probability distribution
+vectors
+given the documents we have observed so
+let's start trying to learn these
+so let's write down our objective
+mathematically as a maximum
+likelihood inference problem the optimal
+beta and theta vectors
+indicated with the hat are the ones that
+maximize the probability
+of all observed words in all the
+documents
+where w and e is the nth word in
+document d
+in the lda approach we can assume that
+each word
+is independent of the other which means
+we can separate the joint probability of
+all words written here
+as products of probabilities of each
+separate word
+note we also remove the dependencies on
+all
+unrelated theta vectors for a specific
+word
+i.e word wnd will only require theta d
+and no others now
+let's look at the probability of a
+particular word w and d
+and write it in a manner that is useful
+to us
+let's introduce some latent variable zed
+which we will let represent the topic
+index assigned to a word
+this is useful because we can now say
+that the probability of some word w
+given this topic z
+can be found exactly using beta z
+which if we remember is the distribution
+over all words
+for topic said thus to benefit from this
+relationship
+we can apply reverse marginalization on
+the probability
+of each word to introduce the latent
+variables said
+and now we have mathematically concise
+solution to our inference problem we
+just have to find the maximum of this
+expression
+with respect to all the theta and beta
+vectors
+unfortunately in practice this
+expression
+is too intractable to optimize
+computationally
+the biggest problem is that we have
+three sets of iterators
+iterating n over every word in a
+document iterator d
+of every document and we have
+finally iterated zed iterating over
+every topic
+this gives a lot of combinations
+there is a way to get around this
+computationally and that is where
+one will enter the world of gibbs
+sampling
+however a discussion on gibbs sampling
+is for another day
+and that is all for this time

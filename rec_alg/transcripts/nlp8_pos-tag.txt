@@ -1,0 +1,369 @@
+[Music]
+hey everyone welcome back so this is
+going to be the next video in our nlp
+series and today we're going to be
+talking about a very
+interesting topic called part of speech
+tagging
+so part of speech interestingly enough
+is something you probably learned all
+the way back in elementary school
+probably the beginning of elementary
+school
+so let me give you a quick refresher
+just in case you forgot
+and then we'll talk about why we might
+want to do this why it's important to do
+and then we'll talk about one of the
+very popular methods to do that and talk
+about
+some consequences going forward but
+starting from the basics
+what is part of speech tagging so we
+have three sample sentences here
+for example the first one says i like
+his watch
+now in english and most other languages
+too each word
+is belonging to a general category
+called a part of speech
+for example some easy ones are nouns and
+verbs nouns being
+people places or things that's what we
+first learn in elementary school
+verbs being action words things that
+describe an action you take
+so for example in this very short
+sentence we have four words
+the first one is a pronoun for example i
+he
+she it so on the next one is a verb
+like because that's an action you are
+actively liking something
+the next one's also pronoun his to refer
+to somebody else
+and the last one is watch and in this
+context it's a noun
+because you're saying oh i like your
+like wrist watch
+but that'll be important as we get to
+this third sentence but the second
+sentence here says the man
+fans the flame and so as we understand
+it we're picturing some man
+and he's like fanning a flame so the
+flame gets bigger or continues burning
+and so we have a determiner so the a
+these kind of words are called
+determiners
+the man is a noun the fans is a verb
+because that's an action that he's doing
+to the flame
+thus the determiner and flame here is a
+noun so now i wrote this third sentence
+because it includes several words from
+the previous two but they're used in
+very different ways
+now we start getting an idea about why
+we might care about part of speech
+tagging in
+natural language processing so this
+sentence says the fans watch the race
+so we're imagining now some kind of
+stadium full of fans and they're
+watching some kind of
+race either a car race or people racing
+something
+but the words used here are the same
+exact words used up here but in
+different contexts different parts of
+speech so for example the as a
+determiner
+here fans is a noun because we're
+talking about spectators or
+humans who are watching something rather
+than the action of fanning something
+watch here is a verb although before we
+were talking about watch as in
+wristwatch
+here we're talking about the action of
+actively watching something
+here this is a determiner and race here
+is a noun i didn't use the word race
+before but race can also be a verb for
+example
+i race you in this competition versus
+here we're talking about the physical
+like race that's going on
+so we see now there's a lot of ambiguous
+situations sometimes it's even hard for
+humans to discern whether this is a
+verb or a noun in the context that's
+used and so we want to make sure that
+the computer is understanding the
+meaning of sentence or paragraph
+correctly
+and part of that is going to be
+understanding what part of speech
+everything is so here's some
+applications of why we care
+this could be a very important feature
+in text modeling just for example
+pretend you're analyzing
+presidential speeches each precedent has
+a very different style of speaking a
+different style of giving speeches some
+might use a lot of adjectives maybe some
+use a lot of nouns
+so we want to make sure to understand
+like what's the proportion of adjectives
+you use or what's the number of nouns
+you use
+that could be important in understanding
+the style of some kind of writing
+we might also want to use it for
+something interesting called
+autocomplete so when you're going in
+google and you type something like i
+want to
+how does it figure out what's the next
+word part of that is going to be part of
+speech tagging
+because we know that i want to and then
+the word pizza
+probably wouldn't come after that
+because pizza is a noun and we're
+probably looking for a verb of some kind
+so that's going to be important
+and also word ambiguity resolution as we
+talked about here we want to be able to
+take a word like watch and figure out if
+we're talking about it as a noun or as a
+verb
+and so on so this is what it is and why
+we care now let's talk about the two
+biggest classes of methods to deal with
+this
+the first one we won't go too deep into
+this one but i want to introduce it
+is rule-based so you can think of
+rule-based part of speech tagging
+as basically a huge set of if-then
+statements
+that are trying to capture all of
+english language rules
+so for example you could say like oh if
+it's a noun then the next thing would
+have to be this or if you see a noun
+then maybe after this we'll have this so
+basically what it's trying to do
+this might be written by an expert for
+example a linguistics expert
+and we're trying to basically capture
+all possible combinations
+now this the pro of this of course is
+that we're directly taking into account
+the language
+we are not basing uh we're not basing it
+on probability we're not basing it on
+statistics
+it's based on linguistics but the con of
+course is that there's just so many
+cases we're going to have to consider
+that we're not going to be able to get
+all of them and so we're going to have
+to default back to this
+second case anyway but there is
+definitely pros to this method
+especially if you have a very
+rigid set of rules for what part of
+speech things can be in the particular
+text you're looking at
+but the way that we go about it more and
+we have a lot of tools for this
+is stochastic or probability based and
+specifically using this
+old tool that we learned a little while
+ago called the hidden markov model
+so i will say here that it's best if you
+come into this video having watched the
+hidden markov model which i'll link
+below
+you don't absolutely have to watch it
+but i think that it's better because
+you'll see that
+what i'm about to talk about is just a
+application of the hidden markov model
+it's not something completely new
+so natural language processing just uses
+the hidden markov model
+which is used in other fields as well so
+it'll be easier for you to understand
+but the hidden markov model treats this
+sentence as a very interesting structure
+so again if we go back to the hidden
+markov model the premise is that we
+observe some states so for example we
+look at a sentence such as the fans
+watch the race
+and we observe that we can see that on
+the piece of paper in front of us
+now the hidden markov model as the name
+hidden suggests
+also says that there are some hidden
+states some unobserved states
+which generated the observed states that
+we did see
+and this particular implementation of
+the hidden markov model says the hidden
+states are exactly the parts of speech
+so putting it all together and kind of
+telling the story from the beginning
+this application of the hidden markov
+model for part of speech tagging says
+there are some hidden parts of speech
+some underlying parts of speech for
+example in this case it's
+determiner noun verb determiner noun
+that's of course hidden to us but
+those states generate the states that we
+do see
+the observed states and that's what
+these vertical arrows are representing
+now the markov part comes in because it
+says that the hidden states have
+transitions from one to the next for
+example
+if this one's a determinator there's a
+certain probability that the next one's
+a noun
+then given this one's a noun there's a
+certain probability the next one's a
+verb and so on
+so the two processes going on the two
+distinct parts of this process rather
+are the transitions or the transition
+probabilities from one hidden state to
+the next
+and the as they're called emission
+probabilities which say
+given that something's a noun what's the
+probability that it's the word fans
+given something's a verb what's the
+probability that it's the word watch
+and so if we have these emission
+probabilities and we have these
+transition probabilities
+and we have the final sentence then
+we're in good shape we can go ahead and
+run the hidden markov model which as we
+saw in that video
+amounts to maximizing a probability
+specifically we're trying to
+find the parts of speech so p i going
+from p
+1 to p n where n is the number of words
+in your sentence
+these are all the parts of speech which
+are again hidden to us
+so we're going to try every single one
+every single setting of these parts of
+speech
+and our goal is to maximize this
+quantity which is the probability of
+jointly observing those parts of speech
+whichever ones we've chosen
+and the observed states so w1 through wn
+are the
+literal words that we see on the page
+and so this probability although it
+might look a little bit crazy is
+answering the very simple question of
+what's the probability of seeing this
+sentence and
+some setting of hidden states and we are
+going to pick those hidden states such
+that that probability
+is maximized because that's actually
+what we do observe in the real world
+so we say that if we found the hidden
+states which maximize this probability
+that's the most likely settings for the
+parts of speech and so we go with
+those so it's an easy enough concept to
+understand once you've sat
+and kind of thought about it for a while
+but let's think about the biggest issue
+here and we won't talk about how to
+resolve that in this video that'll be
+the topic of the next video
+but let's say just moderately that
+there's five different choices for parts
+of speech
+there's actually many more choices for
+parts of speech in real life but
+let's just say there's five and let's
+say that you have 10 words in your
+sentence that's a
+moderate length sentence there's
+definitely sentences that are much
+longer even now how many
+different possibilities do you have to
+try for this probability
+how many different choices do you have
+to maximize over
+well each of these p's has five options
+five different parts of speech
+and there's ten of them total so there's
+going to be 5 to the power of 10
+different options for you to maximize
+over and if you work that out that's
+almost 10 million which is
+not practical even for a small sentence
+of length 10
+and a small number of parts of speech
+that's just five
+so we need some kind of more efficient
+algorithm than just doing a brute force
+search over all these possibilities
+in order for us to do this part of
+speech tagging in any reasonable amount
+of time
+and that's where we get this really cool
+method called the viterbi
+algorithm which is again going to be a
+topic of the next video i'll walk you
+through
+actually this exact example the fans
+watch the race and i'll walk you through
+some real-life app working through of
+the viterbi algorithm and you'll see how
+you can calculate this
+much more efficiently than this brute
+force search but the main thing i wanted
+you to get across
+in this video is that this is what parts
+of speech
+are just a refresher this is why we care
+about them and this is one of the most
+popular methods for us to do this part
+of speech tagging maybe the last thing
+i'll say is that
+this is not the last method like you can
+get even more complex than this
+notice that we didn't take into account
+like the two words before the markov
+model only takes into account
+the last word but if we want to build an
+even more powerful model maybe we take
+into account
+two words before three words before or
+the entire history of words before
+so we can actually build on this model
+but this is the general basis of part of
+speech tagging
+in natural language processing so
+hopefully you learned something this
+video please like and subscribe if you
+did
+and i will see you next time

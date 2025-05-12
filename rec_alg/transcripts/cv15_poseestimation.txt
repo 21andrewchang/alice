@@ -1,0 +1,214 @@
+are you trying to figure out the 6D pose
+of your object do you want to control a
+robot arm to grasp objects or creates an
+AR application with the rapid
+development in AI it is now possible to
+solve the 60 post estimation problem
+without any markers in this video I'll
+be going over what is 60 post estimation
+how does efficient post work how does
+foundation post work 60 post data sets
+realtime 60 post estimation with
+efficient post go over some f post demos
+if you want to learn more Ai and machine
+learning check out my website at
+kevinwood robotics.com email me for my
+free code Us in this video at kevinwood
+robotics
+gmail.com so what is 60 post
+estimation 60 post estimation is used to
+find the location and orientation of an
+object given the RGB or rgbd image of
+the scene so the location is a position
+or translation Vector typically
+described by the XYZ vector and your
+orientation can be described with
+rotation Matrix axis angle
+representation the querian or Oiler
+angles so imagine if you have a world
+frame described by some XYZ axis then
+you'll have a vector that's your
+translation Vector to your object frame
+and all the axes for the the object
+frame will describe the orientation of
+your
+object so here you see the Rodriguez uh
+rotation formulation so typically what
+you'll do is you'll have some vector v
+and then when you have this vector v the
+idea is you could break up this Vector
+into its components you'll have a
+parallel component and then a
+perpendicular component then you can
+actually rotate the vector by some angle
+Theta and that will give you your V
+rotation so you can also express it with
+rotation matric we have our RX r y and
+RZ and then to really combine the two
+what we have is here is a formulation to
+combine everything and the main formula
+that we care about is the bottom which
+will combine the Rodriguez as well as
+the rotation Matrix if you want to go
+between the two
+expressions so how does efficient post
+work so most methods split 60 post
+estimation into two parts you have the
+first part which is 2D object detection
+and then you have the second part which
+is solve for 60 post using PMP algorithm
+so efficient pose combines the two steps
+and does the 2D object detection and
+finds the translation and orientation at
+the same time so they do this by adding
+two more sub networks to the ficient uh
+detection model for 2D object detection
+architecture which makes it much faster
+okay so now let's take a look at the
+efficient post
+architecture you can see here that we
+have a subnetwork and inside of this sub
+Network one of the main things I want to
+point out is that they have the rotation
+net and translation net so it's actually
+running some of these calculations in
+parallel with the class and box net
+detections so the rotation and
+translation architecture if we take a
+deeper look you can see that here we
+have the initial regression and then on
+the right we have the iterative
+refinement so these refinement modules
+if we take a closer look what's
+happening in here is that there's
+actually a bunch of convolution
+architectures that's stacked up over on
+top of each other to do the
+refinement so how does foundation post
+work if we take a look at the
+architecture here you can see that the
+general flow of the data is on the left
+we have the model free reference images
+and then on bottom we have the textured
+CAD model so the idea is we could switch
+between the two depending on which input
+we want and then on the right the output
+is we could either get the post
+estimation or we could get the Post
+tracking so if we take a look at this
+diagram you can see that there's four
+components to this we have the model
+based tracking model free estimation
+model free tracking and model based
+estimation so the idea is that with
+Foundation pose it's actually good at
+all four of these things whereas the
+other models is only good as some
+usually only one of these things so if
+we take a look at the architecture for
+the synthetic data training part you can
+see that the idea of this is we have
+chat GPT combined with like the
+diffusion model to get a final output of
+some like 3D model that you could use
+and it gets passed into the physics
+Engine with some path tracing and then
+this will give a realistic rendering of
+your model so if we take a look at the
+next part we see that here we start off
+with the neural unknown object modeling
+so the idea of this is you have a bunch
+of images from different scenes kind of
+like Nerf and then you create a 3D model
+and then once you have that you pass it
+into this post hypothesis generation of
+encoders and Transformer architectures
+to give you a estimate of your post that
+you think your object is in so now we go
+to the Post selection so the idea is you
+might have a bunch of candidates but you
+want to pick the best one so what's
+going to end up happening is you're
+going to go through a bunch of
+encoders some self- attention networks
+and then finally rank the best to worst
+as your um final post estimation of your
+object so here are some 60 post data
+sets I want to point out so for some of
+these models you can see that the line
+mod is one of the most common ones
+that's use and sometimes it's quite
+limiting because the data set is pretty
+small but you can see that they could
+augment the data set in different
+viewpoints by rotating it and screwing
+it to mimic and create more data set
+it's like their augmented data set and
+then on the right here is the one the
+ycb video this is another common data
+set that people use for 60 post
+estimation and if you want to find more
+uh data set you could check out the Bop
+Benchmark for 60 object post estimation
+there's a bunch of other data sets that
+people use but the two that I showed you
+will be the main ones all right so here
+you can see my real- time demo of
+efficient post so on the left you can
+see my plots of XYZ in real time and on
+the right I have a plot of the
+orientation as well as the detection of
+the bottle that I'm holding so uh right
+now I'm using the Coco data set I
+modified a little bit but you can see
+that I could try to move the object um
+back and forth a little
+bit and you can see the values changing
+uh right now right now I have the frame
+just floating so it's not tied to the
+object but you could edit that if you
+want to but you can kind of get a feel
+for the location of the object as I'm
+moving it so uh specifically if you look
+at the Z value you should be able to see
+that
+changing you can see it's increasing
+so yeah you could go ahead and play with
+this demo if you like and see how it
+works but I would say that if you want
+this to work for your application since
+it was trained with the line mod you may
+need to retrain it for your actual data
+set so this video right here was part of
+the clip that I showed in the beginning
+but you could see that it could detect
+the pose of the object in real time here
+and by figuring out the pose and knows
+how to orient the gripper of the arm so
+that it could pick it up in the right
+orientations so this could be very
+useful for General robotic uh
+manipulation tasks um so you can see
+that it does pretty well and placing it
+to the base as
+well so this is the AR application that
+I showed earlier but what it's doing
+here is it's actually overlaying this
+path for the ball to follow over the
+book and then you can see that it can
+roll out like a game so you could
+imagine you could apply this to any sort
+of gaming application that you want to
+Overlay to things in real
+life and here you can see it's another
+video you can see that this is a
+representation of how they're rendering
+their scene so you can see that the
+objects that it detects is very good and
+typically this will be a baseline for
+any sort of postestimation because you
+need to have a good uh rendering of your
+scene as
+well okay so if you found this video
+helpful give a like And subscribe and
+I'll see you in the next one

@@ -1,0 +1,71 @@
+Let's talk about thresholding, and
+this is an example, I think this might
+be taken also from Linda Shapiro.
+So the idea is that you're
+imaging these cherries, okay, and
+the idea is that the background
+here is very dark.
+Okay?
+And a healthy cherry is kind of bright,
+all right?
+But a bruised part is medium dark.
+And what you'd like to
+do is be able to say,
+do I have a bunch of bruised pixels.
+So in this particular one, they've
+removed all the black things, but
+you see these are the grey scale values,
+right?
+And you and I look at this, and we say
+yep, you know what, here's my threshold,
+and this is the number of
+pixels that are bruised, and
+this is the number of,
+of pixels that are good.
+And the idea finding a threshold like
+that automatically is not trivial.
+Generally what you do when you look for
+thresholds is you take a histogram
+of the intensities, right?
+So, this might be, you know,
+go from zero to 255,
+and this is the number of pixels
+that you have in the image.
+And the question is, you know,
+what are your distributions?
+Unlike this one, which had this nice,
+clean dis, separation there, this one,
+it's a lot more complicated.
+Are there two, or are there three?
+I think, you know, from my,
+from my take, I'd say, oh,
+there's three lobes there, all right?
+And there's different ways
+of trying to do that.
+A simple method, this is again,
+a long time Otsu's method, it's,
+it's a binary visionary method.
+It basically says find,
+assume that your system is bimodal, and
+find the cut off that minimizes
+the within group variance.
+Okay?
+So you're only allowed to draw one line,
+and so, and it's weighted by
+essentially this, these, these values.
+And when you do that,
+what's kind of cool about it is you can
+do that when it's certainly bi-modal.
+When it's actually tri-modal, let's say,
+you'll typically pick one of the modes,
+all right, and then, you can, look,
+do it again, and, you'll cut it again,
+and what's kind of nice is when you
+slice a mode that shouldn't be sliced,
+you'll get a reduction in the variance,
+but not very much.
+And you can track how much that is.
+And it, and the method can be adapted
+to do a pretty good job of thresholding
+a continuous grayscale into either
+a binary or a three valued system.

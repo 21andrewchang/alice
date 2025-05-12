@@ -1,0 +1,121 @@
+let's learn four concepts today
+image segmentation semantic segmentation
+instant segmentation and panoptic
+segmentation
+image segmentation refers to dividing
+the image into groups of pixels based on
+some criteria
+a segmentation algorithm
+takes an image as input and outputs a
+collection of regions or segments
+you can represent these regions as
+contours or as masks
+the mask representation is much more
+common these days
+we assign a different grayscale value to
+differentiate between different segments
+in this representation
+often we use pseudo coloring to color
+these segments for better visualization
+now let's see what is semantic
+segmentation
+in semantic segmentation the goal is to
+assign a label like car building person
+road etc to every pixel in the image
+here is an example of semantic
+segmentation
+the red color represents the person
+light green is the grass class
+dark green represents the tree class and
+blue shows the sky class
+you can see which pixels belong to the
+person class by simply checking if the
+mask color is red at that pixel
+but we cannot say if two red colored
+pixels belong to the same person or
+different ones
+we just know that red means it belongs
+to the person class
+but what if we want to differentiate
+between instances of the same class we
+want to say these group of pixels belong
+to person one and these other group of
+pixels belong to person two
+they both belong to the person class but
+we want to differentiate between
+instances of the same class person one
+and person two
+well in such cases we use instant
+segmentation which is closely related to
+object detection
+however unlike object detection the
+output is a mask or contour containing
+the object instead of a bounding box
+unlike semantic segmentation
+usually we do not label every pixel in
+the image we are only interested in
+finding the
+boundaries of specific objects
+we see the mask for every person has a
+different color so we can tell them
+apart
+however not every pixel has a class
+label associated with it
+i know what you're thinking now
+can we combine
+semantic segmentation with instance
+segmentation
+and get the best of both the worlds
+fortunately there is a class of
+techniques which does exactly this
+and that's called panoptic segmentation
+every pixel is assigned a class
+but if there are multiple instances of a
+class we know which pixel belong to
+which instance of the class it combines
+the goodies from both semantic
+segmentation as well as
+instant segmentation
+every pixel has a different color-coded
+label for example
+the sky in this example is blue the
+trees are dark green the grass is light
+green
+and people are colored in different
+yellow red and purple shades so whenever
+we see something yellow red or purple we
+can say that it is a person but at the
+same time we can also say that it is
+person one versus person two versus
+person three etc
+the colors yellow and red both point to
+the same class person
+but to different instances of this class
+we can tell different people apart by
+just looking at the mask color
+so to summarize
+in image segmentation our goal is to
+divide the image into different regions
+semantic segmentation is a kind of image
+segmentation where every pixel is
+assigned a class label
+instant segmentation is like object
+detection but instead of finding
+bounding box around the object we find
+the precise mask for the objects in the
+image panoptix segmentation combines
+semantic segmentation with instant
+segmentation
+you can find the links to the
+state-of-the-art algorithms for each
+type of segmentation in the description
+below
+that's all we wanted to cover in today's
+video
+if you like it please share it with your
+friends and colleagues
+see you in the next video this is satyam
+alex signing off your guide to the
+fascinating world of computer vision and
+ai
+thank you

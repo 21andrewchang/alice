@@ -1,0 +1,237 @@
+all right in this video we're going to
+talk about image histograms start off by
+saying what is image histograms why do
+we need it how does it work and then go
+into three coding examples one with a
+gray color and then histogram of a
+region okay so by the end of this video
+we'll see how we can interpret a image
+like this of a cat into a graph like
+this on the right here
+okay so what is an image histogram uh
+image histogram shows the distribution
+of pixel intensity so you can see we
+have pixel intensities on the x-axis and
+number of pixels on the y-axis and here
+we have the three colors of the three
+different channels
+so why do we need image histogram
+there's a lot of applications one is for
+thresholding it could be for
+Equalization and enhancement of images
+you could do different things like color
+analysis or even some color segmentation
+if the Peaks are in very different
+places
+so how does image histogram work so the
+simple idea is you count the number of
+pixels for each pixel intensity so here
+we have zero all the way up to 255 as
+our Max and so for every pixels from 0 1
+2 all the way up to 255 we count how
+many times this pixel value shows up and
+then we just mark it so here you could
+look at this graph and see the blue is
+the winner with the most counts around
+if we draw down around 200 something for
+Pixel intensity okay so that's how the
+histogram works
+so let's go right into the coding
+okay so as usual we're going to import
+some of the things that we'll need or
+common modules so we have our imporce
+CV2 as CV import numpy SNP import map
+plot lib dot pi
+Pi plot as PLT and then
+import OS to read our files so we're
+going to have our first first function
+called gray histogram
+so usually we want to just look at the
+gray sometimes because it's
+um we're only dealing with one channel
+so that that saves us some time and
+sometimes one channel is enough for us
+so
+it's going to be Case by case
+but here we're gonna go ahead and read
+in our file so we have Roots equals OS
+Dot getscwd and then we have our image
+path and that's going to be
+os.path.join and we have our root and
+our file is in the folder demo images
+and then it's called cute pick one dot
+jpeg okay so inside here we have our
+image equals cv.mread and then we're
+going to pass in image path
+and we're going to read it in as a great
+image so I'm read grayscale okay so now
+if I go ahead and plot this plt.figure
+and then PLT dot um show
+and we're using the matplotlib so we
+have our cmap here equals Gray
+so this will plot our image in Gray Okay
+so
+if I do a plt.show
+we could see our cat image here
+okay that's our cat image and now if we
+want to do some histogram plotting we
+could use the histogram function we'll
+create a variable called hist and then
+set that equal to cv.calc hist and then
+what you want to do is pass in it's
+weird it has to be a list of your image
+because perhaps you may have more than
+one and then you have your channel so
+with only grayscale we have one channel
+the mask we won't use
+and then 256 later we'll talk about I
+personally don't use the mask because
+there's an easier way to do it which
+we'll show you later on at the end
+um here we also have the range of values
+which will be 0 to 56 and it's not
+including 256 that's why
+um pixels is from 2 to 255 not including
+256. that's why we have the number of
+256 here okay so we're going to go ahead
+and do some plt.figure for a new figure
+and then plt.plots to plot our histogram
+and then we'll label our x axis as bins
+and then we will label our y-axis as
+number of pixels okay so if I plot this
+I should see my histogram plot in
+grayscale and
+voila we see that most of our values are
+around the 200 which corresponds to
+probably the bright background and this
+white the floor is white this band is
+white so we have a lot of high intensity
+values which shows that there's a lot of
+close to White values in this image
+okay so that's one interpretation of
+this
+and maybe sometimes you would want to
+look at a color histogram instead so I
+could do def color
+I'm going to call this his stuff color
+histogram and then inside of here we're
+gonna do some reading as we did before
+and then once we read the image we want
+to
+here is a different part
+so we don't want this to be grayscale
+anymore
+but what we want is to convert it to RGB
+so we're going to do cv.cv T color and
+then pass in our image
+and we have our CV dot color
+and it's going to be called color
+BTR to RGB okay that will convert it to
+RGB and then we have our plt.figure
+we're gonna go ahead and plot it PLT dot
+on show
+and we have our RGB image so plt.show
+will show the image
+and if I run this we should see our
+color Kitty but first of course I need
+to comment this out
+and then call our new function and I
+need to close these figures and then if
+I run it again we should see our color
+image show up so that's all working so
+now what I want to do is get our
+histogram for our color channels I'm
+going to Define A color list called
+colors
+and then label this B
+G
+and then R okay so I'm going to put some
+stuff in a for Loop so for I in range
+and range the length of colors
+and you could do a pythonic way if you
+want but I'm going to do it this way so
+CV dot calc
+so I'm going to calculate my histogram
+and it's going to take the same inputs
+as we did up here so I'm not going to
+rewrite it
+the only difference here now is instead
+of Ms we call this image RGB okay so now
+we're going to plot it so PLT Dot Plot
+and we have our hiss colors and then I
+afterwards we're going to do our label
+our labels will be the same so I'm just
+gonna copy this
+so now we have our labels so if I were
+to run this
+foreign
+let's see I think yeah I need to create
+a new figure right here so plt.figure
+and this should actually be pixel
+intensity
+that would make a little bit more sense
+instead of bins
+okay so if I run this
+we should see our three channels show up
+okay so let's see we have his colors
+colors I
+okay so I actually want this index here
+to be I so that's it'll correspond to
+the different channels okay so I'm going
+to update that and then run it again
+but I need to First close this
+so if I run it now we see our three
+channels okay so that's what we're
+expecting so what this tells us is that
+this image here could actually be
+represented by this on the right and we
+can see that the red values have a lower
+Peak the blue valleys have the higher
+Peak
+um and not just that you can see that
+the red is lower in pixel intensity so
+the peak and the blue is higher in pixel
+intensities so
+that tells us a little bit about the
+distributions and we also see here if we
+zoom in there's some local Peaks so that
+may tell us some information too if we
+were to look into that okay
+so next up is we're going to do some
+segmentation of a region so region might
+be helpful if we want to zoom into
+somewhere and then see what's going on
+so here if I look at my image again
+let's say if we wanted to zoom in to a
+special region so maybe here in the 600
+to 800s we want to see a distribution of
+this little logo here
+so what we want to do is
+let's go ahead and replicate this so
+we're going to call this uh histogram
+region
+I'm going to comment this out and then
+call our new function histogram region
+so the main difference now is that all
+we got to do is instead of using a mask
+what I prefer is just to truncate our
+image
+into a new section so here we're just
+gonna go ahead and get part of the image
+so I Define six
+seventy five to eight twenty five and
+then 600 to 800
+okay so if I go ahead and run this we'll
+see what this is doing
+we're getting a region of this and you
+can see the Peaks are a little bit
+shifted a little bit higher okay so this
+might be some useful of information and
+you could choose these values wherever
+you want based on where you want to zoom
+into your image and see what's happening
+locally
+Okay so
+if you found this video helpful give a
+like And subscribe and I'll see you in
+the next one

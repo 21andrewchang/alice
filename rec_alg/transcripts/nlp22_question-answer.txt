@@ -1,0 +1,385 @@
+hey everyone welcome back to my channel
+where i talk about all things tech and
+finance and in this video i'm going to
+be talking about question and answering
+models so the high level overview on
+what question answering models are is
+actually really simple you have a
+question you're typing in your question
+you press enter or you submit your
+question and then hopefully the answer
+that comes out is what you're looking
+for okay so let's go ahead and dive into
+the nuances of qa modeling so when we
+are talking about qa modeling uh there
+are two different domains and these are
+like huge categories and within each of
+these categories there's subcategories
+known as a question type however the
+open domain system you can think of this
+as for broad questions you're typically
+like you know asking questions to siri
+or or you know if you're looking for an
+answer to be on wikipedia so think like
+really broad and not really uh tailored
+for a specific industry it's just like
+okay that's uh like trivia pursuit
+closed domain system you can think of
+this as more tailored text for a
+specific industry and in the real world
+typically we will be using closed domain
+systems just because we're just trying
+to narrow down on that specific
+question that we really want answered
+like within the health industry or
+finance industry or even the law
+industry so the only thing that's like
+really different that is just train on a
+more tailored vocabulary that is suited
+for that specific industry that's really
+all that is and then once you nail down
+what type of domain system that you have
+going on then you want to ask yourself
+what type of question type that your
+specific qa model will be providing so
+it could be open-ended it could be yes
+or no it could be inference style
+questions it really just depends on what
+type of output you're looking for so if
+you're doing like in your taxes for
+instance and using turbo tax um you know
+it could be like more like a
+recommendation system but it could be
+like you know like yes no style door
+here's your links for you to click level
+on those lines but you know the qa
+modeling can be used for many of those
+types of systems really just depends on
+your specific use case
+now there are three i guess like large
+or major categories of types of qa
+models uh that are all pretty much how
+like have those systems but the way that
+it generates these answers is a little
+bit different so in this video we'll
+just be focusing on the extractive
+question answering model and you can
+think of this as your providing context
+so like a paragraph you're asking a
+question to that paragraph and you're
+assuming that the answer exists inside
+that paragraph of context so that's what
+essentially extractive question
+answering is in a nutshell of course
+there's some nuances happening in the
+back end but that in a nutshell that is
+what it is now we have the open
+generative question answering so you can
+think of this as like gpt-2
+um so this is essentially like
+generating an answer
+and the answer does not literally have
+to be in a text so that's not the only
+thing that's a little bit different and
+then we have the close generative
+question answering model and it's
+basically like it's like a closed system
+where you don't need to provide any
+contacts because everybody has all so
+many documents that is trained on if you
+ask a question to it hopefully it will
+have that answer
+so that's pretty much what those three
+high-level overviews on the the question
+answering models are sweet so if you
+want some additional information on what
+question answering models are i attached
+a few resources with those links so you
+can go ahead and dive a little bit
+deeper i have one for hugging face
+another one for all the really popular
+um out of the box models you can go
+ahead and use and even fine tune really
+really neat there's a basically like a
+list of other question answering models
+you can use you can even check out how
+to pre-train and fine-tune your very own
+burp model using a very specific format
+and it just goes through all the
+specific formats that you you just need
+to have when you're gonna be going
+through this process nonetheless via the
+uh the attractive qa modeling that we'll
+be doing right now i'll be doing just
+that so before we actually go to the
+implementation phase i do highly
+recommend that you check out this bert
+video linked here
+partly because question answering model
+is literally based off of a bird model
+architecture the only thing that's
+different is that it has the output
+layer where that output layer is a
+linear layer and each of those well each
+of the nodes within the linear layer
+represents a specific word you can think
+of it as a word and wherever the
+prediction is this could be predicting a
+specific word output so that's basically
+what's happening there uh so this very
+specific qa model we'll be using is
+something called roberta it's basically
+like a new and improved version of burt
+uh but that's all it does is like it
+removes the nsp objective which is not
+predicting the next sentence during its
+training phase anymore
+it's also training on larger batch sizes
+longer sequences and is dynamically
+changing the masking pattern whereas
+trying to predict which of the words
+within the sentence are actually the
+word itself so that's where the masking
+part is being done it's really really
+neat
+so yeah nonetheless let's go ahead and
+go to google collab which is right here
+uh i'm also made sure to link this
+inside of the github notebook that i
+attach in the description down below so
+before we begin make sure you go to
+over here you go to ram make sure you
+change run type make sure you're on a
+gpu
+because we are using a very very
+intensive type of a model and the
+runtimes are quite insane and i'll show
+you a representation of that very soon
+so let's go ahead
+make sure you install pip install
+transformers very important library for
+us to essentially utilize
+you know question answering models or
+any nlp model for that matter or some
+other very popular neural network
+architecture
+so nonetheless this is a real quick
+example
+literally came from hugging face
+but this is a real quick example on how
+to utilize a box right out i mean how to
+utilize a model right out of the box so
+we imported imported our important
+packages we have our model name where
+our model is roberta base squad 2
+and this is where the model is located
+it's uh we're just using the question
+answering here but it's literally from
+hugging face and we are importing that
+using this pipeline function we have
+over here so
+the deep step roberta base squad 2
+that is the model that we will be
+extracting from the hugging face api
+and we are specifying we want the
+question answering model from this
+specific model here
+partly because there are different
+usually different types of models that
+are based off of the same model
+architecture just
+like hot swapping uh output layers uh we
+are gonna be yep that's the model name
+and then tokenizer we assign that with
+the name as well since there's like a
+little directory within this repository
+if we go to files and versions this is
+where all the information is located so
+once you you know associate your model
+names with your nlp pipeline this is
+where the extractive question answering
+model will be done so notice that we
+have a question
+and we provide a specific context and we
+are assuming that the answer exists
+within this context and so this is
+essentially the highlights of the
+extractive
+qa process so we just plug in the qa
+input question in context into our nlp
+pipeline and we are expecting
+an output which we will see right here
+the results and so we see the answer
+gives freedom to the user so why is the
+model of conversion important gives
+freedom to the user
+gives freedom to the user so it's
+literally extracted from that context
+and that is what qa is doing it provides
+us an f1 score and note that the f1
+score is defined as here basically like
+the individual words of the predicted
+individual words and the true words and
+is plugged into the f1 scoring algorithm
+and notice that we have here we have an
+index of start
+and basically right here it starts at 59
+and it just that's where that's the
+beginning of the of the answer so i
+assume between here and here is between
+59 and 84.
+that is the span so that's pretty much
+how you use a roberta qa model right out
+of the box so if you want to go ahead
+and start fine tuning the like little
+model with you know your own data sets
+uh well look no further if you're
+curious as to what the model looks like
+for roberta
+you could just print out the model
+architecture defined right here model
+and it provides you the overall
+architecture on what that is a lot of
+layers and a lot of a lot of great stuff
+here but essentially it's spaced like a
+burp model uh bert stacks on bert stacks
+on bird
+so that's basically what that is and as
+we can see we have the last linear layer
+here so let's go ahead and look into the
+fine-tuning phase so definitely
+recommend a gpu that's why we have
+google collab
+and otherwise it'll be like incredibly
+slow so
+there are two ways of doing this and the
+first way is via the command line route
+if we essentially just copy and paste
+this link to see what this run squad
+python is it's essentially a link to a
+specific branch
+that has the like basically all the
+training steps within this entire
+repository and you would have to go
+ahead and define some of the arguments
+that are raised in here and i do
+recommend that if you want to go via the
+command line route you just go ahead and
+go to this link and there's like an
+entire like instructional set on what to
+do
+so if you don't like using the command
+line that much well
+you came to the right video so let's go
+ahead and look at the using popular
+library section first things first one
+go ahead and make sure you have a really
+good data set so
+we're gonna be
+installing the data sets um library
+where we want the squad data set
+just version one and the squad data set
+can be found here and the squad data set
+which i opened up a new tab and just
+loaded over here is essentially a really
+really high quality data set that was
+developed at stanford fun fact
+and there are
+this is like heavily highly highly
+annotated where the answer starts and
+where text is supposed to be the answer
+to that given context and they're given
+a specific document title name and then
+the id is just the hash of the context
+and there's 50 000 of these so it's
+extremely extremely useful uh in terms
+of the training and you know fine-tuning
+phase i should say
+where it has you know its specific
+labeling
+okay our data set has been loaded let's
+move myself back up here and once that
+has been loaded let's go ahead and check
+out what the data set is and you can
+already see some of these outputs but we
+have eighty seven thousand rows oh so
+it's a hundred thousand or so yeah close
+to a hundred thousand uh records that
+we'll be dealing with so
+we have eighty seven thousand rows for
+the training set and the validation set
+is close to ten thousand so just running
+this we can go ahead and check out what
+one of these records are and as we see
+this looks very familiar um basically
+we're given the index start of where our
+our answer lies in
+our given context here we have a
+question and we have the title basically
+where that title is like what document
+it came from and so this over here is
+just a really large cleaning function
+you can go ahead and check that out but
+pretty much courtesy of hugging face on
+how to convert all of these specific
+records we have in our squad data set so
+that is readable for the actual burp
+model and so this is what this entire
+thing is doing over here okay great that
+only took about a minute for us to
+pre-process our entire data set and now
+the next parts we want to go ahead and
+do is to load in this package the
+default data collater
+once we have that let's go ahead and
+run this the the same exact thing where
+we're just we're just extracting our
+given model uh from the model name and
+remember the model name itself is from
+the deep set roberta base two and this
+is how you fine tune your given model
+and
+at the end
+this will be outputting into a specific
+folder
+under results i believe
+and we can just wait a little bit
+but now it's training and it's taking
+close to three hours or so with a gpu
+and my gpu is probably not that great
+however if we were to run this on cpu
+which i did fun fact
+all the way down here um it would have
+taken me um that number so 65 hours to
+run whereas a gpu on google cola would
+have taken me
+about three hours now if you are curious
+about how to train your qa model from
+scratch otherwise known as the
+pre-training phase i highly recommend
+you check out this guide over here on
+how to pre-train your very own model and
+what this section is doing the
+pre-training phase is that it's training
+the model to understand the context the
+syntax the language the nuances of the
+language that is being fed in the data
+and this is a self-supervised approach
+where you don't need label data at all
+you just give it like huge amounts of
+text just corpuses upon corpuses of data
+for it to just you know understand the
+nuances because it's using a masked uh
+approach
+and then the fine-tuning phase that's
+where the labeling starts to occur so as
+we see here uh we know that the results
+are being populated and we have
+different checkpoints and these are the
+different uh initializations of each one
+of these checkpointed models and you can
+literally just go ahead and download
+each one of these checkpoints to do
+whatever you need to do and the final
+checkpoint is going to be your final
+model

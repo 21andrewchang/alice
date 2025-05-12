@@ -1,0 +1,165 @@
+[Music]
+hello my name is Krishna come welcome to
+my youtube channel so guys I was
+actually trying to reform at my NLP
+playlist because there was some mistakes
+and I had actually made those videos
+private so now you'll be able to see the
+videos and if you want to actually see
+the link the link will basically be
+given in the description of the NLD
+playlist itself right now let us go
+ahead and try to understand the first
+thing that is called a stemming and
+limitation and one important thing about
+natural language processing guys over
+there all our input data and will be in
+the form of text data right and we
+cannot just give our text data back to
+our model you know machine learning
+model and machine learning model will
+not understand what is that text data at
+all so what we do is that we try to
+pre-process that data we try to convert
+that into some numerical representation
+which we basically call it as vectors so
+probably now from there some videos that
+are going to come currently it is
+stemming unlimited in my next video I'll
+be explaining about bag-of-words tf-idf
+and everything will be available in the
+playlist itself
+okay the link is given in the
+description so let us understand what
+the stemming a limitation mean this is
+the Wikipedia definition guys process of
+reducing infected words to the word stem
+okay so stemming is a process wherein we
+are reducing the infected word to the
+word stem what does this mean suppose I
+have some words like history and
+historical and if I try to apply
+stemming this will get converted to
+history okay H is cor I okay now
+similarly if I have some words like
+finally final finalized it is going to
+get reduced to the word stem understand
+what is the word stem over a finer finer
+finer write so this is going to get
+reduced and we are actually getting this
+particular word itself final there are
+also some use cases like curve if I
+consider going go goes gone if I try to
+convert this by using stemming this is
+going to get converted into go okay now
+why why do we require stemming okay
+we'll come to limit addition but just
+understand why do we require stemming
+this understand in NLP most of the use
+case that you have seen this
+like sentiment analysis they use kiss
+like determining spam classifier they
+use kisses like to understand restaurant
+reviews and provide some ratings you
+know in that particular use case the
+most important things in in that
+particular words or the comments that
+people people are actually putting the
+most important things are basically the
+word stem words well get the stem the
+word stem which is the base word right
+that is pretty much important by just
+having that particular word we will be
+able to determine whether that word is
+positive or negative okay so that is
+what is stemming now what what does
+limitation do limitation also do is the
+same thing but it converts that word and
+whatever word we are getting it is a
+meaningful word basically understood by
+human being you know it is a it is a
+meaningful word in this particular
+situation you can see history and
+historical get converted into history h
+IH tu RI this will not make sense right
+what is this particular word all about
+right similarly if I say finally final
+and finalized I am getting final fi na
+but whether if if I apply lemma
+titration here I'm actually getting
+final right and this all is possible by
+using a library which is called as
+analytical and in the future upcoming
+lessons I'll also be coming with Spacey
+libraries which is pretty much amazing
+you know spacey library is also very
+good library with respect to NLP work
+that is national language processing
+right but if I take this example of
+going goes and gone for all this three
+words both stemming and limitation also
+works similar you know so for some of
+the words stemming may not give you a
+proper representation may not give you a
+meaningful meaningful representation you
+know the human being will not be able to
+understand whereas limitation is focused
+on giving a representation which is
+quite more meaningful now understand the
+basic difference between stemming a
+limitation the first repre you know
+difference is basically let me tell you
+say when it is converting or when it is
+giving another form of the word it may
+it will definitely have some meaning
+whereas over here in stemming the word
+representation will not have any meaning
+you know some of the word representation
+will not have it any meaning okay the
+second difference is that limit ization
+takes usually lot of time because to
+come to a meaningful word it usually
+takes time it has to do that processing
+it needs to understand each and
+everything inside that particular word
+whereas in stemming it does not take
+that much time because it's just trying
+to find out the base word right now the
+third difference is that what all kind
+of applications we can use limitation
+understanding if I go to stemming guys
+some of the application of sentiment
+classifier you know positive negative
+sentiment analysis Gmail spam classifier
+you know so these are this all things
+can be used in stemming because
+understand we just need to find out the
+base word okay we will not represent the
+word in the proper sentence you know a
+proper meaning should not be there in
+the word we're just trying to find out
+the base word we had we have those data
+in our training data set and then we'll
+be able to determine the sentiment
+analysis where is limitation used
+limitation can be used in chat BOTS it
+can be used in question answer
+application because the response that a
+human gets from those application is
+meaningful right so we need to have that
+meaningful representation right so I
+hope you have understood about stemming
+a limit ization my next video will be
+with respect to bag of words how we can
+actually implement bag of words you know
+with the help of analytical library that
+whole working I'll be showing you how it
+works I'll be taking a very good example
+and what all things are computed in bag
+of words I'll be showing in this
+particular board itself so yes this was
+all about this particular video I hope
+you liked it please do subscribe the
+channel if you're not already subscribed
+make sure you have a great day thank you
+one and all bye bye

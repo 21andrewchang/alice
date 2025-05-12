@@ -1,0 +1,345 @@
+in this video we're going to talk about
+word to VC so computers don't understand
+words but they understand numbers and so
+we need to convert these words into some
+numeric representation these numeric
+representations are called embeddings
+and ideally in their state the closer
+the numbers start to each other the
+closer is their meaning and so you'll
+have two similar meaning words over here
+closer to each other then let's say
+apple which is way up here early
+representations of words and sentences
+involve breaking them down into their
+corresponding engrams so for a sentence
+we would represent them as a vector of
+NRS of words where every word here is an
+engram so we have two words is a Byram
+three words is a trigram while this is a
+very interpretable Vector it is very
+large and so in 2003 we had neuro
+probabilistic language models introduced
+which would internally learn a
+continuous dense representation of a
+word so this would make the vector size
+a fixed sequence for every single word
+that's much more smaller in the order of
+hundreds of numbers per vector and they
+can also be represented in a continuous
+space it's continuous because every
+single point is a valid point in the
+space although not every single point
+corresponds to a word about a decade
+later in 2013 word to VC was introduced
+so word Tove is a framework that tries
+to create those dense continuous
+vectors and it does so with two main
+architectures that is the continuous bag
+of words architecture and the continuous
+skip gram architecture so to illustrate
+this with an example let's say that we
+have the sentence the biggest lie ever
+told and we want to train this single
+layer neural network in order to learn
+about the word embeddings let's say that
+the window size is two so that means
+that in order to predict let's say the
+word lie we consider two words that come
+before it and two words that come after
+it so the biggest ever told is the input
+for the seal model and each of these are
+initially one hot encoded vectors where
+the size is the one hot size of the
+vector is the same size as the
+vocabulary let's say it's 100 right so
+each of these will be 100 cross one
+vectors and this here is now it has to
+be projected onto some other smaller
+dense Vector through a shared weight so
+this is going to be like you can
+consider this as let's say that we want
+to have the dense representation as like
+256 dimensions then that means that the
+shared the weight itself you have to
+multiply it by 100 cross 256 that's the
+dimensions of this Matrix over here and
+so if you multiply a 1 cross 100 Matrix
+with a 100 cross 256 you get a 1 cross
+256 dimensional Vector which should be
+pretty dense and this Vector should be a
+representation of the word the' and it's
+shared because we do the exact same
+thing right over here where we have the
+same exact Matrix of 100 cross 200 56
+and we multiplied with this to get
+another 1 cross 256 dimensional Vector
+called biggest same with ever and told
+and so we have four of these dense
+vectors which we take the sum of in
+order to get like the final projection
+of 1 cross 256 and now from this dense
+Vector representation we need to now
+expand it back into the vocabulary size
+which is a 100 cross one dimensions and
+so we have a 256 cross 100 dimensional
+Vector here in order to get the word
+lie and this is a very simple Network
+which we can then learn through back
+propagation the idea here is to use an
+input set of words in order to predict
+the central context word skip gram is
+very similar in the sense that we have
+the word lie and we are now predicting
+outer context words now I mentioned that
+the vector that we are multiplying this
+with is the exact same while it kind of
+looks a little strange in this diagram
+we're actually passing in training
+examples and pairs so for for example
+for this sentence let's say that you
+know the positive pairs in this case are
+Li and the LI is the input biggest as
+the output Li is the input ever is the
+output Li is the input and told is the
+output and so we're actually just doing
+one of these at a time and again context
+doesn't matter at all and the matrices
+that we are using over here are actually
+the exact same overall both of these
+architectures optimize the objective of
+is the output word in the context of the
+input word and in the end we will end up
+with these weight matrices over here to
+be a word to VC mapping so we can give
+it a word and for that one word we can
+get its corresponding 256 Dimension
+Vector representation and similarly here
+we can give in the word and after it's
+trained we will be able to get its
+corresponding Vector representation it's
+just a lookup table at that point so the
+pros of this art overcomes the curs of
+dimensionality with Simplicity in this
+architecture it's a super simple
+architecture it's basically a feed
+forward Network with one hidden layer
+and so it's very quick and easy to train
+and another issue here that we're
+overcoming is the cursive dimensionality
+NR vectors are very large and so if you
+were to represent them in an embedding
+space that space is also very large and
+distances between points in that space
+are very large they are so large that
+determining which points are closer to
+each other becomes almost
+indistinguishable because the distances
+are just that large and this is what we
+call the curse of dimensionality and the
+embedding representations would become
+useless in such a large space on the
+other hand here we're able to learn a
+very compressed representation of words
+and so par wiise distances in the
+embedding space become more meaningful
+and this transitions well into the
+second Pro of closer the meaning equals
+closer physical vectors another cool
+thing is that pre-train embeddings can
+be used in a host of applications yeah
+even in the industry today there's a lot
+of applications that would just take
+words map them to their vectors in order
+to get that Vector representation and
+use it directly in their
+application and another Pro I thought
+was pretty cool was that it
+self-supervised the input to this model
+and the output to this model actually
+come from the same exact example just a
+sentence so the sentence itself serves
+as both the input and the output because
+there's an input and output it is
+supervised and because it's provided by
+the same sentence it is self-supervised
+and because this is self-supervised it's
+actually very easy to get more data we
+just really need more sentences to train
+that said the word Tove framework does
+have some cons so first of all in this
+particular instance the global
+information is not accounted for we're
+literally just using individual local
+context in order to generate the word
+vectors for both skip gram and seal this
+can be solved with global Vector
+embeddings glove embeddings which we'll
+take a look at next a second con is that
+it doesn't work very well for
+morphologically Rich languages and this
+can be solved with fast Tex which we
+will also look at next and the third is
+that it lacks broader context awareness
+which we have looked at in the past with
+lstm's burden and GPT I'll link those
+videos in the description glove or
+Global vectors have the same objective
+of trying to learn these word
+representations however instead of using
+just local contextual information from a
+single sentence they use Global
+Information across different sentences
+in order to learn these word
+representations and edings so more
+specifically we construct a word word
+co-occurrence matrix by for every word
+we would try to understand which words
+are in the context of other words so for
+example in this space over here is the
+number of times that the word hoax is in
+the context of the word covid and this
+over here is the number of times the
+word believe is in the context of the
+word hoax so once we have this word word
+co-occurrence Matrix we will try to
+construct these Vector representations
+of words and they work just as well as
+the SE bow and Skip gram case to
+illustrate kind of more what we're doing
+here is let's say that we have two words
+that's ice and steam and we want to
+determine if solid gas water and fashion
+which words are they actually closer to
+in meaning with global vectors we
+actually do this via probability ratio
+this here is the probability that the
+word like solid is in the context of ice
+this here is the probability that the
+word solid is in the context of steam
+and this is the ratio of two those two
+probabilities and so if the probability
+ratio is very large we know that it is
+more related to ice than steam if the
+probability ratio is very small then we
+know that it is more related to steam
+than ice but if the probability ratio is
+you know somewhere around one then it's
+not really relevant to both ice and
+steam and so what we can see here is
+that solid it's a very high probability
+ratio here and so it is more associated
+with ice gas low probability ratio
+closer to zero and and hence it is more
+associated with steam and then water and
+fashion are kind of in the center and
+they're not really associated with
+either of these as much and this is
+exactly what we would want in the
+embedding space we want the vector for
+solid to be closer to ice we want the
+vector for gas to be closer to steam but
+we don't want water to be closer to ice
+or steam nor do we want something like
+fashion to be closer to ice or Steam and
+because this is exactly what we want we
+would build a neural net architecture
+that optimizes this probability ratio
+objective and so this is just another
+way to learn word representations
+another issue that we had with word
+tubec is the fact that it cannot handle
+morphologically Rich languages very well
+and by morphologically Rich I mean that
+there are certain words that might
+change their form because of the gender
+because of the prepositions involved or
+actions this is something that you see
+more non- English languages kind of like
+Finnish and Turkish and Arabic with
+their inflections and also in a lot of
+Indian languages I'm going to be
+illustrating one with an Indian language
+called Canada which is spoken in South
+India with this example here so let's
+say that we have house from the house in
+the house all of these technically
+describe the same thing a house but if
+you were to translate this to that
+language Canada house is written as
+money from the house we add it with
+preposition from it would be Mana and in
+the house which is with the preposition
+in it's going to be man so technically
+each of these are words and each of
+these are different looking words but
+they have the exact same meaning and so
+because of this we want the vector
+representations to also reflect this by
+making sure that the vectors for each of
+these words are as close to each other
+as possible unfortunately though with
+word Toc we are going to be treating
+each of these words as independent
+vectors completely and there are cases
+where you know if one of these words
+occur like money might occur in the
+Corpus but money in probably doesn't
+occur however we should be able to infer
+this even though it's not in the Corpus
+at all in English you can see that it's
+all just house there's no differences so
+English here is not a morphologically
+rich language the way that fast text
+would handle the situation is by
+considering subword information so we
+would break each of these words into
+their corresponding character NRS like
+we would break them into Tri GS 4 G 5 GS
+and six G and then use those to create
+vectors aggregate them to represent the
+word as a whole and then we can use them
+in like the skip gram architecture in
+order to learn appropriate word
+embeddings and this way we can make use
+of like just because now here they have
+so many similar Roots here or maybe in
+Finnish and Turkish and Arabic they have
+similar base values and the only
+difference is is probably the
+inflections by considering character
+level information all of these words are
+going to be very similar to each other
+in terms of their Vector composition and
+so they will be similar to each other in
+you know closer to each other in the
+vector space and hence closer in meaning
+and so fast text is a great way to
+understand morphologically Rich
+languages via
+subwords all of these four word Toc
+architectures that we mentioned still
+have a major downside which is context
+wear embeddings currently with word to
+Vex we have a word and we will always
+get the same Vector regardless of the
+context however context does matter for
+example the queen in that drag queen
+slays and the queen in this sentence she
+has a queen and Ace for a perfect hand
+these Queens they're Queen but they are
+very different in meaning and in order
+to address this we have lstms then later
+Bert and GPT and of course the modern
+large language models today that
+actually account for this a lot better
+all in different ways though and I've
+created those videos and you can check
+those links in the description below but
+that's all I have for today thank you
+all so much for watching if you like the
+video please give it a like subscribe
+share and I will see you in the next one
+as we continue our discussion through
+the world of national language
+processing

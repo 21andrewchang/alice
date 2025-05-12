@@ -1,0 +1,82 @@
+foreign
+we're going to discuss transfer learning
+let's Dive Right In first what is the
+definition of transfer learning and what
+does this actually mean
+the formal definition is
+a transfer learning is the Improvement
+of learning in a new task through the
+transfer of Knowledge from a related
+task that has already been learned okay
+now what does that actually mean
+yourself as a child learning to ride a
+bicycle for the first time is difficult
+and took lots of time to learn you need
+to learn everything from scratch how to
+keep the balance how to steer the wheel
+how to break now imagine yourself today
+wanting to learn how to ride a
+motorcycle you don't need to start from
+zero it is much easier for you to learn
+how to keep your balance or use the
+brakes even though you're in a different
+setting you can transfer the skills
+learned from riding a bicycle that is
+the essence of transfer learning okay so
+in a machine learning context and not a
+learning to ride a bike context what
+does this look like transfer learning is
+a technique that enables algorithms to
+learn a new task by using pre-trained
+models take an algorithm that has
+learned how to recognize dogs
+this algorithm can be trying to
+recognize cats with relativities by
+transferring certain abstract Concepts
+before transfer learning traditional
+learning meant that machines learned in
+isolation once the machine was given a
+large enough data set it learned how to
+perform a specific task however one task
+with a new problem to solve it cannot
+resort to any previously gained
+knowledge instead a conventional
+algorithm needs a second data set to
+begin a new learning process however in
+transfer learning the learning of new
+tasks relies on previously learned tasks
+the algorithm can store and access this
+knowledge the module is General instead
+of specific why is this beneficial this
+technique of transfer learning unlocks
+two major benefits first transfer
+learning increases learning speed with
+less new things to learn the algorithm
+is faster to generate high quality
+output
+to use another analogy a nice hockey
+player is likely to learn more quickly
+to play field hockey than an average
+person because certain Concepts apply to
+both disciplines
+second transfer learning reduces the
+amount of data required in additional
+learning an algorithm can only learn
+when fed with enough training data
+sometimes millions of data points this
+data might not be available at all or
+too expensive to generate and prepare
+for the model so there you have it
+transfer learning is how machines learn
+by sharing knowledge now that you're
+here I wanted to tell you about levity
+levity is a tool that allows you to
+train AI models on images documents and
+Text data you can rebuild manual
+workflows and connect everything to your
+existing systems without writing a
+single line of code if you liked this
+video you'll probably love levity and we
+can't wait to hear from you
+foreign
+[Music]

@@ -1,0 +1,330 @@
+[Music]
+hi everybody welcome back in this video
+we're going to be talking about object
+tracking this is a really interesting
+topic and a lot of fun to experiment
+with and we hope you enjoy this
+demonstration
+so first of all what is tracking
+tracking usually refers to estimating
+the location of an object and predicting
+its location at some future point in
+time
+in the context of computer vision that
+usually amounts to detecting an object
+of interest in a video frame and then
+predicting the location of that object
+in subsequent video frames
+and we can accomplish this by developing
+both a motion model and an appearance
+model
+the motion model will estimate the
+position and velocity of a particular
+object in pixel coordinates and then use
+that information to predict its location
+in future video frames
+and then we can also use an appearance
+model which encodes what the object
+looks like and then search the region
+around the predicted location from the
+motion model to then fine-tune the
+location of the object so again just to
+summarize the motion model provides an
+approximation as to where the object
+might be located in a future video frame
+and in the appearance model is used to
+fine tune that estimate
+so all of the code that we'll be using
+below is from the opencv API tracker
+class and so we'll go ahead and talk
+about that a little bit more as we
+scroll through the notebook
+so as a concrete example suppose we're
+interested in tracking a specific object
+like the race car identified here in the
+first frame of a video clip in order to
+initiate the tracking algorithm we need
+to specify the initial location of the
+object and to do this we Define a
+bounding box shown here in blue which
+consists of two sets of pixel
+coordinates which Define the upper left
+and lower right corners of the bounding
+box
+and then once the tracking algorithm is
+initialized with this information the
+goal is to then track the object in
+subsequent video frames by producing a
+bounding box in each new video frame
+so we'll talk more about this below but
+before we get started with the code
+description let's just take a look at
+the tracking algorithms available in
+opencv
+there's eight different algorithms
+listed here and we're not going to go
+through the details of each one but it's
+worth noting that depending on your
+application one model might be more
+suitable than the other
+for example some are more accurate some
+are faster some are more robust to
+occlusions of the object being tracked
+so that's just something to keep in mind
+as you experiment with the algorithms
+for a particular application you may
+have in mind
+and then one other thing that's worth
+mentioning here is that the go turn
+model is the only one that's deep
+learning based and we'll talk a little
+bit more about that further below
+so just as a preview to get started
+we've got a test video clip here and
+let's just play it one or two times
+so you'll notice that early on the car's
+appearance is relatively constant and
+its motion is fairly uniform
+but as it starts to make the turn here
+the perspective is more from the
+broadside portion of the car
+and then also the lighting is starting
+to change quite a bit
+and then now toward the end it's getting
+smaller and smaller off into the
+distance
+so those types of things are going to
+represent some challenges for some of
+the tracking algorithms and as we work
+through this demo we'll point out
+situations where one particular
+algorithm is having a difficult time due
+to factors like some of these that we've
+pointed out
+so let's go ahead and take a look at the
+first code Block in the notebook here
+we're importing some modules that are
+required and then on line 10 we're
+indicating the file name for the video
+clip that we're going to process
+and then here we're defining some
+convenience functions that will allow us
+to render a bounded box information on
+the output video stream as well as
+annotate the output video frames with
+some text
+and then recall earlier that we
+mentioned the go turn model is a deep
+learning based model
+and this model uses a neural network to
+help us predict where the bounding box
+will be in a subsequent video frame
+and so this block of code here is
+required to download that inference
+model
+and then this figure here is a very high
+level description of how the go turn
+tracker is trained and used
+so in the center here we're indicating
+that we have a pre-trained neural
+network model also known as an inference
+model
+and it takes as input two cropped images
+one from the previous frame and one from
+the current frame
+and it uses the bounding box from the
+previous frame to crop both of these
+images and therefore the object of
+interest is located in the center of the
+previous frame
+and obviously if the object is moved in
+the current frame then it won't be
+centered in this cropped image because
+we're using the bounding box from the
+previous frame to crop both of the
+images and so it's the job of the
+inference model to then predict what the
+bounding box is from the output frame
+here
+so that's just a very high level
+description of how that model works
+so let's go ahead and continue on and
+take a look at the next code block
+so this is where we're going to create a
+Tracker instance and we start by
+defining a list of tracker types that
+are available in the opencv API
+and then depending on the tracking
+algorithm that we'd like to execute you
+would just set the appropriate index
+here into that list and since this is uh
+specified as 2 then we'd be indicating
+that we'd like to execute the KCF
+tracker
+and then this if else block is the logic
+that's used to call the appropriate
+class to create the tracker object
+so in the case of the default we'd be
+calling the tracker KCF underscore
+create class to create a Tracker object
+of that class
+so let's continue on to the next section
+where we're going to set up the input
+output video streams
+so here on line two we're passing in the
+video input file name to the video
+capture class and that's creating for us
+a video input object
+and then on the next line we're going to
+go ahead and read the first frame from
+that video file and that returns for us
+a logical as to whether or not that
+operation was successful and then the
+second return value is the first frame
+from that video which we'll use further
+below
+and then down here on lines 13 and 14
+we're doing a similar thing for the
+output video stream creating a video
+output object and this is going to be
+used so that we can annotate the output
+video with results from our tracking
+algorithm
+so now we're at the point where we can
+initialize the tracker and to do that
+we're going to define a bounding box
+around the object that we're interested
+in tracking
+and here we're doing that manually by
+specifying a set of pixel coordinates
+that Define the upper left and lower
+right corners
+of a bounding box around the car
+in practice you would um probably select
+this using a user interface or perhaps
+use a detection algorithm to detect the
+objects of interest
+programmatically but for demonstration
+purposes we're just going to manually
+Define the initial bounding box that
+identifies the location of the car in
+the very first video frame
+and then next we're ready to initialize
+the tracker and so to do that we use the
+tracker object that we defined above and
+we call the init method for that tracker
+object and we pass in the first frame of
+the video clip as well as the bounding
+box that we just defined above
+and then once that tracker has been
+initialized we can then process all the
+remaining frames in the video and we can
+accomplish that in the following Loop
+so here on line two we're reading in the
+next frame from the video
+and then on line 10 we're passing that
+frame to the tracker's update function
+and that returns two values one is a
+logical that indicates whether a
+detection was made and if a detection
+was made we get the bounding box
+coordinates for that detection
+and then next we can compute the frames
+per second using these convenience
+functions in opencv
+and then coming down to line 16 if a
+detection was made then we'll call the
+draw rectangle function to render a
+bounding box on the current frame
+otherwise we'll display a tracking
+failure message
+and then further below we annotate the
+frame with the tracker type and also the
+frames per second which we calculated up
+above and then finally each time through
+this Loop we write out the current frame
+to the video output stream
+so that's all there is to it this Loop
+Cycles through each frame in the video
+clip calls the tracker update function
+and then annotates the frames
+accordingly depending on whether or not
+a detection was made
+so let's scroll down a bit further here
+and take a look at some results
+so all of these results that we're going
+to take a look at here are output
+streams that were annotated with
+tracking results and we're just going to
+play them back in the notebook
+so as you can see in this first example
+this is the KCF tracker and I'm going to
+go ahead and play this and we'll take a
+look at how it performs
+so it looks like it's doing a fairly
+good job of tracking the car a little
+bit off center but still maintaining
+track on what's obviously the car in the
+video frame and then as the car rounds
+the corner it's doing okay and then
+shortly here we're going to see that it
+has a little bit of a difficulty right
+here at the end it drops track on the
+car
+and as we go through other examples in
+this notebook you'll notice that each of
+The Trackers tends to have difficulty in
+different ways so let's go ahead and
+take a look at the next example which is
+the csrt tracker and notice that this
+one does a little better job of tracking
+the car with a bounding box encompassing
+the entire car and centered on the car
+for pretty much the first portion of the
+video
+but then also notice that towards the
+end of the video when the car is making
+the turn the tracker is a little bit
+biased towards the front of the car and
+then at the end of the video it's kind
+of leading the car a little bit so it
+doesn't drop track but the location is a
+little bit off there towards the end
+so let's go ahead and take a look at our
+final example which is the go turn
+tracker which is the only tracking model
+in opencv that's based on a neural
+network so let's have a look
+so initially the tracker looks like it's
+doing a really nice job like the other
+trackers maintaining uh the bounding box
+pretty much centered on the car
+and then also through the turn notice
+that the bounding box even though it's
+changing shape is still really centered
+on the car and even at the very end of
+the video here where the other trackers
+had more difficulty the go turn tracker
+is still able to maintain a fairly
+accurate position for the car so out of
+these three examples all the trackers
+were able to do a fairly good job near
+the beginning
+but as it became more challenging as the
+cars around in the corner and going off
+into the distance the go turn tracker
+was the the most robust in this case
+maintaining a pretty accurate track
+throughout the entire video stream right
+up until the end there so we hope that
+gives you a good feel for how to
+exercise the various tracking algorithms
+in opencv and especially the small
+amount of code that's required in order
+to get something up and running so we
+really encourage you to experiment
+further with this notebook try some of
+your own videos and experiment with
+various algorithms and we hope this was
+helpful to you and we'll see you next
+time thanks so much

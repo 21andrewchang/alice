@@ -1,0 +1,486 @@
+Today we will discuss an important
+concept called stop words in NLP.
+Let's look at our same example, that we
+discussed in last video, which is you
+have news articles, and you want to
+tag or auto tag the company name. And how
+do you do that? Well
+when you are reading the article, you
+notice certain words such as Elon Musk,
+gigafactory, model 3. If you encounter
+those words you know this is Tesla.
+If you encounter Apple,
+iPhone, those kind of words you know that
+the news article is about Apple, and this
+is a classic problem that they saw
+in NLP world,
+where they try to auto extract entity or
+they try to tag the topics to a news
+article.
+And this approach is called bag of
+words which is something we already
+discussed in the last video,
+where
+let's say you have three articles, you
+don't know which company
+the article is from,
+and if you can build simple
+bag of words model, where bag of words
+is a jargon. It's it's very simple thing
+actually. You have a word and you count
+number of words. So in first article
+Tesla appears 14 times, model 3 appears
+9 times, and it's obvious this is
+a Tesla company right? And based on see
+the the second article iPhone appeared
+13 times, iPad appears 6 times, and
+remaining words are 0, etc., You know it
+is about Apple.
+But if you read the article carefully
+you will find
+a lot of other words as well such as
+wants, time, to prepare. So see I
+represented a very simple
+model here. You know very convenient
+model. In reality you will have
+lot of noise.
+You will have too, far, over and these
+words are general English words, which
+can appear in any article with a equal
+frequency. Based on these word count, you
+can't determine if the article is from
+Tesla or Apple.
+Wouldn't it be nice if you can filter
+these words? So let's say, I'm looking at
+this article
+and some common words which appear in
+pretty much all the articles, like to,
+from, the, a and over. If you can remove
+that,
+you can make
+your bag of words model little less
+sparse. So sparse means, in this model you
+have a lot of noise,
+the vocabulary is very big, computation
+time is high, it's a sparse model.
+Whereas if you remove these words,
+your model will get simpler and you will
+be focusing on things that you care
+about,
+okay? So if you have this kind of model,
+it's better.
+So these words are called stop words, and
+it's a common practice that during
+pre-processing stage in NLP pipeline,
+majority of the time they remove stop
+words.
+Now there are certain occasions,
+where they don't remove it and we'll
+look into that.
+For example,
+let's say you have you're doing
+sentiment classification and
+you have this is a good movie, this is
+not a good movie. But when you remove
+stop words, what you will get as a result
+is good movie, good movie. This might be
+little,
+you know incorrect,
+because not, not
+is a stop word. So if you remove that,
+and if you process remaining sentence,
+you can run into issue. However uh for
+sentiment classification, you will see
+things like this is the worst movie okay?
+There are some people who will say this
+is not a good movie. But majority of the
+time, this problem doesn't arise. But I
+want to just tell you so that you keep
+this thing in mind, just in case you're
+using stop words and you're not getting
+expected results for your NLP
+application.
+When you're doing language translation,
+let's say how are you doing Dhaval,
+translate that into Telugu
+if I remove stop words in the
+pre-processing stage,
+all I will get is Dhaval, and you can't
+translate Dhaval to Telugu by keeping
+the meaning of original sentence same.
+So
+you have to use common sense and look at
+a given NLP problem, it's a machine
+translation, it's a sentiment
+classification, what kind of problem it
+is? And based on that you use
+stop words
+removal technique during pre-processing
+stage. Stop word removal is actually
+common in many applications, but
+applications like this machine
+translation, another one is
+uh chatbot,
+right? Someone is asking a question, "I
+don't find a yoga mat on your website.
+Can you help?" If you remove stop words in
+pre-processing phase,
+all you get is fine, yoga, mat, website,
+help.
+What does that mean? You know it doesn't
+capture the essence of the questions in
+a right way? So these are some of the
+examples where you have to be careful
+about
+not removing the stop words. But in
+majority of the other cases,
+removing stop words during
+pre-processing stage is a common
+practice. Let's do some coding now.
+As usual I have created a new notebook,
+imported spaCy, and by doing this from
+spacey.
+lang.
+en.stop words
+import stopwords you can you can look at
+all the stop words which are there in
+this English model.
+So you see that a,
+all, alone,
+back, cannot,
+these are commonly used terms in English,
+and removing them
+prior to building your actual model will
+give you a lot of benefit. And
+there are 326
+of them in total.
+Now let me create a new doc
+in our usual style, and see how this
+thing works. So
+I will just
+create
+simple
+document here,
+and then you can go
+token by token. So from for token in doc
+and there is this method called
+is stop So this will tell you if
+the given token is a stop word or not.
+And if you print
+that token,
+see these are all the stop words,
+and what people do is, they define
+uh some function called let's say
+preprocess,
+where you give our text as an input and
+this is a common practice in NLP
+application,
+and you want to do all preprocessing
+here. So pre-processing means removing
+stop words, stemming, lemmatization and
+things like that.
+So here,
+I will say doc is equal to
+nlp text
+for
+token
+in dock
+if
+token.
+is stop
+you know what I'll do, I will remove it.
+So if you want to remove it you'll say,
+if not token So that's a reverse. If it is
+not a stop word,
+then
+maybe store this in some kind of array
+okay? And
+the better way of doing this in Python
+is using list comprehension.
+So I will say
+here I want to use list comprehension,
+and I will say no stop words,
+and that is equal to
+see you get your for loop here first,
+and before the for loop, you will say
+token.txt so token.txt is what you want
+in this list as a final thing and your if
+condition, you specify here.
+This is how you write
+the
+list comprehension,
+okay? And you can return
+no stop words
+and then
+I can
+do pre-processing
+of this text,
+and it will print me
+all the tokens, just by skipping
+this thing.
+Uh the stop words. Now see you can have
+things like comma, so you can remove that
+as well
+by saying
+and not token.is there is a
+punctuation mark right? This is a
+punctuation mark. I don't want to
+care about punctuation mark, and it will
+remove that. See there was a comma
+punctuation mark which got removed.
+So
+we can try a few other statements. For
+example I
+my most favorite one is this.
+You see the other, is not, these were all
+stopp words and it removed that.
+Checking our article on Tesla right, you
+you can have this big sentence. But when
+you remove stop words, you want only the
+terms that you care about which is Musk,
+wants, time, prepare I know some of these
+are not even useful wants, etc. but that's
+okay. At least we removed the most common
+ones.
+Now how do we apply this preprocessing
+function
+on a pandas data frame? Let's say
+one of the common use case in machine
+learning is you load your data in pandas
+data frame, and then you want to build
+NLP model. Now you want to do
+pre-processing on top of it. So
+what I'm going to do here
+is,
+I have taken this particular dataset. So
+let me show you,
+so these are all the cases
+in department of justice U.S.A from 2009
+to 2018.
+These are all the press releases okay?
+And the database is in json format.
+So see there is some court case. So it's
+basically press release of some court
+case, the
+the verdict that court gave and so on.
+And these are the content of the case.
+This is a title, things like that.
+So I had taken this data set from kaggle,
+and I have placed
+a,
+I have downloaded that json file,
+and then that json file, I am going to
+import in pandas by doing this.
+If you don't know pandas, in YouTube
+search Codebasics pandas you will find
+my tutorials.
+So here when you say lines true,
+there is one line
+for one json object okay? When you load
+this,
+what you will find is
+13,000 records basically.
+And let me print first 5 records.
+So see these are all the cases, and what
+I have is case ID, the title, the actual
+content, big press release date,
+and the topics. Now some of the topics
+are empty.
+So let's say I'm building a model to
+auto extract topics, that's my NLP
+application that I'm building.
+I can filter all the articles which
+don't have any topic
+okay? And the way you do that is,
+see the type of this df.topics if you
+look at df.topics0 for example
+right,
+the type
+of this thing
+is
+list
+okay? So df.info if you do df.info
+it will also
+tell you a few things.
+df. these are all the exploratory
+methods
+that you use
+to kind of go over it. But anyways we
+know that
+the topics type is list, and you want to
+filter it. So how do you filter it? So you
+might have seen this in my pandas
+tutorial, that you can
+use your filtering condition here in
+this this square bracket. So you can say
+df is equal to filtering condition that
+you specify in this bracket. And what is
+my filtering condition? So you can say
+df.topics okay.
+So let's see. I want to say
+whenever df.topics
+is an empty list
+okay, filter that.
+And one way of doing this could be okay,
+you write maybe some lambda function. You
+check the length of the list, or
+there is an easier way, which is
+you convert this to str
+and you check the length. This is a
+ready-made function that pandas provide,
+and whenever this length is not 0,
+which means list has some content you
+get that.
+So now when you do df.head first
+5
+see,
+you have filtered all those rows which
+had empty
+list in our topics.
+And then
+uh your pandas
+data frame is only 4,000
+rows. Initially it was 13,000 rows. So
+by the way
+by doing this exercise,
+uh I I'm just showing you how would you
+apply stop word removal,
+when you're dealing with a real database
+okay? So this preprocessing function is
+kind of a simple function that works
+fine on one string. But usually when you
+are doing any, building any NLP
+application, many cases you will have
+pandas data frame. So I just want to
+demonstrate, we are not going to build
+any machine learning model in this
+tutorial. I just want to demonstrate how
+you apply pre-processing function on a
+pandas column,
+and to keep things simple and fast, I
+will just take first 100 rows of
+my data frame.
+Only first 100 because I want to
+show pre-processing, and I can do it on a
+smaller data set right?
+And now when I do df.shape only 100
+rows okay?
+And
+now
+on the content see,
+I have this
+contents right, this contents.
+If you look at this contents
+it is this
+and this is the ID. So let's say 4 is
+the ID. So if you do iloc 4
+you'll be able to print, see this big
+paragraph, and this big big paragraph
+look at the length.
+And what I want to do is, I want to
+remove all the stop words from this, so
+that this length can be reduced, and I
+can build
+effective, simple, NLP application out of
+this okay? So let's
+remove
+stop words
+from this column, from this entire column,
+stop words I want to remove right? So
+like for, the see all these stop words.
+In pandas so I will do let's say, I will
+create,
+I want to maintain that column and I
+want to create a new column called
+contents new,
+and you all know,
+if you have an existing column
+you can use apply function
+to create a new column, and on this
+existing column, I want to apply my
+pre-process function,
+because preprocess function is already
+defined you see.
+And by the way
+I don't want
+array to be back. I want the string to be
+back. So if you want to convert this
+list or array into string
+in Python, you just do simply join.
+So when you do this join, it will take
+all the list elements and create a
+string out of it. Right now you're
+getting a list, you will get now a string,
+see.
+So that's the effect of doing this. So my
+preprocess function now takes input
+string, remove all the stop words, returns
+another string,
+and when I do that that's what is gonna
+happen,
+and I can print the first
+5 elements.
+Based on your
+computer and the size data size, it may
+take time. We have only 100 elements, so
+it came back pretty fast, and you see
+this new contents new.
+And you will see things like see here it
+says 130 count criminal incident was
+you see, was released. So see here was is
+removed,
+and if you want to see it
+a little further,
+what you can do is,
+see this length was
+5504. But if you look at new content,
+see 4217.
+So 5504 - 4217
+where stopwatch it removed all
+of them. And if you want to print these
+things,
+let's print it.
+So contents new is after removing your
+stop words. So now see what you have is
+21st, let me just print you know first
+300 character or so so that is readable.
+So see 21st century end, so see end is
+removed,
+off, off is gone, it is gone
+agreed, affiliates, all these things are
+gone.
+Hurrah! You just wrote a function to
+remove stop words, and also, you did this
+thing in pandas data frame.
+So that's all I have for this video.
+Keep on checking video description folks,
+because
+many times I add exercise after one or
+two week of publishing the video.
+Sometimes I add it later also. This is a
+community effort. For example
+see let me just show you,
+Codebasics NLP.
+When I was
+doing this video I did not have the
+exercise okay? But later on Kiran Marala,
+he's a community contributor, he helped
+me build this exercise. So now there is
+this exercise for bag of words,
+and there is exercise solution also. So
+you can look at the solution. But I know
+you all are sincere students, you will
+not look at the solution unless you have
+tried it on your own.
+So for today's video also
+uh
+if you want to contribute just
+uh,
+fork the GitHub repo, and make changes, and
+give me a pull request. I will look into
+it. But yes my idea is to have exercises
+available for all the videos, at some
+point of time, if not at the time of
+publishing. I wish you all the best! Thank
+you for watching!
+[Music]

@@ -1,0 +1,128 @@
+all right in this video we will talk
+about orb and opencv using python so we
+will start off by saying what it is why
+do we need it how does it work and jump
+right into a coding example so by the
+end of this video we will see how we
+could get these features here on the
+right
+so what is orb the idea is or first
+office stands for oriented fast and
+rotated brief so you can see it combines
+both the fast and brief Concepts that we
+talked about previously but the idea is
+it's supposed to be much faster and it's
+a feature detection method to get around
+sift
+so why do we need orb it's a feature
+detection it's efficient and low memory
+and like we were saying it's for license
+restriction issues that was placed on
+sift and surf a while back
+okay so why does how does orb work
+so first part is a fast detector right
+so we talked about the fast detector
+previously but the idea is you first run
+the fast detector to get a rough
+selection of features
+and then you want to narrow down to n
+key points by using Harris corners and
+after that you apply a scale pyramid to
+account for skill
+in Steps A and B okay and then you have
+orientation by intensity centroid
+so you want to compute the moments of
+your area that you're looking at and
+find the centroid and angle of that area
+so
+the moment here is defined by the
+product of x y and your intensity values
+over the X and Y directions and the
+centroid is just the ratios of the
+different moments that we calculated and
+the angle is just a tan two of the
+moments
+um that are in the 0 and 1 0 components
+okay so rotation of brief the idea you
+have used for use brief to obtain the
+feature descriptor and what you want to
+do is steer brief to the correct
+orientation at 12 degree increments
+using a lookup table and you'll run a
+greedy algorithm to find unique features
+by finding features with high variance
+and mean close to 0.5
+so you will have X and Y values that
+will describe the feature and you're
+going to keep rotating it until it
+matches with
+um where it's supposed to end up
+and the actual matching parts will use
+What's called the lsh locality sensitive
+hashing to approximate nearest neighbor
+search so with this part you want to
+bucket things together with a high
+probability and same for the similar
+ones and then after that you will use
+what's called hamidis Hamming distance
+to compare the distance between the two
+descriptors
+and it's just a specific way of
+comparing distance for binary
+descriptors and we'll have a video on
+matching later on to go into more
+details but that's the general idea so
+let's jump right into a coding example
+okay so here we're going to go ahead and
+import or modules that we'll need
+to have import CV2 CV and then import
+SMP
+import not plot lib dot Pi plot as PLT
+and then import OS
+so we're going to call our function orb
+here
+and we have our if name equals Main
+I'm going to call or function so inside
+of here we're going to do Roots equals
+OS dot gets CWD and then our path
+os.path.join and passing roots
+demo images Tesla dot jpeg
+gonna get our grayscale image here so CV
+dots um read and pass in our image path
+CV dot
+um read grayscale
+then we have our orb equals cv.org
+create
+and we have our key points
+equals orb dot detect and pass in our
+grayscale image and none for the second
+parameter
+and key points equals
+um I'm not going to use a second output
+orb. compute
+pass in image gray and key points
+then we have our image gray here equals
+CV Dot draw key points and we're going
+to pass in our gray image our key points
+our gray image again
+and our flags is going to be CV dot draw
+matches
+and we're going to do the rich key
+points here
+and we'll do plt.figure PLT dot
+um on the show Graham ish and then PLT
+dot show
+so if I go ahead and run this we should
+see our features I'm missing an e here
+so if I run this again
+we should see our features being shown
+and you can see it very fast right
+because we're using the fast method but
+yeah you can see the features are shown
+here
+and if we zoom into different parts of
+the trees you can see some features are
+showing up
+okay so if you found this video helpful
+give a like And subscribe and I'll see
+you in the next one

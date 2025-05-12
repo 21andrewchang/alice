@@ -1,0 +1,62 @@
+I just can't decide, should I play a round of golf today?
+Well, let's use this decision tree to make the decision.
+So first off, do I have the time?
+If I don't, well, then that's an easy decision.
+No golf.
+But let's say I do.
+Second decision point, is it sunny today?
+If there's sun, then I don't care about any other factor.
+I'm playing golf.
+If there's no sun, let's go down to the next level.
+Well, do I have my clubs with me?
+Do I have them handy?
+If I do not, then I'm not going to bother playing if it's not sunny.
+If I do, then I absolutely will.
+The decision tree here is an example of a classification problem
+where the class labels are "golf yes" and "golf no".
+And, while they're helpful, decision trees they can though be prone to problems.
+Things like bias and overfitting.
+But that is where something called "random forest" comes in to play.
+Random forest is a type of machine learning model that uses an ensemble of decision trees to make its predictions.
+And why do we call it random forest?
+Well, the reason is because it's actually built by taking a random sample of my data
+and then building an ongoing series of decision trees on the subsets.
+So we're essentially creating a whole bunch of decision trees together.
+And those give us a larger model or group.
+Look, the chances are that other people have built different and maybe better decision trees to answer the same question.
+Maybe those trees consider things like the time of day, which I didn't consider, or the difficulty of the course.
+The more decision trees that I use with different criteria,
+the better my random forest will perform because it's essentially increasing my prediction accuracy.
+And if one or two of these smaller decision trees are not relevant on a certain day, well, we just ignore them.
+One of the primary benefits of random forest is that it can help reduce overfitting.
+And this occurs when your model starts to memorize the data
+rather than trying to generalize from making predictions on future data.
+Essentially, it helps me get around the limitations of my data,
+which might not be fully representative of all golfers or all the best features in my model.
+It can also help reduce something else, and that's bias.
+Bias can occur when there is a certain degree of error introduced into the model.
+Bias occurs when you're not evenly splitting your instance space during training.
+So instead of seeing all of the data points, you might see only half because of how you set your model up.
+Now to set up a random forest, you will set some parameters.
+We have parameters for node size.
+We have parameters for number of trees.
+And we also have parameters for a number of features.
+And it can be challenging at first because you'll want to use a lot of trees, like as many as you can,
+to get the best predictive accuracy, but you don't want so many trees that it'll take you a long time to train the model
+and use a lot of memory space.
+But once you've set up these parameters, you'll use a random forest model to make predictions on your test data.
+And you can even segment or slice your results by different criteria.
+Maybe you want to know how your random forest does on certain types of golf courses
+or how it performs during different times of day.
+Random forest is pretty popular among data science professionals and with good reason.
+It can be extremely helpful in all sorts of classification problems.
+In finance, for example, it can be used to predict the likelihood of a default. In a medical diagnosis,
+it can be used to predict prognosis or survival rates depending on treatment options and in economics.
+It can be used to sort of help understand whether a policy is effective or ineffective.
+So, what do you think?
+Should I play golf today?
+Well, the sum of all my random forest decision trees say yes.
+I'll see you out on the course.
+If you have any questions, please drop us a line below,
+and if you want to see more videos like this in the future, please like and subscribe.
+Thanks for watching.
