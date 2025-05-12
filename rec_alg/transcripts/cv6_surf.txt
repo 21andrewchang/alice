@@ -1,0 +1,212 @@
+all right in this video we're going to
+talk about Surf and opencv using python
+so we'll start off by saying what it is
+why do we need it how does it work and
+jump right into a coding example so by
+the end of this video we will see how we
+could obtain these features here on the
+right
+so what is surf surf stands for speed it
+up robust features
+okay so it's a method to find features
+and images
+and it's very similar to sift like we
+talked about previously but with some
+special details that are different which
+we'll go into
+so why do we need surf idea is the main
+thing is for feature detection but also
+for robustness reasons and I would say
+the one the big Advantage is that it's
+faster for real-time applications
+compared with sift
+okay so how does surf work step one is
+you have interest Point detection
+similar idea of using a scale space
+extrema so one of the simplifications
+here is that in sift we are using log or
+approximating as dog but here with
+server using box filters so it
+simplifies the filter a lot more so the
+idea is you'll have some Hessian here
+and you will get a box filter that could
+be approximated as so on right here as
+you can see
+so these here are the Box filter
+approximations and on the left is the
+Hessian okay so the idea is we could
+find the features by convolving it with
+these filters here
+and another main difference is the way
+the octaves are formed so typically in
+sift what you would do is you would
+scale the image but here with the surf
+you're actually scaling the filter and
+keeping the image the same size so
+that's one of the main differences and
+step two is a key Point localization so
+what you'll typically do is do the
+non-maximal suppression in a three by
+three three by three by three
+neighborhood
+and then we will use the Hessian matrix
+to interpolate
+in scale and image space
+using the determinant okay so that will
+help us find which which key points we
+want to keep
+and then to describe the key points
+um we'll have to do some things with
+orientation so there's What's called the
+hard wavelet response and you could do
+it in the x or y direction so it
+simplifies things because instead of
+using the inverse tangent we have a
+faster way of finding the directions by
+using these um
+wavelet filters or wavelet response so
+the idea is you have a sliding window
+that is used to find the main Direction
+so the idea is you'll convolve it with
+you know some area and then you'll see
+which area has the most response and
+then that area that has the most
+response will correspond to your main
+Direction
+okay so the key point to descriptor how
+does that work so the idea is it'll use
+a 64 dimensional Vector whereas sift use
+a 128 Dimension vector and what we're
+actually capturing are these different
+values so Delta Sigma of DX
+and sigma of the magnitude of DX and
+same for dys so the idea is you want to
+obtain both how many times these values
+of DX occurs and the total the sum of
+the magnitude and kind of compare
+between the different features so here
+DX and Dy is defined as so it's just
+um
+if you were to imagine you have like
+some y-axis and some x-axis here so
+you're just breaking up a vector into
+the X and Y and you're summing up all
+the DX's for these vectors
+okay and then once you get that for one
+area that you're looking at you could
+describe it based off of these sums
+so next part is key Point matching so
+the idea with the key Point matching
+another thing that surf added was that
+you will look at the blobs and see how
+the blobs are different by comparing the
+intensity so if they're both black then
+we know it matches if they're both
+whites we know it matches but if we see
+it's a black and white opposing
+intensities and we know right away is no
+match so it's like an initial filtering
+step that we do to speed up the process
+okay so let's jump into the coding
+example
+okay so with some or with surf I mean
+some things to notice are
+previously we had a newer version of
+python with surf specifically to kind of
+get around it you need to install what
+I'm using is python 3.6 and then you
+need to do the opencv contrib python so
+I will paste it here you're going to
+need to pip install this
+um this will work with some of the surf
+calls that we'll be using so just use
+that if you don't want to deal with some
+of the issues of not finding certain
+functions okay and again I'm using
+python 3.6 here
+and I've already created a virtual
+environment
+specifically 3.6.8
+if you want to replicate what I'm doing
+here
+okay so to start off we're going to do
+Imports CV2 CV and then import numpy SNP
+import
+matplotlib dot Pi plot as PLT
+and import OS
+okay so we're going to create our
+function called surf
+and we have our if
+name
+equals Main
+and we're going to call our surf
+function here
+so inside of here we're going to go
+ahead and create our root path
+os.getcwd and then we have our image
+path
+equals os.path dot join and we'll pass
+in Roots
+demo images and we're going to use our
+tesla.jpg
+okay so we're going to convert our image
+to grayscale to CV dot on read
+pass in our image path
+and then we're going to by default read
+it as gray so
+um read
+I'm read uh gray here
+Okay so
+one thing we want to Define first is
+What's called the Hessian threshold so
+this will help us determine how much of
+it to keep or throw out and we're going
+to choose a value of three thousand you
+could tune that parameter to see what
+works and then we're going to create a
+surf object so CV dot X
+it's called X features
+2D dot surf underscore
+create here
+and we're going to pass in our threshold
+okay so this will create our surf object
+and then to find the key points we use
+surf.detect
+pass in or gray image and then our
+second parameter is none for the mask
+the Miss gray here is going to be
+we're gonna update our image so that the
+key points are drawn so we're going to
+do CV dot draw
+key points and what we're going to pass
+in is our gray image
+and then our key points
+and then our output image here again and
+the color we're gonna do we'll skip that
+and the flags for drawing the option
+we're going to choose is CV Dot draw
+matches
+flag
+draw Rich key points so what this will
+do is show some of the orientations
+as we will see shortly
+and then simply we'll create our figure
+PLT dots show
+pass in our gray image and then plt.show
+so this should plot our features here so
+if I run my code
+see what's happening
+okay I just restarted my terminal and
+then the things restarted but here you
+can see now my surf feature is showing
+so you know depending on what part you
+zoom in you can see it has detected a
+lot of features here is the Tesla logo
+and then up here you can see more
+features with the trees and so on so
+later on when we do feature matching we
+can see how we can use some of these
+features to use okay so if you found
+this video helpful give a like And
+subscribe and I'll see you in the next
+one

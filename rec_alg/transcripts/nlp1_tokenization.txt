@@ -1,0 +1,177 @@
+LAURENCE MORONEY: Hi, and
+welcome to this series on Zero
+to Hero for natural language
+processing using TensorFlow.
+If you're not an expert
+on AI or ML, don't worry.
+We're taking the concepts
+of NLP and teaching them
+from first principles.
+In this first lesson, we'll talk
+about how to represent words
+in a way that a computer
+can process them,
+with a view to later training
+a neural network that
+can understand their meaning.
+This process is
+called tokenization.
+So let's take a look.
+Consider the word "listen,"
+as you can see here.
+It's made up of a
+sequence of letters.
+These letters can be
+represented by numbers
+using an encoding scheme.
+A popular one called ASCII
+has these letters represented
+by these numbers.
+This bunch of numbers can then
+represent the word listen.
+But the word silent has
+the same letters, and thus
+the same numbers, just
+in a different order.
+So it makes it hard for us to
+understand sentiment of a word
+just by the letters in it.
+So it might be easier,
+instead of encoding letters,
+to encode words.
+Consider the sentence
+I love my dog.
+So what would happen
+if we start encoding
+the words in this
+sentence instead
+of the letters in each word?
+So, for example, the
+word "I" could be one,
+and then the sentence "I love
+my dog" could be 1, 2, 3, 4.
+Now, if I take another sentence,
+for example, "I love my cat,"
+how would we encode it?
+Now we see "I love my" has
+already been given 1, 2, 3,
+so all I need to
+do is encode "cat."
+I'll give that the number 5.
+And now, if we look
+at the two sentences,
+they are 1, 2, 3,
+4 and 1, 2, 3, 5,
+which already show some form
+of similarity between them.
+And it's a similarity
+you would expect,
+because they're both
+about loving a pet.
+Given this method of encoding
+sentences into numbers,
+now let's take a look at some
+code to achieve this for us.
+This process, as I mentioned
+before, is called tokenization,
+and there's an API for that.
+We'll look at how to
+use it with Python.
+So here's your first
+look at some code
+to tokenize these sentences.
+Let's go through
+it line by line.
+First of all, we'll need
+the tokenize our APIs,
+and we can get these from
+TensorFlow Keras like this.
+We can represent our
+sentences as a Python array
+of strings like this.
+It's simply the "I love my
+dog" and "I love my cat"
+that we saw earlier.
+Now the fun begins.
+I can create an instance
+of a tokenizer object.
+The num_words parameter
+is the maximum number
+of words to keep.
+So instead of, for example,
+just these two sentences,
+imagine if we had hundreds
+of books to tokenize,
+but we just want
+the most frequent
+100 words in all of that.
+This would automatically
+do that for us
+when we do the next
+step, and that's
+to tell the tokenizer to
+go through all the text
+and then fit itself
+to them like this.
+The full list of words is
+available as the tokenizer's
+word index property.
+So we can take a
+look at it like this
+and then simply print it out.
+The result will be this
+dictionary showing the key
+being the word and the value
+being the token for that word.
+So for example, my
+has a value of 3.
+The tokenizer is
+also smart enough
+to catch some exceptions.
+So for example, if we
+updated our sentences to this
+by adding a third sentence,
+noting that "dog" here
+is followed by an
+exclamation mark,
+the nice thing is
+that the tokenizer
+is smart enough to spot this
+and not create a new token.
+It's just "dog."
+And you can see
+the results here.
+There's no token for
+"dog exclamation,"
+but there is one for "dog."
+And there is also a new
+token for the word "you."
+If you want to try
+this out for yourself,
+I've put the code
+in the Colab here.
+Take it for a spin
+and experiment.
+You've now seen how
+words can be tokenized,
+and the tools in
+TensorFlow that handle
+that tokenization for you.
+Now that your words
+are represented
+by numbers like
+this, you'll next
+need to represent your sentences
+by sequences of numbers
+in the correct order.
+You'll then have data ready for
+processing by a neural network
+to understand or maybe
+even generate new text.
+You'll see the
+tools that you can
+use to manage this sequencing
+in the next episode,
+so don't forget to hit
+that subscribe button.
+[MUSIC PLAYING]

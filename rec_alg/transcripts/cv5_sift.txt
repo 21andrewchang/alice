@@ -1,0 +1,166 @@
+all right in this video we're going to
+talk about sift and opencv using python
+so we will start off by saying what it
+is why do we need it how does it work
+and jump right into a coding example so
+by the end of this video we will see how
+we could get this image here on the
+right
+so what is sift it stands for scale
+invariant feature transform and this
+method to find features and images and
+the idea is the key part is the
+invariant
+supposed to be invariant to scale and
+rotation and things like that to make it
+more robust so you can see here on the
+right is an example of all the features
+it has found as well as the orientation
+which is shown by the line
+so why do we need sift we talk about
+robustness earlier so this kind of
+inherent in the name and also just in
+general for feature detection and
+feature detection can be used for
+various purposes such as
+localization or aligning images together
+so how does sift work there's a couple
+steps involved so step one is called a
+scale space extrema detection and it all
+revolves around the idea of finding
+blobs so blobs can be found typically
+with log but dot is an approximation to
+log that makes it more efficient in
+real-time computation so the idea is you
+will have this is a 2D image but if you
+imagine this is 3D it's like they call
+it the Mexican hats but if you were to
+convolve this image if a blob is inside
+this area then the the signal in that
+area will be Amplified and that's why
+it's called The Blob detector
+and the idea is you'll obtain a gaussian
+pyramid and for each pyramid you will do
+a different Sigma so like Sigma 1 Sigma
+2 and the difference of the sigmas will
+give you the difference of gaussians and
+then from there you'll find features the
+ones that stand out and the extreme
+points will be potential candidates for
+your features
+step two is key Point localization so
+what this means is you want to find
+where they are and there's different
+steps involved some of it involves
+removing low contrast points and it
+tries to find a more accurate location
+by finding the minimum or maximum which
+is the derivative one is set to zero
+using the Taylor expansion and then it
+wants to reject points with high Edge
+response using the Hessian because
+typically those are unstable to noise
+and you have orientation assignments so
+you'll calculate both the magnitude and
+the angle of the key points and that
+will Define it some direction now the
+key Point has
+just using basic you know the inverse
+tan and square roots of the magnet of
+the X and Y components
+and you have What's called the key Point
+descriptor
+so this is important when you're trying
+to match things into images but the idea
+is you have a key point and then you
+look at the neighbors then you find the
+direction using the gradient 10 inverse
+to find the gradient the angles of the
+different
+pixels around this and then you get a
+distribution plot of okay how many how
+many of the pixels are pointing to right
+how many pointing to this direction how
+many pointing up and so on and then you
+get a vector for each feature that has
+you know this this distribution and the
+final step is the key Point matching so
+now that we have this Vector you could
+see which features have the similar
+distribution of neighbor orientations
+and then from there you could do a
+nearest neighbor search and using an L2
+distance you could find which one has
+the smallest error between the neighbors
+and then from there you could find
+potential matching candidates
+okay so let's jump right into a coding
+example to see how this works okay so as
+usual let's go ahead and read in the
+modules that we will need import CV2 as
+CV and then import
+matplotlib dot Pi plot as PLT
+and power numpy and import OS so we're
+going to call def call this sift
+and then we have our if
+name
+equals
+main here
+and I'm going to call sift
+and inside of here we're going to go
+ahead and read in our image Roots equals
+os.get
+CWD and then our image path
+equals
+os.path.join and we pass in root demo
+images
+Tesla dot jpeg
+uh we're going to convert our MS to
+grayscale
+C dot on read and then pass in our image
+path
+CV dot I'm read grayscale
+and now we're going to create a sift
+object using the cv.sift
+cv.sift create here and we could get our
+key points by using sift dot detect pass
+in our gray image and then none for the
+second argument
+we have MS gray equals CV dot draw
+key points which we'll draw are key
+points in our image and we could pass in
+key points
+our output image image gray here and
+then this Flags is an option to see our
+orientation and magnitude so CV dot draw
+and then it's called
+um
+matches matches flags and it's going to
+be called Rich key points
+okay so that's gonna show us our
+orientations and all that good stuff and
+then we have PLT dot figure
+PLT dot um show
+passing or gray skill
+image
+and then plt.show
+so if I go ahead and run this we should
+see our image with our features
+okay so notice that it has detected a
+lot of features of various sizes you can
+see the ground it got a lot of features
+which may be a good thing or bad thing
+depending on what you're doing but you
+can see the trees has a lot of features
+as well of different sizes so it's very
+interesting to see the output and you
+can see here there's a giant feature
+that has detected so maybe if you're
+comparing images of the car in different
+views this might be a significant
+feature to use
+okay so hopefully you got a good
+understanding of sift and how to run it
+in opencv so if you found this video
+helpful give a like And subscribe and
+I'll see you in the next one

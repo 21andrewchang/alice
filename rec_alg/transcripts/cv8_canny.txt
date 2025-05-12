@@ -1,0 +1,211 @@
+all right in this video we're going to
+talk about candy Edge detection and
+opencv using python so we'll start by
+saying what it is why do we need it how
+does it work and jump straight into a
+coding example so at the end of this
+video we'll see how we get this image
+here on the left to this image here on
+the right and we'll actually be making a
+little uh track bar application which
+will have some fun with the threshold
+values okay so what is canning Edge
+detection it's an algorithm that's
+typically more robust than standard
+gradient methods so a lot of times when
+we just do normal gradients the result
+might not be so good so
+in those cases you may have to rely on
+the candy Edge detection okay so why do
+we need it like we said is it's going to
+be more robust or more reliable but in
+general applications you might use it
+for things like object detection image
+segmentation or feature extraction okay
+so how does it work
+the way it works is typically this could
+be a smoothing application with gaussian
+filter and then the gradient of the
+image this can be applied using a Sobel
+which we talk about in image gradients
+and then we're going to be applying a
+non-maximum
+sub
+non-maximum suppression technique to
+find the local maximum so what this does
+is if you have like a thick Edge it'll
+transform it into a thin Edge and the
+idea is you know if there's if you have
+like a lot of Peaks there's going to be
+like one one Peak that's the maximum and
+then you just ignore the other Peaks so
+that's the idea with this because you
+could have a bunch of Peaks here and
+maybe only one of them corresponds to
+the peak so that is what non-maximum
+suppression is and then you have double
+thresholding to keep the edges that go
+above the max threshold even if it's
+connected even if connected Edge dips
+into region between the Max and Min
+threshold so so we have a couple of
+cases that we can look at here so
+um you have two thresholds typically a
+high and a low so if you have an edge
+and is all above the high threshold then
+we keep it okay but here we have a b and
+c so if you have part of an edge that's
+above but it's connected to another Edge
+that is between high and low we still
+keep it but if you just have an edge
+like e which is just between high and
+low and it's not passing the high
+threshold then we would discard e okay
+and then if you have something that's
+below the low threshold we also discard
+it okay so the only ones we're keeping
+would be these two cases okay so this we
+keep keep keep
+okay so that's the idea of the Kenny
+Edge detection
+okay so let's jump right into a coding
+example
+okay so as usual let's go ahead and read
+in some of our modules that we'll need
+so we're going to go ahead and import
+CV2 SCV and poor matplotlib dot Pi plots
+as PLT
+import numpy as MP and then import OS
+and we're going to call our function
+here Kenny Edge
+and then we have our if name equals
+Main
+and we'll call our Kenny edge here okay
+so inside our Kenny Edge Let's go ahead
+and read in our image so root equals
+os.get
+CWD and then we have our image path
+equals OS dot path dot join here and
+we'll pass in Roots we have our demo
+images tesla.jpg
+and then we have our MS equals CV dot
+I'm read and then we'll pass in our
+image path
+and then we want to convert BGR to RGB
+so we have image equals CV dot CVT color
+and we pass in our image CV dot color
+BG R to r g b okay so now we have our
+color image let's go ahead and rescale
+our image because it's a little big so
+we have Heights with
+and then the third argument which we
+don't care about image.shape
+and then what we want to do is have a
+scale factor we're going to get one
+fifth of the image
+and we're just scaling it because if
+it's too big it'll take up
+um it'll go out of the screen so that's
+the main reason so we're going to call
+this height scale and then we'll cast it
+with an INT and we have Heights times
+our scale
+then we'll repeat the same thing for the
+width here
+okay so we have our Highland with scaled
+and then our new image we're just going
+to use a CV dot resize function and
+we'll pass in our image and a tuple
+which will be our width scale and then
+our height scale
+and then our interpolation method we'll
+just go with CV dots
+enter go with the linear is fine for
+this
+okay so we have successfully resize it
+and we'll make do some fun with a track
+bar so we have a window name
+which we will name Kenny
+and then here we're going to do cv.named
+window and then pass in our window name
+and we'll create our two track bars so
+CV dot
+creates track bar and then we have the
+name of our track bar which will be Min
+threshold
+and we'll pass in our window name
+and then our value 0 and then 255.
+and we'll need a callback so right now
+our callback we're actually not going to
+do anything so we'll have a placeholder
+and we'll just call pass okay so this
+will be our placeholder function
+so we'll repeat the same thing for our
+Max threshold here so that will be
+pretty much the same
+and then we'll put it inside a loop
+so while
+uh true
+can't type right now so while true uh
+what we want to do is have an escape so
+if CV dot weights key
+and if that equals the q key so Q for
+quit
+we're gonna break out of this otherwise
+we will extract our Min threshold value
+using CV Dot
+get track bar position and the name is
+going to be Min Thresh
+and we'll pass in our window name
+then we'll repeat the same thing for our
+Max so here
+we're gonna just change this to Max
+so we have our two track bars we're
+getting positions of and then we'll
+update our CV dot
+um I'm show here
+with our candy function so we have our
+window name
+and we could go ahead and call our candy
+function here we'll just call this candy
+Edge
+eaglecv Dot canny
+so what takes it in is the image and
+then our Min threshold and then our Max
+uh threshold okay
+so here lastly we'll pass in our Kenny
+image
+and then all we gotta do now is just
+have a close
+with a destroy all windows here that way
+when we're done it'll close out so if I
+go ahead and run this program we should
+see our results so notice here we have
+our Min threshold and our Max threshold
+so if I slowly increase the max
+threshold you can see more of the good
+edges show up and some of the
+nonsense I just start disappearing
+so if I drag it all the way to the end
+you can see that's how it looks like now
+if I start playing with the Min
+threshold notice what happens
+some of the edges gets better and we
+could see a lot more of the car okay but
+notice when the car structure starts
+getting clearer
+um I'll lose some of the details of the
+seats right so that's kind of the
+drawback and you just kind of have to
+find a balance between what you want
+so here you can see a lot of the car
+seat detail but here it's better okay so
+for me I kind of like somewhere in
+between here maybe this is a little bit
+lower
+so something like this might be pretty
+good and then maybe you could apply like
+a secondary filter to have the results
+look better okay so if you found this
+video helpful keep a like And subscribe
+and I'll see you in the next one

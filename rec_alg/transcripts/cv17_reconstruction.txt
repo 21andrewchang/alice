@@ -1,0 +1,841 @@
+yeah so
+[Music]
+thanks a lot uh for your introduction
+and uh of course also
+for the invitation and the opportunity
+uh here
+to talk about 3d reconstruction from
+images and yeah
+this is
+motivated
+for us mainly
+by the phenorop core project one
+which is about infield 4d crop
+reconstruction
+and that means
+we
+want to capture plants on the field
+with
+sensor
+platforms and then
+in 3d
+reconstruct them and also model over
+time
+how they grow and develop in order to
+discover new features that may allow us
+a better understanding of
+how they actually
+work and and what can we do
+to make
+the plans
+to grow them
+individually
+have higher yields or
+fewer
+diseases and
+yeah 3d reconstruction
+is part of computer vision so we have
+a 3d scene
+and we
+capture the scene through cameras or we
+render a model
+of the scene and then we have two
+dimensional images
+and these images are just pixels so how
+much red green and blue we may have at a
+certain location they don't actually
+mean anything
+but computer vision now tries to look at
+this pixel matrix
+and recover
+what kind of objects we have in this
+scene
+what is the geometry of the scene what
+is the pose of the objects the shape of
+the objects
+appearance material properties and
+semantics many aspects that we want to
+recover
+but unfortunately computer vision is an
+ill-posed inverse problem so many 3d
+scenes yield the same 2d image and that
+means that we need to
+put in additional constraints knowledge
+about the world in order to resolve
+these ambiguities
+here is a simple example
+if our camera measures this luminance
+image then we may perceive
+edges here and some edges might be
+explained
+by
+the difference in reflectance
+and others might be explained by the
+difference in shading and assuming a
+lambertian
+surface
+where light is reflected in all
+directions
+we can have this very simple model that
+the luminance is a product of
+reflectance and shading but if we have
+this product we cannot really say from
+which component
+it actually comes
+yeah so if we have for example these two
+edges here
+we may perceive this edge as a
+reflectance edge and this one as a
+shading edge
+but if we have slightly different
+perception of geometry then all the
+sudden this edge which is actually the
+same one
+is a shading edge and this one
+is a reflectance edge
+so the perceived geometry determines how
+we perceive shading and
+reflectance
+and if we have an image that we need to
+explain
+then we may come up with very particular
+solutions for example a painter may have
+a flat
+canvas
+and assumes uniform lighting and just
+paints different reflectances on it or a
+light designer
+may have a flat canvas of uniform
+reflectance and throw light on it to
+produce this image or a metal sheet
+worker
+may have a very complicated geometry
+uniform lighting
+the same reflectance overall and produce
+our image but
+likely explanation
+is this one which is simple and uses
+prior knowledge about
+how typical objects are in the world and
+how light usually comes
+in the world so if we have an image to
+be explained often we can arrive at
+different explanations for example this
+one here
+or this one there they differ in their
+geometry and where the light comes from
+and usually for example we as humans
+prefer
+the interpretation that is consistent
+with the light from above because this
+is usually the case that light comes
+from
+if we
+are talking about computer vision we
+need to model
+the image formation and the simplest
+camera that we can build is just a
+little hole and the screen behind that
+so that we get an image
+of the world
+which is upside down
+and of course we can model the image
+plane in front of the focal point so
+that it's in the proper direction and
+both models are equivalent
+unfortunately if we have just a small
+hole
+our image will be pretty dark so we can
+try to make the hole bigger to get a
+brighter image but this will become
+blurry because now light can travel in
+many ways
+this motivates
+the use of lenses yeah so with the lens
+we can
+focus
+the light that comes from a world point
+and goes through different parts of our
+opening
+in the image plane again
+but
+of course we can
+model now
+different effects that are
+produced by the lenses like
+distortions
+dark corners
+or color aberration
+one
+effect that also now comes into play is
+limited depth of field
+if we have a large opening
+then
+we can focus
+only
+a small
+range of depths
+so that objects that are closer or
+further away from the camera
+are out of focus
+and we can
+yeah mitigate this effect somewhat by
+using a smaller aperture again but this
+will produce darker images which are
+more noisy
+if we
+want to use a real camera we need to
+convert
+the image that comes from the real
+camera
+towards an image
+that
+yeah is modeled by a pinhole camera so
+we need to estimate the focal length
+we need to estimate where the image
+center is or possible skew
+and we also
+need to model
+nonlinear distortions of the lens
+usually this is done by calibration
+patterns like this checkerboard and
+before undistorting images
+straight lines
+may appear curved
+and after we estimated the distortion
+and undistort the image then we should
+have straight lines again as if they
+would come from a pinhole cam
+image formation
+of course
+starts from a light source
+and then it may hit
+some surfaces where light is reflected
+and then eventually
+through some optics hopefully we have a
+sharp image on our sensor plane
+but
+surfaces have many different properties
+yeah so this lambertian
+reflectance in all direction is nice
+but often it also happens that we have
+specular surfaces
+where light is preferably reflected in a
+particular direction or maybe
+even surfaces like a mirror and in
+general
+what happens at the surface
+is quite complex and can be modeled by a
+so-called bi-directional reflectance
+distribution function where we say
+at a certain point we model where the
+light comes from
+in which direction
+we view it and then
+also dependencies on the wavelength of
+the light
+but
+not all
+surfaces are opaque
+we may have also transparency
+or translucency so
+light is not just reflected at the
+surface but it may be scattered below
+the surface it may come out again at the
+other side of our object or at some
+other location so there is really
+complex interaction between the light
+and the material that we may need to
+understand to
+understand the scene again
+3d
+reconstruction
+relies
+largely on correspondences
+in images from different viewpoints so
+here is some images captured
+from the phenorop experimental field
+and we can try to establish
+correspondences between these images
+and if we manage to do that
+then
+we can possibly recover the 3d
+structure
+of this scene
+but for that we need to
+find distinct points
+which can be matched to
+other images
+and in order to do that we need a
+so-called interest point detectors
+so for example
+this
+mexican head laplacian of gaussian
+operator
+detects
+blocks so little areas that are brighter
+or darker than their surrounding
+and we can do that at different scales
+in order
+to detect different sizes of these
+blocks
+this
+is done in a scale space so we decompose
+the image
+into different spatial frequencies
+and a search for
+local maxima in this contrast
+not just in position
+but also in scale so that we have
+interest points that are localized in
+the image and
+in the scale
+for each of these interest points that
+are shown here
+we can now describe how
+locally the image looks like
+and
+the descriptor should uh summarize the
+appearance there but should also be
+robust to many variations
+and the famous scale invariant feature
+transform proposed by robert lift
+has the approach to
+look at the distribution
+of the local
+image gradients of the little edges that
+we may find in their direction and
+builds histograms of these
+that are around our interest point
+such that
+in variance to shift
+scaling
+rotation because
+these orientations are with respect to
+the main local image gradient
+lighting variations and viewpoint
+variations
+so the descriptor now is insensitive to
+all these variations
+and if we match descriptors uh often we
+then
+match
+uh points in the world and have as
+indicated by the green lines
+valid correspondences of course
+sometimes
+it fails and we need to filter out these
+wrong
+correspondences
+if we have
+such correspondences now where we have
+the same
+word points projected to
+different cameras
+we can span an epipolar plane
+because if we see
+this world point from one camera we
+cannot know how far away it is
+and this means that
+in the other camera
+it must be somewhere
+on this api polar
+line
+and
+if we have
+enough
+so at least eight correspondences
+we can recover the so-called essential
+matrix that describes the relative pose
+between the cameras so how much are they
+shifted and rotated
+and this is called extrinsic camera
+calibration if we have extrinsic camera
+calibration then if we have a point in
+one camera
+we can
+search for corresponding points just
+along
+these av polar lines and not everywhere
+in the image
+and of course
+not always it is the case that
+we have corresponding points
+and
+they correspond to a single point
+in the world so we may have two rays
+that actually don't intersect
+and of course the objective now would be
+to figure out where in the world is our
+3d point that we perceive into cameras
+and in order to do that
+we
+measure
+how far away
+is
+the projection of our world point
+from
+the
+points that we see in the images and
+minimize this little red
+reprojection error
+this triangulation works well if we see
+the same point from quite different
+perspectives but there is more and more
+uncertainty if the perspectives of the
+cameras are similar but on the other
+hand
+if we have a similar perspectives then
+it's easier to establish these
+correspondences for example because
+there is less occlusion and less
+viewpoint variation
+the famous method of bundle adjustment
+does
+this
+minimization of a reprojection error on
+a large scale so we may have
+many
+pictures
+of scene
+taken with different cameras from
+different viewpoints
+and our objective now would be to
+estimate all these camera bosses and
+parameters
+and
+we cover a 3d point cloud
+of the scene
+and the approach is really just
+minimization of reprojection errors
+to
+overall
+have a consistent arrangement of cameras
+and 3d points
+in the scene
+and this
+optimization problem
+is highly non-convex
+so it is crucial to have a good
+initialization to not end up in bad
+local minima
+and it's also computationally demanding
+so
+incremental reconstruction methods
+have been proposed
+where we extract features we match
+features we
+try to
+throw out outliers
+and then incrementally
+estimate where the cameras are where the
+3d points are
+include more pictures and have a more
+complete reconstruction of the scene
+and
+yeah this technology is pretty mature at
+this point so there are software
+packages like coil map or open
+mbs where
+this can be used
+and results are for example as here
+in this famous work of reconstructing
+rome
+in a day
+so this is the colosseum
+but
+so far we have just a sparse
+reconstruction based on these interest
+points of the sea
+so
+we may want to have a dense
+reconstruction for example here
+in stereo
+where we have two images from different
+viewpoints onto the scene
+and want to estimate for every point how
+far away from the camera
+it is or what is the disparity
+between the different cameras
+and in order
+to do that
+if we have
+parallel cameras
+we need to search for correspondences
+just
+along
+horizontal
+lines in the same row
+and
+in order to find such a correspondence
+we can analyze how similar these image
+regions are and different
+kinds of error matrix are
+available to assess how similar or not
+local blocks are
+such that we can
+find a match here and select the
+disparity for x
+and if we do that then we may come up
+this
+disparity estimates like this
+of course if you compare that to the
+ground truth
+it's kind of incomplete and
+noisy
+and there is many reasons for that
+one of the reasons is that
+some
+parts of the image
+might be visible only from one of the
+cameras and not from the other one
+so that we actually cannot establish
+good correspondences there
+and
+also
+the functions that we make in this
+method
+that we for example just
+need to shift a local window
+to predict how it looks like from the
+other camera
+this so called fronto parallel
+assumption is often invalid
+like when we have disparity
+discontinuities like here
+then the local patch looks quite
+different and our assumption is violated
+but fortunately
+we can
+incorporate some knowledge about the
+world for example that depths varies
+slowly except at object discontinuities
+which are rare and sparse in our image
+so we can
+model this
+is a markov
+random field
+where we say
+yes
+it should
+correspond to the locally perceived
+disparity but
+neighboring elements should be smooth
+except for
+these transitions at object boundaries
+and if we have such a model
+and apply a belief propagation then we
+can infer
+the
+depth here and kind of close the gap so
+this might not always be correct
+but at least now we have dense depths
+and yeah in recent years
+deep learning based approaches are more
+prominent and they
+learn
+certain statistics about the world and
+can
+recover
+dense
+depths pretty well for example here for
+this
+plant image
+using just two cameras is good
+but
+if we have more cameras like in this
+phenorop ground robot
+we can
+yeah view
+plants from different sites so at this
+point we have 14 of these 45 megapixel
+cameras
+and began
+using a coil map
+recover
+semi-dense point clouds
+through a multi-view stereo so we know
+where the cameras are
+and how they are calibrated and we can
+recover
+a point cloud of the scene
+and if we visualize this
+then
+we get results like these so we have
+a decent amount
+of detail a decent level of detail
+and the geometry is also often okay
+but as you see there is also gaps that
+come for example from
+occlusions or from specular reflections
+where the assumptions are violated that
+this open mbs method actually
+makes in recent years there has been
+a
+new approach
+that is based on novel view
+synthesis to 3d reconstruction
+so the inputs are sparsely sampled
+images of the scene the outputs are new
+views of the same scene
+and if we can
+render new views of the same scene then
+we must actually have a good model of
+the scene
+and this approach is based on a neural
+network
+it's a simple neural network that
+maps
+spatial location like in the 3d volume
+and from which direction we view that
+volume element
+towards color
+and a density
+of this representation yes so
+how or park or not is it and this is
+actually very similar to a traditional
+ray tracing and graphics so we shoot
+array we sample it at some locations we
+input that into our neural network that
+predicts color and
+how a park or not
+this is here and we can accumulate along
+a viewing direction all these
+predictions to
+render the image from the arbitrary
+viewpoints
+this
+approach is
+trivially differentiable
+so we have a very simple way how we
+combine
+these local colors we have to model how
+much light is blocked earlier along the
+ray
+and how much light is contributed by a
+certain array segment and all this is so
+simple that it's a differentiable and
+why is this important because now we can
+formulate a loss here that says the
+rendered image should look like the
+image that we actually captured from
+that viewpoint
+so we can
+minimize
+this
+rendering loss and adjust parameters
+here
+based on back propagation
+we train
+this neural network from all the views
+that we have from the scene
+and
+yeah there is some little tricks
+necessary
+for example
+rendering is not just done uniformly but
+we can use these weights to render
+to sample more densely where we have
+contributions
+towards the image
+and the result is now that we can
+model a viewpoint dependent effects so
+non-lambortian materials
+like here
+and
+if we have the same location
+viewed from different directions you see
+how the color changes
+there's another trick that is used
+namely
+positional encoding so naively we would
+get this kind of result which is a bit
+blurry with this positional encoding
+the images
+look much sharper
+so here this is done just with two input
+dimensions mapped to color
+and without positional encoding
+you see that there is not much image
+detail modeled but this positional
+encoding
+takes the coordinates here
+and maps them through a fourier space so
+we have
+sines and cosines of these
+positions with different frequencies so
+that the network has an easier job of
+learning these high resolution details
+and then
+yeah the result may look like this
+my phd student
+alex radu alexander
+who is
+working
+in phenorop on 3d reconstructions of
+plans
+he developed interesting methods to
+combine
+multiview stereo and novel view
+synthesis for example this one which
+will be presented at ij
+cnn
+and
+where
+we have
+different views that are selected close
+to the target view
+and we encode them with a neural encoder
+to some high dimensional feature space
+we recover depth by predicting where to
+sample
+next and then at each sampled location
+we aggregate these features
+and this will be done
+multiple times
+to
+recover depths in more and more
+detail and then
+render an image that we compare to the
+ground truth captured image this
+produces not just
+this novel view color image but also
+a depth
+map
+yeah so here you see how from the input
+views that are available from the scene
+this method selects the nearby views
+and is then able to render not just the
+color but also depth
+and
+also also
+yeah the uncertainty
+of this depth estimate
+if we have
+this 3d reconstruction of the scene
+we can also
+supervise
+method to produce the depth that we
+actually estimated using coil map
+and then yeah the produced depth is more
+consistent
+and
+yeah one can accelerate these
+methods
+this
+so-called instant neural graphics
+primitives that rely on a hash encoding
+in order
+to accelerate this positional encoding
+one concept that is also
+interesting to represent a geometry is
+implicit surface representations like
+here in this sign distance function
+where on the grid we model the distance
+to the closest surface
+and if we are inside an object this
+distance would be
+negative
+so at the zero crossing of this function
+we would estimate the surface
+and this method actually makes the
+assumption now that there is a surface
+and this is
+yeah combined
+with this
+yeah
+instant
+graphics primitives
+and rendering
+novel views
+and
+as a result
+we now
+have a more complete
+and highly detailed model
+of the plans
+in form of a mesh that can be rendered
+in real time
+using the usual
+computer graphics approaches
+in funeral
+open call
+we also have a small project that
+yeah pursues similar goals but
+as a sensor platform we use small
+lightweight commercial drone
+so that you can capture high resolution
+images
+of plants on the field from different
+viewing directions
+and here you see
+an initial result
+where
+of this plant 200 images have been
+captured using this flying robot and
+then
+accumulated to a model
+using this instant neural graphics
+primitives method
+where we can render novel views and also
+render
+depth maps
+and as you see
+there is
+one assumption of the method violated
+namely that the plant doesn't move so
+the plant actually moves
+and this means
+that
+yeah
+we need to address this so we need to
+extend the method in order
+to also
+model and movement
+so in conclusion
+i think
+cameras are very interesting
+because they capture a high resolution
+images a lot of data of the scene
+quickly
+they are also
+small and inexpensive so that we can
+even have them in the flying robot
+but 3d reconstruction from images is an
+ill post inverse problem
+and
+we need to
+rely on assumptions often
+but they may also be violated in real
+world scenes
+so that we need to incorporate knowledge
+about the reconstructed objects how the
+plans typically look like how light is
+usually coming to the scene and and so
+on in order to resolve ambiguities
+this differentiable volumetric rendering
+i think has a very high potential
+so there is really in recent years a
+nerf explosion so at this year's cbpr
+for example there's more than 50 papers
+that use this novel method that is just
+two three years old
+and of course we want to model not only
+geometry and appearance of the plant but
+also the plant structure yeah so like
+like a skeleton or identify individual
+plant organs
+and not just at one point in time
+but we need to model how the plant
+develops over time
+and establish correspondences over time
+as well
+as you can see here
+in this pheno 4d
+data set that has been created in the
+lab with a hand held 3d
+scanner
+so with that
+yeah i need to stop
+and
+open for questions

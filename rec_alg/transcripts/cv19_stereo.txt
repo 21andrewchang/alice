@@ -1,0 +1,149 @@
+We now have a calibrated camera.
+And so now let's take a look at a simple method for recovering the three dimensional structure of a scene from two images.
+We call this simple stereo or horizontal stereo. First, let's take a look at what calibration actually gives us.
+Let's say we have calibrated camera. The question is, can we find the 3D point corresponding to its projection in the image?
+That is, if you have this camera right here and it's fully calibrated and I give you a single point in the image.
+Can you tell me where the corresponding 3-D point lies? And you know, the answer is no.
+But you do know that the corresponding 3D point must lie on an outgoing ray.
+And given that the camera is calibrated, we know the equation of this, Ray.
+And so here is the mapping from 3D to 2D. Given a point in 3D where it ends up in the image that's given by the internal parameters
+and the perspective projection equations and the same equations can be used to figure out,
+given a point in the image, what the equation of the outgoing ray is.
+And that's shown right here. So that's all we have. So in order to reconstruct 3-D, we need more information.
+And we do this in a simple way of doing this is by taking two images,
+using two cameras or by just using one camera to take one image and then a second image after that.
+But here are the two images that you're capturing, that being captured from two different locations.
+So imagine that you have a left camera and a right camera, and the right camera is simply identical to the left camera.
+But displaced along the horizontal direction by a distance B, there's distance B is called a baseline.
+And this system with a left camera and the right camera is called a simple stereo system.
+And this type of vision, computer vision, is called binocular vision.
+It's the kind of vision that you and I use. We use two eyes to perceive depth of points in the scene.
+So you have your first camera and your second camera. And let's say you're looking at one point in your left camera.
+That's ul, vl, that corresponds to an outgoing ray
+We don't know where the corresponding scene point lies. But let's say somehow you were able to find the corresponding point in the right camera.
+That is the projection of the same scene point in the right camera.
+That is a u. R. V. R. Now you can shoot out another outgoing ray of from the right camera.
+And wherever those two rays intersect is where the scene point lies.
+The physical point lies corresponding to these two image points.
+So that's the idea behind a simple stereo.
+It's the idea of triangulation. So how do we do this?
+So we're going to assume for the moment that we have found the curves that the point corresponding to you.
+V L in the left image. The point in the right image ur  vr has been found using some method.
+And we'll get to that later. That's called the correspondence from, let's say, that's given to us.
+If that's given to us,
+we essentially have four equations and we have the perspective projection equations for the left camera with all the known internal parameters.
+Remember, again, our cameras are calibrated and we have the same for the right camera with the one important difference that instead of X,
+here you have X minus B, where B is the baseline, which again is known to us.
+So fx, fy, ox, oy and B are all known to us via calibration.
+And the way that we have set up this stereo system right here.
+So given these four equations, it turns out that you can actually find X, Y and Z in the scene.
+So you have these four equations right here. And by simply solving these four equations, you get an equation for X, Y and Z.
+I highlight z here because that's called the depth of the point in the scene.
+And the important thing to notice here is that in the denominator for all three of these,
+you have ul minus ur. What is ul minus ur
+It is the difference in the ucoordinate of the same scene point in the two images left and right.
+And that difference is what's called disparity. So you have you at a minus.
+You are the disparity and this disparity is inversely proportional to the depth to Z of the point.
+That is, if a point is really close to the camera system, the two cameras that we are talking about, then the disparity is going to be large.
+And as it moves away, the disparity begins to shrink. And as the point goes off to infinity, the disparity is going to go to zero.
+What this tells you is that if you have a scene at Infinity and if you take two images of the scene,
+one with a left camera and one with the right camera,
+doesn't really matter how far these cameras are with respect to each other, what the baseline is, you're going to get two identical images.
+Now, as the scene gets closer and closer, you're going to see differences in the projections,
+disparities, and the disparity is going to increase as the depth decreases.
+So that's the depth to Z is inversely proportional to the disparity.
+And in addition, the disparity itself is proportional to the baseline of the system.
+This is easy to understand.
+If you had a very small baseline, you can imagine that the differences between the two images are going to be small as you increase the baseline.
+The disparities are going to scale that you can see right here.
+This the the disparity is proportional to the baseline.
+And this is an important consideration because when you're designing a stereo system,
+since you want to measure disparity very precisely because that's what gives you depth.
+You want to typically use a stereo configuration where the disparity,
+the baseline is large because the larger the baseline, more precisely, you can make a disparity in measurements.
+So now here's an example of such a simple stereo system.
+This is from Fuji. There are many other examples, in fact, these days on mobile phones, stereo cameras are often used with shorter baseline,
+very compact systems, but still used to compute the depth of the scene.
+And then that information is then used for various types of photographic effects.
+All right, so now there's one little piece of the puzzle missing here, which is we said for a point, you and the L in the left imagine mentioned.
+Let's assume we know where it lands and the right image. We know the correspondence between points in the left and right image.
+Well, we need to find that correspondence somehow. So that's called stereo matching.
+Once we find correspondance, then that leads to disparity.
+So here's an example of a left image and the right image and the kind of disparity map you're looking for would look something like this.
+This is ground truth. This has been measured. This is a three dimensional seam that was measured using an active illumination method.
+And then we can predict what the disparity should be once we have computed them.
+So this is used as ground troops to evaluate the results.
+And we are going to get and hear the closer the pointers, the greater the disparity and the brighter it is in the disparity map.
+Right to. Now, the interesting thing about this horizontal stereo system or this, the simple stereo system,
+is that there is no disparity in the V direction, in the vertical direction, because we know that V is equal to V.
+R is equal to F. Y, z.
+Y, divided by Z. Plus O. Y for both the cameras.
+And so they're equal. That means that corresponding points must lie on the same horizontal line in both the images you take image one an image.
+Do you pick a point here? It's corresponding point.
+Must lie on the same horizontal line in the other image.
+OK, so now we can develop a method for finding these correspondences.
+This is called stereo matching once again.
+So let's say you take a little window in the image to your left image and we can essentially apply template matching.
+But when we apply template matching, we don't need to look for the corresponding point in the entire image.
+We know that we have scanline corespondents.
+We know that the corresponding point to this point in the right and much must lie in the same horizontal scanline.
+And so therefore, we take this little template. This is a little window and use it as a template to match it with all windows along the same scanline.
+And the point where it matches best is declared to be the match.
+And that is the correspondence that we use to estimate disparity.
+So we can compute disparity by using U.
+N. And you are here. The locations that gives you a disparity from disparity.
+We can compute depth Z and the other two coordinates, X and Y as well as we have seen before.
+OK. So in terms of finding these matches and doing template matching just for the sake of complete madness,
+I mentioned once again that there's many different metrics we can use, similarity metrics.
+When we do these matches, you can use the sum of absolute differences between the two windows.
+Or you could use the sum of squared differences, which you have discussed before.
+Or you could use normalized correlation as well in normalized correlation.
+You'd want to maximize that. You want to find a bed that maximizes it.
+And normalized correlation has a benefit that if for some reason the two images have radiometric differences in terms of gain or lighting,
+those with proved to be less of an issue. If you're using normalized cross coordination.
+Okay. Couple of issues with respect to stereo matching, really important issues.
+First, we expect the surface to have texture. If you have a textualists surface, you have nothing to really match.
+In other words. In this case, you have a sheet of paper when you're looking at these photos here.
+These creases. Well, that could be a feature that you can match in the left and right image.
+But when you're looking at any window, a small window within this more or less flat region,
+there's nothing to really match there that you are another would.
+Another way to look at it is that you're going to get many matches between the left image and the right image.
+So that's not good. You need texture in order to perform stereo matching.
+And this texture itself should not be repetitive. So here you have a repetitive pattern.
+And what that does is that if you take a little window here, that's a little window as identity identical to many of the windows in the same scene.
+And therefore, when you take a little patch in your left image,
+you're going to get multiple matches in the right image where they're all going to be perfectly good matches.
+So you're better off with surfaces that have texture where the texture is non repetitive.
+And finally, you have the issue of foreshortening. And this is just an inherent problem in stereo in order to establish corespondents.
+You're going to use some window size. You can't really take the intensity and one pixel and match it to the intensity of a pixel.
+And in the other image, there's just not enough information that's unique to match.
+So you going to take a window once you take a window? That implies that you're looking at a certain area in the scene where the projected area.
+Let's say that this is a surface that you're looking at. And this is the area that we're looking at right here.
+The projected area onto the left image is going to be different from the projected area in the right image.
+And so therefore, you're not really matching the same brightness patterns.
+You're matching warped or distorted versions of each other.
+So often in stereo matching when I'm trying to incorporate warping techniques that as wellto make the matching process more robust.
+Now let's take a look at a few results for the scene that we just saw, which is the scene right here.
+And one of the key questions is when you do this matching, irrespective of what similarity metric you're using.
+How large should the window be if the window is really small?
+You're going to get good localization, but high sensitivity noise.
+It's not that different from edge detection.
+The smaller and smaller the window, the less descriptive the pattern is.
+And so noise can actually throw off the matching quite a bit. So you see that this is a noisy disparity map.
+On the other hand, if you use a large window, you're going to get more robust matches in terms of the depth of values.
+But the disparity map is going to be more blurred, so to speak, especially at boundaries.
+In other words, you get poor localization. Again, this is similar to the kind of effect you get when you use large edge detectors.
+You're not able to localize the edges quite as well. So one of the ideas is to use a multiple windows sizes.
+This is called the adaptive window method, where many different window sizes are used for matching.
+And then you choose the match that corresponds to the window size and gives you the best match.
+Now, you have to be careful here and that when you declared the best match.
+You have to somehow normalize that metric using the number of pixels within the window.
+So here are some results. Here's a left image and the right image, the same as we saw earlier.
+This is the ground truth. This is what we would love to get. Using stereo.
+And if you use some of squared difference with window size of twenty one, you get something like this.
+It is OK for some applications, perhaps, you know, navigation, robotics, but not for factory automation types of applications.
+If you use the adaptive window technique, you'll get a better depth map.
+Still a little bit noisy around the edges, but certainly more details here,
+as you can see with respect to this camera in the background and stereo matching has come a long way.
+There are more sophisticated techniques and here is something that's more state of the art.
+You get a disparity map that gets pretty close to the ground truth.

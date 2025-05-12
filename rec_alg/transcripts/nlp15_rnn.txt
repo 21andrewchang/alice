@@ -1,0 +1,139 @@
+Let's take a detailed look at RNNs.
+RNN stands for Recurrent Neural Network.
+It is a type of neural network
+designed to handle a sequence of data.
+Unlike regular neural networks,
+RNN has loops and this is allowing them
+to use information from the past.
+So when you look at it, this is a very powerful idea.
+The main feature of RNNs is their memory.
+They remember previous inputs from previous steps,
+which is helping them to analyze context in data,
+like words in sentence.
+Let's start with a basic recurrent neuron.
+Imagine we have an input xt and an output yt.
+Unlike regular neurons, a
+recurrent neuron has its own loop,
+allowing it to use information from previous steps.
+We call this loop the hidden state
+and we represent it with ht.
+To better understand how RNN's work,
+let's unroll this tiny recurrent network over time.
+We have inputs xt-2, xt-1 and xt.
+Corresponding outputs yt-2, yt-1, and yt.
+With hidden states ht-1 and ht.
+This unrolling shows how
+the RNNs remember information
+from previous steps through the hidden states.
+Each hidden state carries what the network
+has learned from previous inputs.
+This is like making it possible
+to capture dependencies in data.
+Again, let's think about the single neuron.
+We have xt is our input, yt is our output.
+And we have ht, our hidden state.
+The output yt is computed based
+on the hidden state ht.
+And we can represent this relationship
+with the following equation.
+The hidden state ht is calculated
+based on the current input xt
+and previous hidden state ht-1
+In this equation, Wx and Wh are the weight matrices.
+XT is the current input,
+ht1 is the previous hidden state,
+and b is the bias term.
+And finally, the activation function
+processes this combination
+to produce the final result.
+In summary, RNNs use the hidden state to
+carry information from
+past inputs to the hidden state.
+The hidden state is updated at each time step,
+allowing the network to learn and
+remember previous inputs.
+The ability to process sequences
+makes RNNs unique
+and we can set them up in different ways.
+One way is sequence-to-sequence network.
+In here, you feed the network
+with a sequence of inputs
+and it produces a sequence of outputs.
+This is really good for tasks like predicting time series data such as stock prices.
+Another way is the sequence to vector network.
+In here we feed the network with a sequence of inputs.
+But we only care about the final output.
+Imagine you have a sequence of words from a movie review.
+We can feed the network with that
+sequence of words,
+and at the end it can give us
+a sentiment score
+like zero for love, one for hate.
+Another way is wait for the sequence network.
+In here, we feed the network
+with one single input
+and it produces a sequence of outputs.
+Imagine you have an image.
+We can feed the network with that image
+and the network can generate a caption
+describing the image word-by-word.
+Lastly, there's an encoder-decoder architecture.
+In here,
+we feed the encoder part
+with a sequence of inputs
+and it converts it into vector.
+And after that, the decoder takes that vector
+and produces as a sequence of outputs.
+We can imagine this like this:
+So we have a sentence in one language
+and we give that sentence into the encoder part,
+the encoder part will convert it into vector,
+and after that, the decoder will
+take that part, take that vector,
+and convert it into a sentence
+in another language.
+Now that we have covered how
+our RNNs handle sequences,
+let's talk about some key challenges:
+vanishing/exploding gradients and
+complexity in training.
+One major issue is
+vanishing/exploding gradients.
+When training RNNs,
+the gradient update the weights
+can become very large
+or very small during the back propagation.
+So vanishing gradients make
+it hard for the network to
+learn from previous inputs
+because updates are too tiny.
+Exploding gradients, on the other hand,
+keep the gradient unstable because
+updates are too large.
+To address these issues,
+researchers develop specialized
+RNN architectures
+like Long Short-Term Memory (LSTM)
+and Gated Recurrent Units (GRU).
+These architectures use gates
+to control the flow of information
+and keep the gradients stable
+during the predicted frame.
+So another challenge in RNNs is complexity in training.
+RNNs require a lot of computational
+power and time to train.
+So this is because RNNs needs to
+process each sequence a step-by-step.
+This can be very time consuming,
+especially for long sequences.
+In conclusion, while RNNs are
+incredibly powerful,
+they also come with challenges like
+vanishing and exploding gradients and
+complex training requirements.
+However, the advancements like
+LSTM and
+GRU architectures help us to
+address these issues,
+it is also allowing us to train RNNs for
+a wide range of applications.

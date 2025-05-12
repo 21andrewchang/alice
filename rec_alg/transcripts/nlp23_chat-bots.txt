@@ -1,0 +1,73 @@
+I've become borderline obsessed with generative AI chatbots like chatGPT.
+And it seems I'm not the only one!
+Everyone's talking about them! But while generative AI chatbots are the current hot topic,
+another form of chatbot-- rule-based chatbots have been around for years.
+So, what's the difference?
+Do they work in the same way, or has generative AI chatbots made role-based chatbots obsolete?
+Let's take a look.
+So let's begin with a few definitions.
+Generative AI chatbots utilize LLMs, or large language models,
+to generate responses based on user inputs. And they are trained on a massive datasets containing billions of words, phrases and sentences.
+And these models leverage deep learning models, neural networks, and also natural language processing.
+And these help the chatbot understand and produce human-like responses.
+Now on the other hand, rule-based chatbots adhere to a collection of pre-determined rules.
+So the very much rules engine based.
+And they use these rules for producing replies for the user inputs.
+Now they utilize a sequence of if/then statements to verify the presence of specific keywords that are sent into the chatbot.
+And those are then used-- and understanding these as inputs --to deliver corresponding responses based on those conditions.
+Now, the architecture of rule-based chatbots-- we can think of it in like three high-level components that are all interconnected.
+So what have we got here?
+We've got the user interface, or the UI.
+We've got the NLP engine.
+And we've also got another engine, the rules engine.
+And here the UI, this is where the users interact with the chatbot,
+and NLP engine processes the inputs, and then the rules engine determines the appropriate response.
+And in some are rule-based chat bots, "NLP engine" maybe overselling a little bit what this component doesbecause some simpler
+rule-based chat bots might rely only on keyword detection without utilizing full NLP techniques. But this is the basic idea.
+So let's ask a rule-based chatbot a question: What are the operating hours of the electronic store?
+Now the chatbot would derive a conditional statement that detects entities such as "operating hours" and "electronics store".
+And then based on these predetermined entities and context,
+the chatbot can determine the user's intents and generate a predefined response, like "the electronic store operates from 9 a.m. to 7 p.m.".
+Now at a high level, the architecture for a generative AI chatbot, well, it doesn't look so different.
+We can think of it also in three high level components.
+So at the top, again, we have the UI, or the user interface.
+We also again have an NLP engine.
+And now here, instead of the rules engine, we have a large language model, an LLM.
+But if you look between or beneath the surfaces here, there are some fundamental differences between these two.
+Now the NLP engine in a rules-based chatbot extracts intent entities and context [as] we said,
+but the NLP engine here, combined with the large language model in a generative AI chatbot,
+can handle much more complex language structures and nuances.
+It can better understand the user's inputs, context and intent.
+And large language models do not rely on pre-written rules, but they have been trained on vast amounts of text data which
+allows the chatbot to generate contextually relevant and humanlike responses.
+One of the significant advantages of generative AI chatbots is their ability to learn and adapt over time
+by continually updating their knowledge and refining that language model,
+these chat bots can provide more accurate and relevant responses.
+So, does this spell the end for rule-based chatbots?
+Are generative AI chatbots always the better option?
+Well, the answer to that depends, as ever, on your use cases.
+So let's briefly consider a couple.
+First of all, let's consider frequently asked questions and customer support--so that sort of scenario.
+Now, in this sort of scenario where we have user queries that are relatively simple,
+relatively predictable, a rule-based chatbot can be an efficient and cost effective solution.
+For instance, in the context of a customer support scenario for an online store, a rules-based chatbot can quickly provide answers
+to frequently asked questions about shipping or returns or product information--stuff like that.
+Now, for sure, a generative AI chatbot could fulfill this use case too,
+but this could lead to increased complexity and cost without a significant improvement in performance.
+Or actually, if we're not careful, it could lead to worse performance as LLMs introduce the potential
+for sharing incorrect information through something called hallucinations,
+which are instances when the chatbot produces responses that aren't grounded in reality or factual information.
+Okay, what about another scenario?
+What if we want to consider things that are creative or open ended?
+Now, in this sort of situation, we're talking about things like generating story ideas or sort of brainstorming ideas, things like that.
+And a generative AI chat bot is the obvious answer here
+because of  its advanced language understanding and creative capabilities, it can excel at these tasks.
+It can "think outside the box" and generate unique and engaging content or ideas.
+Creative writing tasks are my favorite use for this type of chatbot.
+Rule-based chatbots are limited by that predefined rules and lack the flexibility to generate innovative, reasoned responses.
+Now, for now, in the current times, I think we can say that both chatbots have their place.
+Generative AI chatbots are becoming more powerful and may eventually supersede rule-based chatbots in many cases.
+But today, generative AI chatbots still have concerns around privacy of training data
+and a tendency to sometimes produce output that is misleading or incorrect.
+But look, this is an exciting time in the chatbot space.
+And I hope you share just a little bit of my obsessive interest in where this journey will take us.

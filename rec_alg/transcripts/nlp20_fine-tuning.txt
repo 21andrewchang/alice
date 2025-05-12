@@ -1,0 +1,120 @@
+Generative AI models are great, but have you ever wondered how to specialize
+them for a specific use case to be a subject matter expert in whatever your field might be?
+Well, in the next few minutes you'll learn how you can take an open source
+large language model and fine tune it from your laptop,
+and the best part is you don't have to be a developer or data scientist at all to do this.
+What you might have noticed after using LLMs is that they're great for general purposes, but for truly useful answers,
+they need to know the domain in which they're working with,
+and the data that's useful for your work is likely useful for an AI model too.
+So instead of needing to provide examples of behavior to a model,
+for example, respond back as an insurance claim adjuster with a professional tone and this knowledge of common policies,
+you can actually bake this intuition into the model itself.
+This means better responses with smaller prompts,
+potentially faster inference and lower compute cost and a model that truly understands your domain.
+So let's start this fine tuning process with the open source project and InstructLab.
+InstructLab is a research based approach to democratize and enable community based contributions to AI models,
+and allow us to do it in an accessible way on our laptop, just as we'll be doing today.
+Now, there's three steps that I want to show you that we're going to be doing in today's video.
+So firstly, is the curation of data for whatever you want your model to do or to know.
+Second, fine tuning a model takes a lot of data more than what we have time or resources to create today.
+So we're going to use a large language model that's running locally
+to help us create synthetic data from our initial examples that we've curated.
+And finally, we're going to bake this back into the model itself, using a multiphase tuning technique called Laura.
+Now, I mentioned the first step is that curation of data.
+So let me explain how this works in my IDE.
+Now, I've already gotten InstructLab installed, the CLI is ilab and we'll do an ilab
+configuration initialized to set up our working directory.
+We'll set some defaults for the parameters of how we want to use this project, and we'll point to a taxonomy repository,
+this is how we're going to structure and organize our data,
+and we'll also point to a local model that we can serve locally to help us generate more examples,
+and just like that, we're ready to start using InstructLab.
+Now we've actually got this taxonomy open.
+And you can see here on the left is this kind of a hierarchical structure
+of different folders to organize the information we want to provide to the model in skills and knowledge.
+So let's check out a skill.
+So this is a YAML formatted question and answer document in plain text.
+So I could be anybody to contribute to this model.
+You don't have to be a data scientist or ML engineer and I can provide this to essentially teach the model new things.
+For example, this is to teach it how to read markdown formatted tables.
+So we have context.
+We also have a question which breed has the most energy and an answer.
+As you can see here, we've got a five out of five for the Labrador.
+So we can use this as sample data to generate more examples like this and teach the model something new.
+Now, this is really cool, but I also want to show you teaching the model about new subjects as well.
+So the 2024 Oscars has happened, but the model that we're using today doesn't know that we need to fix that.
+So we're going to ask this model a specific question from this training data that we want to provide.
+Specifically, what film had the most Oscar nominations?
+Now I can do an ilab model chat in order to talk to a model that have running locally.
+This is Merlinite 7 billion parameters.
+It's based off of the open source model Mistral and will ask the question which film had the most Oscar nominations?
+And unfortunately the Irishman is incorrect.
+The answer is Oppenheimer, and it's our job to make this correct.
+So what we're going to go ahead and do is use this local training information
+and curation that we've done from our local machine and create more synthetic training data and also point to this seed document here at the bottom.
+This is markdown formatted information that we're going to pull during this data generation process
+that provides more context and information about the specific subject that we're going to teach the model.
+So let's get started.
+Now it's time for the magic to happen.
+So these large language models, as you might know, have been trained extensively on terabytes of data.
+And what we're going to do is use a teacher model that we've already served locally
+to generate hundreds or potentially thousands of additional examples based on our key data that we provided.
+So let's kick this off.
+We're first going to do an ilab taxonomy and make sure that everything is formatted as it should be.
+And we've got back that smiley face.
+We're good to go.
+So what we're going to go ahead and do now is start generating that data.
+So I'll do an ilab data generate,
+and specifically, we're going to generate three instructions here using that locally served model,
+or we could point to one that's running remotely,
+and we're going to search for that Oscar's question answer pair that we've provided
+and it's going to generate more similar examples to have enough training data to fully train this model.
+So this is really cool because it's creating different variations
+of our initial training data to be able to train this model in the end.
+And as you see here, we've generated three examples.
+You could see who was nominated for the Best Actor award.
+And we're providing or we're getting back this answer, these different actors.
+And what's great is that there's a filtration process because not all data is good data.
+With that newly generated data, it's time for what's known as parameter efficient, fine tuning with InstructLab.
+So I'll go ahead and do and ilab model train,
+and what this is going to do is integrate this new knowledge and skills back into the new model.
+Just updating a subset of its parameters as a whole, which is why we're able to do so on a consumer laptop like mine.
+So we've done some cooking show magic here to speed things up
+since that process might have taken a few hours depending on your hardware,
+but finally, our result is a newly fine tuned model specialized with the knowledge that we gave it.
+So let's go ahead and see it in action in.
+a new terminal window I'm going to go ahead and serve
+the quantized version of this model so it can run locally on my machine,
+and we're going to go ahead and ask the question, which I think, you know what it might be,
+what film had the most Oscar nominations in 2024?
+So let's open up a new window and do an ilab model chat,
+and we're going to talk to this model and ask you this question.
+So what film had the most Oscar nominations?
+Oppenheimer.
+So it's really incredible to see the before and after of doing this fine tuning process.
+And the coolest part, we're not AI ML experts.
+We're just using open source projects like InstructLab among others out there
+that can aid with the fine tuning of large language models.
+Now with this fine tuned model, a popular way to provide external and
+up to date information would be to use RAG or retrieval augmented generation,
+but you can also imagine doing automated or regular builds with this fine tuned model when the static resources change.
+So one more thing.
+We believe that the future of AI is open, but what does that really mean?
+Well, the InstructLab project is all about building a community of AI contributors.
+Being able to share your contributions upstream and collaborate on domain specific models.
+Now, what does that look like?
+Well, imagine that you're working at an insurance company.
+You could fine tune a model on your company's past claims and best practices
+for handling accidents to help agents in the field and make their life better,
+or maybe you're a law firm specializing in entertainment contracts.
+You could train a model on your past contracts to help review and process new ones more quickly.
+But the possibilities are endless.
+And you're in control.
+With what we've done today, you've effectively taken an open source, large language model,
+locally trained on specific data without using a third party,
+and now have a baked in model that we could use on premise in the cloud or share with others.
+Now, what are you interested in creating?
+Let us know in the comments below.
+Now, as always, thank you so much for watching.
+Please be sure to like this video.
+If you learn something today and make sure you're subscribed.
+For more content around AI and more.

@@ -1,0 +1,68 @@
+in machine learning one of the most
+fundamental tasks is when you have a
+bunch of objects that you want to
+classify into two categories or more is
+this picture of a dog or cat
+is this stock going up or down svms or
+support vector machines are some of the
+simplest and arguably the most elegant
+methods for classification each object
+you want to classify is represented as a
+point in an n-dimensional space and the
+coordinates of this point are usually
+called features
+svms perform the classification test by
+drawing a hyperplane that is a line in
+2d or a plane in 3d in such a way that
+all points of one category are on one
+side of the hyperplane and all points of
+the other category are on the other side
+and while there could be multiple such
+hyperplanes svm tries to find the one
+that best separates the two categories
+in the sense that it maximizes the
+distance to points in either category
+this distance is called the margin and
+the points that fall exactly on the
+margin are called the supporting vectors
+to find this hyperplane in the first
+place svm requires a training set or a
+set of points that are already labeled
+with the correct category this is why
+svm is said to be a supervised learning
+algorithm in the background svm solves a
+convex optimization problem that
+maximizes this margin and where the
+constraints say that points of each
+category should be on the correct side
+of the hyperplane in practice you don't
+have to worry about the implementation
+details of this optimization problem
+using svm can be as simple as loading a
+python library preparing your training
+data feeding it to the fit function and
+calling predict to assign the correct
+category to a new object
+the biggest pros of svms is that they
+are easy to understand implement use and
+interpret
+furthermore they are effective when the
+size of the training data is small the
+simplicity of svms can also be a problem
+in many applications the points cannot
+be separated by hyperplane a common
+workaround in this case is 2a augmented
+data with some nonlinear features that
+are computed from the existing ones
+b find the separating hyperplane in this
+higher dimensional space and c project
+back to the original space
+a clever technique known as the kernel
+track allows us to perform all of these
+steps in a very efficient manner and now
+that you know about svms you can use
+them for face detection spam fill train
+and text recognition
+this was svm in about 2 minutes like and
+subscribe if you liked the video and see
+you next time

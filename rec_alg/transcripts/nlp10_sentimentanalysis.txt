@@ -1,0 +1,168 @@
+Ever wondered how companies know what you think about them?
+Well, they can't read minds,
+but they can read your tweets, emails, reviews,
+and pretty much everything else you write online.
+And this is where sentiment analysis comes in.
+Sentiment analysis involves analyzing large volumes of text
+to determine the sentiment expressed,
+to see if it's positive or negative,
+or somewhere in between, like neutral.
+And it's intended to help companies better understand their customers,
+to deliver stronger customer experiences and improve their brand reputation.
+But it's not without its pitfalls.
+Okay, so let's get into this.
+And sentiment analysis is built on top of something called NLP,
+Natural Language Processing,
+to train software to analyze and interpret text
+in a way that mimics human understanding.
+And there are a couple of main approaches to this.
+There's rule-based and then there's machine learning based.
+And then sometimes you'll see a hybrid of the two.
+And let's start with rule-based.
+So what about the rule-based approach to sentiment analysis.
+Well in this approach software is trained to
+classify certain keywords in a block of text
+based on groups of words, or what are called "lexicons".
+And lexicons are groupings of words that describe the author's intent.
+So, for example, let's consider some lexicons.
+So, "affordable" would be one,
+"well made" would be another one.
+Perhaps we might consider "fast" as another lexicon.
+What do they all have in common?
+Well, they would all be in the positive lexicon.
+So we can give this a big, happy smiley face.
+But then we could say things like "expensive"
+or we could say "poorly made", or we could say "slow".
+And yes, clearly these would all be considered the sad face.
+These would be considered negative lexicons.
+Now the software scans the text for these keywords,
+and then calculates a sentiment score based
+on the frequency in the context of these words.
+So if we look at this review here that says,
+"these shoes are affordable, well made and shipping was fast".
+Well, that scores highly in the positive lexicon
+and can be considered an overall positive sentiment.
+Boy, this is easy.
+There is no way the nuances of human language will ever get in the way of us assigning sentiment scores, right?
+Well, that that is a fine example of sarcasm,
+and sarcasm can really trip up sentiment analysis systems.
+It can be a real problem, especially for the rule-based approach to sentiment analysis.
+So consider this review: "Oh, wonderful."
+"A pair of shoes so well-made they lasted me one full week.".
+A rule based system might pick up on "wonderful" and "well-made"
+as being in the positive lexicon category,
+and then misclassify the overall sentiment as positive, missing the sarcastic tone entirely.
+But sarcasm?
+That's just one example.
+Another one is negation.
+Now negation can really trip these things up as well.
+If we take the sentence:
+"I wouldn't say the shoes were inexpensive".
+Well, the word inexpensive, that might typically signal a positive sentiment in the lexicon,
+but here it's used in a negated form to imply the shoes are actually a little bit expensive.
+So without understanding the context, a rules-based system might misinterpret the sentiment.
+And then there's also idiomatic language
+which can trip things up as well.
+So if we think about phrases like "break a leg", or
+"it's a piece of cake",
+they don't literally mean what the words suggest.
+So if somebody writes, "At this price, the shoes are a steal".
+A rule-based system might incorrectly assume theft
+based on negativity, instead of understanding
+that it means the shoes were a great bargain.
+Okay, so what about the other type of approach.
+And that is the machine learning.
+The machine learning approach to sentiment analysis.
+Now, that helps tackle some of these issues by training algorithms
+on large data sets to recognize patterns, including the complexities of human language.
+And developers use sentiment analysis algorithms
+to teach software how to identify emotion in text
+simply the same way that humans do.
+Now that's performed, typically using classification algorithms.
+And let's take a look at a couple of classification algorithms now.
+So we'll start with the first one which is called linear regression.
+And linear regression is a pretty
+common classification algorithm that, in this case,
+predicts a sentiment score based on various features in the text.
+So, for example, to determine the sentiment of product reviews,
+it considers the frequency of positive and negative words,
+but also the review length and specific emotive phrases.
+Another one we can use is Naive Bayes,
+and this uses Bayes' theorem
+to classify text by calculating the probability of a sentiment
+based on word occurrences.
+So, for instance, if we have a dataset of restaurant reviews already labeled as positive or negative,
+then this algorithm calculates the likelihood
+that a new review is positive or negative
+based on the words it contains.
+And another one is SVM, that is Support Vector Machines,
+and they're are fast and effective classification algorithm
+used to solve two group classification problems.
+So to classify customer reviews as positive or negative,
+SVM identifies the optimal boundary that separates the two groups,
+and it does that by analyzing features like word frequencies and phrases,
+ensuring the maximum margin between the positive and the negative reviews.
+Now, together, these approaches can help weed out
+the sarcasm, negation, and idiomatic language
+expressed in human generated text.
+All right. Now, depending on their needs,
+organizations can use various types of sentiment analysis
+to get a clearer picture of customer sentiments.
+And we're going to look at a few types.
+And they all rely on the software's ability to gauge something
+that is known as polarity.
+Now polarity is the the the overall feeling conveyed by a piece of text.
+And it can be generally described on a scale.
+So we have positive at one end, neutral in the middle.
+And negative at the other end.
+And then some models take it even further,
+categorizing text into subcategories like
+extremely positive and extremely negative.
+So we have a scale here that we can rank things on.
+All right. So let's consider a few of these.
+And we're going to start with "fine-grained".
+So this is a type of sentiment analysis also known as "graded",
+and sentiment analysis groups text into different emotions here
+and the level of emotion being expressed.
+So polarity here actually is often expresses a numerical rating
+on a scale of 0 to 100, where zero is neutral
+and then 100 represents the most extreme sentiment.
+There's also also aspect-based sentiment analysis.
+So ABSA.
+And that narrows the focus to specific aspects of a product, or of a service or of a customer experience.
+So, for example, like a budget travel app might use ABSA
+to analyze user feedback specifically about its new customer chatbot.
+This helps businesses understand precisely what customers like
+or dislike about particular features,
+allowing them to address those specific issues.
+And there's also emotional detection
+as a different type of sentiment analysis,
+and this seeks to understand the psychological state
+that the individual behind the body of text,
+including their frame of mind when they were writing it
+and their intentions.
+It's more complex than either fine-grained or ABSA,
+and it's typically used to gain a deeper understanding
+of a person's motivation or their emotional state.
+So, for example, a support ticket saying something like,
+"I'm extremely frustrated by the repeated issues".
+I mean, that reveals not just negative sentiment,
+but it also reveals the specific emotion of frustration.
+So, rather than using polarities like positive, negative, or neutral,
+emotional detection can identify specific emotions in a body of text.
+The core idea here is that by building an understanding of sentiment
+as it relates to a customer's overall experience,
+specific features, and underlying emotion,
+an organization will be empowered to make meaningful changes.
+Say, for example, to learn which issues to escalate in a support forum,
+or to conduct market research on competitors
+to spot trends and identify new opportunities.
+Ultimately, sentiment analysis is a tool to extract meaningful analysis to guide business decisions.
+When done right, sentiment analysis can walk the line of human nuance,
+turning even the trickiest reviews,
+yeah, even the most sarcastic ones,
+into clear insights.
+If you have any questions, please drop us a line below.
+And if you want to see more videos like this in the future,
+please like and subscribe.
+Thanks for watching.

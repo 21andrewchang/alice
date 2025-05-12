@@ -1,0 +1,269 @@
+[Music]
+hey everyone welcome back this is going
+to be our first video in our natural
+language processing series
+and it's going to be on bag of words
+this is one of those nice topics that's
+exactly what it sounds like which means
+that it won't take us too long to get
+through this video and hopefully it
+won't be too difficult for us to
+understand
+so bag of words the goal is to take a
+sentence such as the sentence or the
+sentence that i've written here
+and turn it into some kind of numbers
+and so just going back for a second one
+of the initial goals in natural language
+processing
+is that we have some sentence or some
+paragraph or some speech
+and we would like to extract some kind
+of insights or do some kind of
+prediction some kind of processing on it
+but most of the tools we've developed in
+machine learning cannot take in
+strings or words and do anything
+meaningful
+and so a natural first step is to take
+that string of words
+and extract some kind of meaningful
+numbers that's a good representation of
+that string of words
+and the easiest way to do that is bag of
+words so it works like this
+let's say we have a sentence that says i
+like to go to the movies
+say we have another sentence that says i
+do not like movies like this and we can
+have many many more sentences like that
+the easiest way to turn this into some
+kind of series of numbers
+or a vector is to basically count the
+number of occurrences
+of each word and so i've started
+tabulating that in this table here
+so on these rows you see all the
+distinct words that occur
+in either of these two sentences for
+example i like to
+go the movies notice i didn't put two
+again here because we've already gotten
+the word too
+do not this and you can put as many
+words as
+appear in your set of sentences so if
+we're just dealing with these two
+sentences
+then these are all the unique words that
+appear
+and now simply what we do is just count
+the number
+of times we see these words in either
+sentence so
+the first column bow1 stands for the bag
+of words vector
+for the first sentence and so the way to
+understand this is that
+the word i appears once in this sentence
+the word like appears once in the
+sentence the word
+two appears twice in the sentence and so
+on and so on
+and bag of words two is very similar it
+just counts the number of times each of
+these words
+appears in each of the in the second
+sentence and so we have several zeros as
+well because some words don't appear in
+either sentence
+and so that's literally it i mean that's
+the basic premise of bag of words is
+that
+we are going to take some kind of
+sentence or paragraph or speech
+and we are going to make the extremely
+simplifying assumption that it is
+just a unordered collection of words
+and so that's very much of
+simplification let's let's say that
+right off the bat this is very much a
+beginner model on which we build other
+models
+because as you can see already it
+ignores things like order of the words
+it just treats it as unordered
+collection of words
+it also ignores things like meaning of
+the words and so for example in the
+second sentence you see the word like
+twice but it's used in two very
+different ways
+the first like is kind of saying a
+general feeling of appreciating
+something so it's more of a feeling of
+positivity
+and the second like is more if i had to
+replace it i would say similar to
+i don't like movies similar to this so
+they're the same words spelled the same
+look the same but two very different
+meanings and so
+that's not going to be conveyed in bag
+of words but again this is a beginner
+model
+and so that's why it's our first video
+and we can just take these two bag of
+words vectors and we can start
+extracting some additional features so
+we can start building even more features
+for example
+we can count the total number of words
+by simply adding up this column
+we can count the total number of words
+in the second sentence by adding up the
+second column
+we can also create some kind of feature
+called both which asks
+is this word occurring in both sentences
+and that would simply be 1
+if neither of these is 0 and it would be
+0 if either of those is 0.
+we can also create tf idf vectors so i'm
+going to link my video on tf idf which
+stands for text frequency
+inter document frequency i believe and
+so this measures how important a certain
+word is
+for either sentence and so i won't go
+too into depth into how these are
+calculated
+but for example this term here two over
+seven times log two
+is a multiplication of two terms the two
+over seven is a text frequency
+because first of all we see two
+occurrences of the word two
+out of the seven total words in the
+first sentence so that's where you get
+the two over 7
+and the log 2 is because this where 2
+only appears
+in the first sentence does not appear in
+the second one so it's relatively
+important overall
+and so you can calculate those like that
+so again the main thing i want to get
+across
+here this is our first video and bag of
+words is not a complex model it doesn't
+take into account a lot of things about
+natural language but
+it's a good place to start and the last
+thing i'll say in this video is what's
+the application of bag of words
+given that it's not a very sophisticated
+model it would seem that there's not a
+lot of good
+applications but one of the ones that's
+been pretty successful is spam filtering
+so most of us have an email account and
+you get really annoyed when you get
+those
+spam emails that are from like robots or
+companies who are trying to sell you
+stuff or scam you
+so we would like to filter those into a
+separate folder so we don't get
+notified of them and so bag of words is
+a very simple method that still works
+really well for spam filtering and
+here's the general idea i'm not going to
+go into all the specifics i think i want
+to make a coding video
+on spam filtering so you'll see the
+specifics there so bag of words says
+that we have two bags
+one bag for legit emails and one bag for
+spam emails
+and the spam bag contains a lot more of
+certain words
+like send and money and rich and all
+these kind of scammy words
+than the legit one which could contain
+words that are more genuine like friend
+or birthday are happy
+things that are from people you actually
+know and so when we get a new sentence
+so we get a new email such as send money
+to get rich today that's probably spam
+but how would the spam filter with bag
+of words work
+we would calculate the probability that
+it's a legit email
+given we get this sentence versus the
+probability that it's a spam email given
+we get that sentence and these two
+things will add up to one so we just
+need to calculate one of them
+let's calculate the probability that
+it's a spam email
+given that you get that sentence so we
+can use our old friend the bayes theorem
+so we can rewrite this guy
+in terms of bayes theorem and so the
+numerator is going to be probability
+that you see the sentence
+given that it's spam times the
+probability that it's spam
+unconditional on anything so this is the
+prior probability
+and let's just say that's five percent
+so we'll just make the assumption that
+five percent of all emails are spam
+and so the last thing we have to do is
+calculate the probability that we see
+the sentence
+given that it came from the spam bag of
+words and we can use some simple naive
+bayes assumptions
+again i'm not going too deep into it so
+if i'm being a little bit vague about
+the calculations here
+just because i want you to get a general
+idea and so the general idea of
+calculating probability of seeing the
+sentence given that it's spam
+using the naive bayes assumption would
+be that what's the probability i see the
+word send given that it's spam times the
+probability i see the word
+money given that it's spam times the
+probability i see the word rich given
+that it's spam and so you multiply all
+these things together
+making the kind of unrealistic
+assumption that all these words are
+independent
+in a given email and they each have
+their probabilities which you can get
+from
+the frequency of that word in the spam
+bag and you multiply all these guys
+together and you got yourself the
+probability
+that it's a spam email given you got the
+sentence and so if that is large
+then this is probably spam and you can
+filter it to your spam bucket
+if it's small it's probably not spam and
+you can just deliver it directly to the
+user's inbox so
+spam filtering is still a great
+application for bag of words
+so again main point bag of words simple
+method easy to understand but not very
+powerful
+but it'll serve as a basis for future
+natural language models okay
+so until next time

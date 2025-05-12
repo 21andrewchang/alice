@@ -1,0 +1,173 @@
+we're going to continue talking about
+machine translation before we talked
+about translation at the word level how
+do you translate one word to another
+word and today we're going to change
+that a little bit and we're going to
+focus on phrase based translation and
+phrase based translation you're
+translating entire phrases from one
+language to another and this handles
+some of the oddities that we see in real
+language and allows us to create better
+translations you can have models that
+capture non compositional phrases you
+can use the context of the words that
+you're translating to make a better
+translation so for example some words
+translate differently depending on the
+context and with more data you can
+memorize really long phrases that you
+see a lot and this allows you to create
+perfect translations for things that are
+translated frequently and until recently
+this was a standard model for machine
+translation we'll talk a little bit
+later about the new models that have
+superseded it but in any event these
+models show the power of using context
+and we'll build on them shortly so let's
+take an example sentence now shoulda
+kept John Fossum speed if you take a
+look we can translate these phrase by
+phrase
+so now Judy isn't going to be translated
+as a single word it's going to be
+translated as of course and schwozzam
+are two words in German that are going
+to be translated to fun with and we also
+see that the phrases can be reordered so
+for example John and has flipped their
+positions and these are the two things
+that happen in a phrase based
+translation model you translate phrases
+by themselves and you reorder the
+resulting phrases in your target
+language we're going to be talking about
+phrase tables as we move forward in our
+discussion of phrase based translation
+phrase tables take some phrase such as
+now Ginny and provides a translation
+the probability for each of the
+alternative ways that this phrase could
+be translated into English so for
+example 0.5 probability you have of
+course and you have probabilities for
+other options and because this is phrase
+based translation this includes things
+like punctuation and as we look at say
+for example a real phrase table things
+become a little bit more complicated
+the phrase table captures the kinds of
+variation that you see in real data you
+see things like possessives and
+prepositions and determiners that can be
+translated when you have a German phrase
+like dan flow Schlag the accusative case
+of a masculine noun and this can also
+demonstrate lexical variation that you
+can have proposal or suggestion and
+hopefully we'll be able to use some of
+the context to choose the right
+selection with our language model that
+we'll be seeing a little bit later that
+will tell us which of these possible
+translations of Dvorak we should be
+using and so we've been talking about
+phrases very abstractly and at this
+point you may recall that we talked
+about things like noun phrases and verb
+phrases when we talked about parsing and
+so a reasonable thing you might think is
+are we going to use those phrases sets
+of phrases for machine translation and
+people have looked at that but typically
+no we're not going to use that we're
+going to use ad hoc phrases whatever our
+model can discover as good phrases to
+translate and this allows us to capture
+things like spas so spa Sam literally
+means in German fun at the is a
+contraction of and the and we often
+translate that as fun with this doesn't
+correspond to a prepositional phrase
+because the object of the preposition is
+missing that many different objects of
+the preposition and we don't want to
+learn a phrase for all of the possible
+objects of the preposition we want to
+learn that when you see bottom that
+means fun with
+and you'll fill in the blank later and
+this allows us to translate things like
+prepositions that can be pretty tricky
+and oftentimes the thing that you're
+attaching to or the object of the
+preposition determines which of the
+possible prepositions you'll be using
+and phrase based translations allow you
+to capture that and if you do use
+linguistic phrases you often end up with
+a worse and more complicated model so
+how do we actually tie this all together
+into a single model the way that we do
+this is we combine the probability from
+the phrase based translation model with
+the probability from a powerful language
+model so this breaks down into two parts
+we have the language model and we have
+the phrase based translations how do we
+compute the probability of a phrase
+based translation this depends on the
+individual phrases within the phrase
+based translation so we take a look at
+all of the phrases from I to L of the
+translation and we look at the phrase
+table probability for that translation
+we that is just a probability by itself
+we multiply all of the phrases together
+and then we multiply that by a
+reordering model that says as we move
+around the different phrases in the
+phrase based translation how coherent
+and how likely is the shuffling that
+we're doing and this is often language
+specific so for example German likes to
+move verbs at the end of the sentence in
+fringe and Spanish you have the
+modifiers coming after nouns so this
+sort of reordering can capture that this
+is a very high-level discussion of
+phrase based translation we're not going
+to talk about too much more of the
+details there are additional slides
+online that you can look at but this
+should give you a sense of the kinds of
+things that went into praise based
+translation models which were the
+predominant way of doing machine
+translation up until very recently and
+hopefully what you take away from this
+is that phrases are important phrases
+allow you to use context in your
+translations but where are the problems
+so in the phrase based translation model
+and only use a context of your
+individual phrase and the phrases are
+mostly independent you depend on the
+language model to glue together
+translations across different phrases in
+the same sentence and that often isn't
+enough you want to be able to use wider
+context to choose the correct
+translation and the phrases may have
+fuzzy boundaries you might want to blur
+one phrase into another to get a better
+translation and these models don't allow
+you to do that because each phrase is
+discrete and independent so how can we
+get a better model that ties all of this
+together and that's what we're going to
+be talking about next neural translation
+models that allow you to have these
+properties

@@ -1,0 +1,97 @@
+What I would understand to be a filter is perhaps slightly different from what people who use Instagram would describe as a filter.
+Usually in an app, or a camera phone app, or Facebook, or some other thing where you can apply some filter,
+it's gonna actually be a combination of lots of low level processing,
+of various types you know, blurs, contrast changes, colour changes.
+What I tend to use in my day to day work would be the low level things, Gaussian blurs, edge detection, this kind of stuff.
+But really they're all filters and they all take some image, process it and come up with some output.
+Today we're gonna look at a simple technique called kernel convolution,
+and that is kind of the core of Gaussian blurs and mean blurs and edge detection and lots of other things.
+And it's a fairly simple technique that we use a lot around here with computer vision work.
+Kernel convolution is just a process where we take a small grid of numbers and we pass them over the whole image,
+transforming it based on what those numbers are.
+And by using different numbers in the kernel, we can perform blurs, or edge detection or sharpen, unsharpen,
+basically any effect we like.
+So, I'll first describe kernel convolution and then we'll look at a couple of examples of what sort of kernels that we see a lot of.
+Kernel convolution works by, if this is our test image, it's 5x5 and this is our kernel which is 3x3.
+So, generally speaking the kernel will be smaller than the image, and usually actually quite small.
+And what we do, this is my movable kernel that we've come up with.
+What we do, basically, is for every pixel in our image, we put our kernel over it, so that the pixel is in the centre.
+So let's look at this pixel here, number 64, we put our kernel over it
+and then we are looking at the 3x3 grid, centred around that pixel.
+And we take whatever value is in our kernel,
+multiply it by 17, and then the top value, multiply it by 14, and the top corner value, multiply it by 13.
+So we take each corresponding image value and kernel value, we multiply them together, in pairs, and we sum the whole thing up.
+And then finally, we normalise by dividing by the total value of our kernel to make sure that it doesn't get brighter or darker.
+So it's a bit like averaging like we did in...
+It's exactly, it is averaging, yep.
+In a way, it's just a big weighted average, or if all the numbers are same, an actual average.
+So, in fact that's the first one we can look at.
+So, if all of our values in our kernel are 1, then that's a mean blur.
+So, if you go into Adobe Photoshop, or any other image processing package, and you go for blurs,
+blur filters, and mean, that's what it's gonna be doing.
+This is a kernel of size 3.
+Usually we'll do it, obviously, centred around a single pixel, so, odd sizes, so, 3, 5, 7 and so on.
+So, what we're gonna do here , is we're going to go
+17 multiplied by 1, plus 14 multiplied by 1, and so on, and divide the whole thing, by the sum of this, which is 9, and that will basically take an average.
+And then we'll overwrite that pixel with the output of that kernel convolution.
+The only thing to make clear is that we should output these to a different image, because if we overwrite them as we go, it's gonna mess up the maths as we go down.
+I use blurs to remove noise from images before I process them in other ways for my job.
+Some other people might try and remove noise from images just to make them look better, or you might try and blur the background out in a photograph or something like that.
+And you can achieve a lot of effects just by convolving a kernel over an image.
+You move it around for every pixel and when you look at whatever window, that is the size of your kernel.
+The only other thing is, that if you're at the edge, then you've gotta make some decision as to what you do here.
+So you could ignore those ones and they wouldn't contribute at all, or you could wrap the image around, or you could duplicate the edge ones, you could do lots of different things.
+Generally speaking, I would just ignore them, and then do a slightly smaller averaging for the corners.
+That'll mean that the blurring around the edges is ever so slightly less than the blurring elsewhere in the image.
+But, just in the last edge pixel in a 5 to 10 megapixel image, probably won't make much of a difference.
+So that's a very very simple kernel, if we go for a slightly more complicated kernel, we can go for the normal distribution of the Gaussian blur.
+So Gaussian blur is extremely common, probably, I suppose the most common blur.
+It's a little bit more controlled and edge preserving than a mean blur and so a lot of people like it.
+So a normal distribution is a bell curve.
+So, if we have our axes there and we draw a bell curve, and the standard deviation of this curve,
+So, a standard deviation is essentially the average distance from the mean of all the points,
+will determine how wide this bell curve is. So a really large standard deviation will have a really large bell curve.
+OK, it should be symmetrical.
+And a really small standard deviation will have a really tight bell curve, which is essentially really prioritizing the weights in the middle.
+Now, if we weight these numbers based on the values from our normal distribution then, we get a Gaussian blur.
+An example of a very small Gaussian kernel would be a 3x3.
+So these values are gonna be floating point decimal values, but we just simplify it a little bit.
+So 4, 2 on the edges and 1.
+Now the crucial difference between this and the mean blur is that we're really prioritising those in the middle.
+The further away you get from the pixel of interest, the less weight you have in the combined average.
+And that's important because it basically means that you're not gonna be blurring too much. Whereas an edge, let's say a sharp change in intensity,
+as you approach that edge, you're not gonna be taking too many of those pixels.
+And this Gaussian blur can obviously get a lot bigger.
+So, in your image processing program, you might have an option that says standard deviation or radius,
+And what that's really referring to, is the standard deviation of the normal distribution that produced this kernel.
+And also the width of the kernel.
+So, we have to increase the size of our kernel, as the radius of the Gaussian function increases.
+This is a very small normal distribution. If this was a bell curve, it's really steep.
+If we had a bigger standard deviation, then we're gonna need a bigger window to be able to hold enough information.
+This isn't near big enough.
+So let me draw a test image and then we'll do a blur on it and we'll see how it works.
+So, okay, so this is a good sized image. This image is pretty basic, it's an edge.
+So we've got an area of 50 intensity and an area of 100 intensity.
+So if we just put our mean one here as well just for comparison.
+So if we do our mean first, so we put that on let's say this 50 here which is a lot on the edge.
+Okay, so we put our kernel on there and we're gonna be doing
+50 times 1,  plus, 50 times 1, plus 100 times 1 and so on.
+So it's going to be *counting* 600.
+And then we divide that by nine,
+and that gives us 66.6.
+Okay,  and we'll round it to the nearest integer value.
+For a gaussian blur, with this gaussian blur here, we're gonna be doing
+50 times 1, plus, 50 times 2, plus, 100 times 1 and so on, okay.
+And that will be a value of, this is where we cut...
+So, it's 1000, these add up to 1000 divided by 16, which is 62.5.
+So, ever so slightly closer to these 50 values on this edge than perhaps the mean blur was.
+It's subtle, but the edge has been slightly preserved and generally speaking we're giving more weight to the numbers really really close to us.
+These are very low level filters, these are sort of filters I will use in my day
+day to day work to alter images that I need to analyse.
+But, on Facebook, and you know, on all these camera apps for your phone,
+You'll see a lot of other, perhaps more complicated filters, bloom, you know, sepia,
+vintage ones that make it look like some camera from the 1800 or something like that.
+And really what they're doing is nothing hugely complicated. The're just chaining together low level image processing.
+So, a grayscale filter, maybe a bit of blur, and then some kind of border to make it look good and things like this.
+So, really, these kinds of filters are at the core of a lot of the stuff that you see.
+Even of you might not know it.

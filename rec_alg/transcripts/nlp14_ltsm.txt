@@ -1,0 +1,248 @@
+Imagine you're at murder mystery
+dinner.
+Right at the start, the Lord
+of the Manor abruptly keels over
+and your task is to figure out, who
+done it?
+Could be the maid, could
+be the butler.
+But you've got a problem, your short
+term memory isn't working
+so  We well. You can't remember any
+of the clues past the last 10
+minutes. Well, that sort of
+situation, your prediction is going
+to be nothing better than just a
+random guess.
+Well, imagine you have the opposite
+problem where you can remember
+every word of every conversation
+that you've ever had.
+If somebody asked you to
+outline your partner's wedding vows,
+well, you might have
+some trouble doing that.
+There's just so many words you'd
+need to process be much better
+than if you could just remember,
+well, the memorable stuff.
+And that's where something
+called Long
+Short
+Term Memory
+comes into play.
+Also abbreviated as LSTM, it
+allows a neural network
+to remember the stuff that it needs
+to keep hold of context,
+but also to forget the
+stuff that well is no
+longer applicable.
+So take, for example,
+this sequence of letters.
+We need to predict what the
+next letter in the sequence is going
+to be.
+Well, just by looking at the letters
+individually, it's not
+obvious what the next sequence is,
+like we have to M's
+and they both have a different
+letter following them.
+So how do we predict the sequence?
+Well, if we have gone back through
+the time series to look at all of
+the letters in the sequence, we can
+establish contacts and we can
+clearly see, oh yes, it's my name
+is.
+And if we, instead of looking at
+letters, looked at words, we
+can establish that the whole
+sentence here says, my name is, oh
+yes, Martin.
+Now, a recurrent
+neural network is really where
+LSTM lives.
+So effectively, and LSTM is
+a type of recurrent neural
+network.
+Recurrent neural
+net.
+And recurrent neural networks
+work in the sense
+that they have a node,
+so there's a node here
+and this node receives some
+input.
+So we've got some input coming
+in.
+That input is then processed
+in some way, so there's some kind of
+computation and that results
+in and output.
+That's pretty standard stuff.
+But what makes an RNN node
+a little bit different is the fact
+that it is recurrent.
+And that means that it loops
+around. So the output
+of a given step
+is provided alongside the
+input in the next step.
+So step one has some input.
+It's processed and
+that results in some output.
+Then step two has some new input,
+but it also receives
+the output of the prior step as
+well. That is what
+makes an RNN a little bit different,
+and it allows it to remember
+previous steps in a sequence.
+So when we're looking at a sentence
+like my name, I,
+we don't have to go back too far
+through those steps to figure out
+what the context is.
+But RNN does suffer
+from what's known as the long
+term dependency problem,
+which is to say that over time, as
+more and more information piles
+up, then RNNs
+become less effective at learning
+new things.
+So while we didn't have to go too
+far back for my name, I,
+if we were going back through an
+hour's worth of clues that our
+murder mystery dinner, well, that's
+a lot more information that needs
+to be processed.
+So the LSTM
+provides a solution to this long
+term dependency
+problem, and that is to add
+something called an internal state
+to the RNN
+node.
+Now, when an RNN
+input comes in,
+it is receiving at least state
+information as well.
+So a step receives the output
+from the previous step,
+the input of the new step, and
+also some state
+information from the
+LSTM state.
+Now what is this state?
+Well, it's actually a cell.
+Let's take a look at what's in
+there.
+So this is an LSTM
+cell and it consists
+of three parts.
+Each part is a gate.
+There is a forget gate.
+There's an input gate.
+And there's an output gate.
+Now the forget
+gate says, what
+sort of state information that's
+stored in this internal state here
+can be forgotten, it's no
+longer contextually relevant,
+the input gate
+says. What new information should
+we add or update into
+this working storage state
+information.
+And the output gate says of
+all the information that's stored in
+that state which part of it
+should be output in this particular
+instance?
+And these gates can be
+assigned numbers between zero and
+one, where zero
+means that the gate is effectively
+closed and nothing gets through,
+and one means the gate is wide
+open and everything gets
+through.
+So we can say, forget everything
+or just forget a little bit.
+We can say add everything to the
+input state or add just a little bit
+and we can say output everything or
+just output a little bit of output,
+nothing at all.
+So now when we're processing
+in our RNN cell
+we have this additional state
+information that can provide us with
+some additional context.
+So if we take an example
+of another sentence like
+"Martin
+is buying apples."
+There's some information that we
+might want to store in
+this state.
+Martin is most likely
+to derive to the gender of males,
+so we might want to stall that
+because that might be useful.
+Apples is a plural,
+so maybe we're going to store that
+is a plural for later
+on.
+Now, as this sentence continues to
+develop, it now starts to talk about
+Jennifer.
+Jennifer is,
+at this point, we can
+make some changes to our state
+data.
+So we've changed subjects from
+Martin to Jennifer, so we don't care
+about the gender of Martin anymore,
+so we can forget that part.
+And we can say the most likely
+gender for Jennifer is female
+and store that instead.
+And really, that is
+how we can apply this LSTM
+to any sort of series where we have
+a sequence prediction that's
+required and some long term
+dependency data to go alongside
+of it.
+Now, some, some typical use
+cases for using LSTM
+machine translation is a good
+one.
+And another
+one, chat bots,
+a Q&A chat bots
+where we might need to retrieve some
+information that was
+in a previous step
+in that chat bot and recall it
+later on.
+All good examples of where we have a
+time sequence of things and
+some long term dependencies.
+And had we also applied
+stem to a murder mystery dinner, we
+probably could have won first prize
+by having it forecast to us that
+who done it was the butler.
+It's always the butler.
+If you have any questions, please
+drop us a line below,
+and if you want to see more videos
+like this in the future, please
+consider liking and subscribing.

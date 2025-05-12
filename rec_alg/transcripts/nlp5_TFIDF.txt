@@ -1,0 +1,265 @@
+[Music]
+hey everyone how's it going so i want to
+take this really short video just to
+show you
+a tool in text processing or a metric in
+text processing called
+tf idf and a big string of letters right
+but uh what it's doing is really simply
+answering the question about
+if i have a collection of documents
+which is officially called a corpus
+so corpus is a bunch of different
+documents usually kind of relating to
+the same subject area
+then i want to get a measure some kind
+of number that tells me how important
+is a given term or word for any of the
+documents that are in my corpus
+so just to have a real example here
+let's say we're looking at three
+inauguration speeches from recent
+precedence so let's say we have
+the inauguration speech from president
+clinton
+we have it from president bush and we
+have them from president obama
+and the question again that we want to
+answer is for any given term
+that appears in one of these documents
+so each one of these is called a
+document
+little d and the name for the entire
+corpus is this large
+d okay so we want to know for any given
+term
+that might appear in any of these
+documents we want to get a measure some
+kind of number that says how important
+is that term for let's say the clinton
+inauguration speech
+relative to the entire corpus so this is
+going to be helpful for us in doing some
+kind of
+text processing speech processing to say
+that oh clinton really likes to use
+these words these words are very crucial
+to that inauguration speech relative to
+the other inauguration speeches or
+obama really likes to use this word or
+maybe here's a word that's not important
+to any speech in particular we want to
+get some kind of
+measure of that so literally tf idf is a
+multiplication of two metrics the first
+one called
+tf which is term frequency the other
+called
+idea which is inverse document frequency
+so let's kind of build the story from
+the ground up let's first say that we're
+looking at term frequency alone see what
+that gives us and see what that does not
+give us
+term frequency could not be simpler i
+will say there's other ways to compute
+it
+but the general idea is that the term
+frequency
+of a given term and you can think of
+these as words for example
+a term frequency of a given word in any
+of these documents
+is simply the number of occurrences of
+that term in the document
+divided by the number of terms in the
+document overall
+so for example let's say we're looking
+at the obama speech and we look for the
+term
+health care so let's say that we have 10
+occurrences of the word health care in
+the speech just for example and let's
+say the number of words in the speech
+overall is
+1 000. so if we divide 10 over 1000
+we're going to get one percent
+so 0.01 is the term frequency of the
+word healthcare
+in the obama speech now it might be
+different in the other two speeches
+and we might have different term
+frequencies for different terms so
+this is a pretty intuitive measure about
+how often does a word occur in any given
+document
+now why is this not sufficient to use
+alone in solving our
+original problem the reason is that
+certain words are just going to occur a
+lot
+in all of the documents for example
+think of words like the or a
+or and or any kind of just casual word
+that doesn't really have any specific
+meaning but is just used in grammar
+those are going to have very big term
+frequencies no matter which
+document we look at so looking only at
+the terms that have the biggest term
+frequencies
+is not going to give us this idea about
+which are the special words
+in each of these inauguration speeches
+which of them are unique to each of the
+inauguration speeches
+and that's where inverse document
+frequency comes in
+so the inverse document frequency is a
+function of two things the first one is
+a given term
+and the other one is large d which again
+is the entire corpus
+and the formula or a formula there's
+many different variations on this but
+they're all kind of
+telling the same story which is that
+here we have log
+of large n which is the number of
+documents in our corpus for us that's
+just three
+divided by the number of documents with
+t or
+that contain the term t now here's the
+story that this equation is telling
+let's look at the word the again it's
+pretty obvious the word the is going to
+appear in all of these documents so our
+denominator here the number of documents
+with the word the would be
+three so if we have three divided by
+three that's log of one
+which is going to be zero and that's how
+idf helps it basically says that words
+that are really
+common to all documents are not helpful
+for us
+in kind of telling these documents apart
+therefore we're going to give them an
+idf
+of zero now compare that with the word
+healthcare let's just say that the word
+healthcare for example does appear in
+the obama speech but does not
+occur in either of the other speeches
+what would the idf be of healthcare now
+the idf would be log of 3 which is the
+number of documents divided by 1 which
+is the number of documents that contain
+the word healthcare
+so we have a bigger number for idf and
+that bigger number signals to us that
+hey
+the word healthcare occurs in only a few
+of these documents
+therefore i'm going to give them a
+bigger weight because it could be more
+helpful in helping you distinguish
+what is different about these documents
+and now all we do
+is we take this term frequency we take
+this inverse document frequency
+we put them together and we get tf idf
+which is
+a function of a term a given document
+and the entire corpus
+so t little d big d and it's simply
+equal to the term frequency
+times the inverse document frequency and
+to close this video let's just look at
+two examples to see how this works
+all together let's say we're doing tf
+idf of the word
+a so just the casual grammar word a
+for any of our documents d and the last
+argument is of course the entire corpus
+now we're going to have a big term
+frequency no matter which document we
+put in so
+a large term frequency but it doesn't
+matter because as we already know the
+inverse document frequency is going to
+be zero
+so for all of our documents
+the tf idf measure of the word a
+or the or and is going to be zero so
+they are not
+important at all even if they show up a
+lot in helping us distinguish between
+the documents now let's go back to the
+word healthcare and see what happens
+so if we do tf idf of the word
+healthcare and let's put in d3 which is
+the
+obama speech and then we put in the
+entire corpus here
+again we said that one percent of the
+words in the obama inauguration speech
+for example were the word healthcare so
+that's 0.01
+times the log 3 we already talked about
+and i didn't compute this but it's going
+to be some kind of positive number
+right and that's important because it
+says that the word healthcare
+is a positive number is potentially more
+helpful in helping us distinguish
+between these speeches now let's just do
+a quick theoretical example that i just
+thought of
+let's say that the word healthcare also
+occurs in the
+clinton speech okay but does not occur
+in the bush speech
+now what happens how does the story
+story change by a little bit
+we still have that it's going to be 0.01
+because that's the
+percentage of the words in the obama
+speech that are healthcare
+but now our idf has changed a bit it's
+not log three
+it's log three divided by two because
+now there's two documents in the corpus
+that have the word healthcare
+so it's log 1.5 and log 1.5
+is smaller than log 3. therefore the tf
+idf
+of healthcare for obama's speech goes
+down
+and this is good this is what we'd
+expect because this tells the story that
+now healthcare seems like less of a good
+word in helping us distinguish the
+speeches because
+it's not unique to the obama speech
+anymore actually there's another
+document in the corpus that has it and
+as the corpus gets bigger
+and has bigger fraction of the documents
+that have the word healthcare
+the less important it actually becomes
+so again in a nutshell tf idf is a
+combination of two measures the first
+one is a measure of how often
+does a term occur in a document and the
+other is a measure of
+how rare is that word across all
+documents
+so just something you might use for your
+text related data science projects if
+you have any questions
+please leave them in the comments below
+please like and subscribe for more
+videos just like this
+and i will see you next time

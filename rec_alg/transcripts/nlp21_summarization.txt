@@ -1,0 +1,291 @@
+hello people from the future welcome to
+harmonized nerd in this video I'm gonna
+be talking about two very important
+concepts in NLP that are text
+summarization and keyword extraction
+well I will be doing these things using
+a famous library called ginseng and
+obviously I'm gonna explain you how this
+thing actually works if you don't want
+to miss any future videos then please
+subscribe and hit the bell icon so let's
+get started okay in this video I'm gonna
+do the things a bit differently usually
+I first explain the concept and then
+jump into the code section but in this
+video I'm gonna be explaining the
+concept and the code simultaneously
+let's see how it works okay as I told
+earlier I am using Jenson here this is
+probably the most famous deep NLP
+library okay and we need two functions
+summarized and key words and both of
+them belongs to the same module well
+this is because both of them applies the
+same algorithm in one case we just
+consider the sentences but in other one
+we consider words
+well when I'm gonna explain the concept
+this thing will be more clear to you
+okay so to begin with we need some text
+right because if we don't have the text
+what we are gonna make the summary of
+and how can we extract keywords if we
+don't have any text so I am taking this
+text okay well this is just the
+description of my YouTube channel
+nothing fancy about it so then I'm
+taking this whole text as a single
+string you can see that this is a long
+string and after that we just need to do
+this we just need to pass two arguments
+to our summarized function the first
+argument that is the string is the
+compulsory argument and every other
+argument are optional Here I am passing
+an argument called ratio here the ratio
+is 0.5 which simply means it will
+produce a summary that will be half of
+our original text but how do you define
+the size of a text well there can be two
+main ways the first one is the number of
+sentences and the second one is the
+number of words it turns out that if you
+use the ratio argument then it will
+produce exactly half of the number of
+sentences that of the original text so
+in this text we have six sentences so
+this function will produce exactly three
+sentences okay so the first one is I
+love to create educational videos on
+machine learning and creative coding
+true enough and the second one is
+machine learning and it designs have to
+change our world grammatically and we'll
+continue to do so absolutely and the
+last one is the if you like my videos
+please subscribe to my channel please do
+that okay and you can notice one thing
+is that it is not creating any text of
+its own it is just extracting the
+sentences from our given text this kind
+of summarization is actually called as
+extractive summarization there can be
+generative summarization also in that
+case the model will come up with its own
+sentences that is more advanced concept
+and it is a topic for another video okay
+but how the hell it pulled out these
+three sentences obviously there needed
+to be a logic right well let's explore
+how this algorithm actually works don't
+get afraid by this huge diagram because
+I'm gonna be explaining each and every
+step very clearly okay so first of all
+we have our raw text and if you have
+followed my NLP series then you should
+know that no text is of no worth we have
+to first clean our text well this step
+is also called as text pre-processing
+after that we have our clean text well
+to get to the clean text we use many
+techniques for example we remove capital
+letters we remove punctuation x' we
+remove numbers and many things like that
+okay after that we are dividing our
+whole text in two sentences
+well why because you have seen that we
+are generating the most important
+sentences in our summary so we must know
+the sentences that are present in our
+text okay so we are just splitting our
+whole text into sentences after that we
+need to tokenize the sentences
+well tokenizing simply means we need to
+divide the sentences into its words so
+this is the first word of first sentence
+and this is the last word of last
+sentence okay so the tokenization is
+done then we need to convert this
+sentences into vectors yes into numeric
+values because computers don't
+understand this words it has to be
+converted into numbers right but how can
+we do that well there are actually many
+ways of doing that the most effective
+way is to use the word vector and I have
+explained this concept of word vector in
+detail in my videos so I will highly
+recommend you to check that one thing
+you will notice that what vectors are
+applied for words right one word will be
+explained as vector but here we are
+representing the whole sentence in two
+vectors how can we do that
+well one simple trick is to just open
+the word vectors so after appending the
+word vector of each word in a sentence
+we will have this long sentence vector
+and this is the first sentence vector
+and this is the last sentence vector
+well another way of generating this
+vector sequences is to use something
+called TF I D F that is also I have
+explained in my previous video but it is
+really not recommended to use TF IDW if
+you can use what vectors because what
+vectors perform very well compared to
+this TF IDW thing okay after that we
+need to create a similarity matrix don't
+get afraid by it because the similarity
+matrix is just a matrix of n rows and n
+columns what is the N you may ask well n
+is simply the number of sentences that
+we have in our text okay and each entry
+in this matrix is just the similarity
+between two sentence vectors for example
+if you are looking at the entry at I row
+it will just denote the similarity
+between I'd sentence and J sentence now
+there can be multiple ways to compute
+the similarity the famous one is the
+cosine similarity okay you can also use
+the Euclidean distance or any other kind
+of distance if you want now we need to
+create a graph out of the similarity
+matrix but how can we create a graph and
+what will be the edges and the nodes
+well for text summarization we just want
+to extract the sentences right the most
+important sentences so the nodes will be
+sentences okay and the edges will
+represent the similarity all right and
+one thing I should really point out that
+this graph is not a complete graph but
+if you want to create the graph from the
+similarity matrix then
+it will be a complete graph that is
+every node will be connected to every
+other node because we can't find the
+similarity between every two sentences
+okay so this graph really should be a
+complete graph now comes the most
+interesting thing we have to rank these
+nodes but how for this we use something
+called as page ranking algorithm well
+this is the billion dollar web page
+ranking algorithm that Google uses we'll
+obviously the modern browsers use a very
+refined version of this algorithm but
+the core idea is the same and this
+algorithm was developed by Larry Page
+and the fun fact is the algorithm is
+named after the Creator not the work it
+does that is page ranking okay but how
+can we use this here you can see here
+that in this original algorithm they
+treat the web pages as nodes and the
+similarity is just the similarity
+between two web page links and defined
+something as score for each web page the
+score simply denotes the probability of
+an user to click on the link but in our
+case the score will represent the
+importance of a particular sentence in
+that text so after getting this course
+we can rank each sentence just like that
+and we just need to output the top key
+sentences isn't that amazing and this
+whole process is actually known as text
+ranking algorithm
+[Music]
+let's get back to coding okay let's see
+what are the other arguments that we can
+pass to our summarize function okay
+so here you can see that we have
+argument called split and if we make
+this argument true then it will return a
+list instead of a string okay now we are
+going to use the next function that is
+the keywords function this will help us
+to extract the keywords so you can see
+that I am extracting five keywords here
+and the keywords are educational machine
+coding future exactly but how does this
+keyword extraction works well let's get
+back to our conceptual portion the thing
+is very simple here instead of
+considering the sentences as nodes we
+can just consider the words as nodes so
+after doing the page ranking algorithm
+here we will rank the words instead of
+the sentences and that's how we can
+output topmost key important words isn't
+it amazing how the same algorithm can be
+used to generate summary and extract
+keywords okay so that was a very small
+example but now let's do this thing into
+a larger example so here is my large
+example well this is the last chapter of
+my most favorite relic home story that
+is the Hound of Baskerville written by
+Sir Arthur Conan Doyle and I will
+definitely provide this link in the
+description ok so first of all let me
+show you the text it is a big text as
+you can see here it starts from here and
+it is very long yeah it ends here ok and
+I have just saved it as Hound dot txt so
+first I need to read this file and to
+read this file using Python I'm first
+opening this and make sure to make the
+encoding utf-8 and then we are gonna use
+the standard dot read function and we
+are going to neglect the space between
+two line
+okay so here I am using the summarize
+function with a ratio of 0.1 because
+obviously it is a huge text and I don't
+want to producer somebody too long so I
+am using only 10% of it okay so this is
+the 10% summary and we can also use
+another argument called what count so
+this will just give you the summary
+containing these many words okay so
+that's just another thing of producing
+summaries using Jenson and the last
+thing I want to show you is the key
+words on this text now you can see here
+that I am producing 30 keywords and one
+important thing is that I am using a
+parameter called limit eyes equal to
+false well this means it won't perform
+the limitation but what Islamization
+just look at these examples stapleton
+stable tones well these two are actually
+coming from the same root word if we
+don't use lemmas ation then both of the
+words will be treated as two different
+words but it really shouldn't be doing
+that it should really output only stable
+tone so in the next example I have made
+the limit eyes argument as true so it
+will perform minimization and it won't
+take two words it will just treat
+Stapleton's okay and similarly in other
+cases also it has just considered only
+one instead of two words okay and if you
+just go through the words you will
+actually notice that it really works
+because Stapleton's is an important
+thing in the story Baskerville is
+definitely the important thing in the
+story hound important so you can see
+there how good the Jenson keyword
+extraction is so that was all for this
+video guys if you have enjoyed this
+video please like this video share this
+video and don't forget to subscribe to
+my
+stay safe and thanks for watching
+[Music]

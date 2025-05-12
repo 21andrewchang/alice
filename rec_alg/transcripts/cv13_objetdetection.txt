@@ -1,0 +1,536 @@
+hi and welcome to video where we take a
+look at some deep learning
+object detectors such as rcnns ssds
+and yolo so let's start what exactly is
+object detection well it is actually the
+holy grail of computer vision
+it allows us to do things like this and
+you would have seen this before in our
+face object detectors and pedestrian and
+vehicle object detectors
+in earlier videos however those were
+limited to just
+one class and if you were to add
+multiple classes you would have to pile
+on multiple object detections and that
+would slow things down significantly
+so we're taking a look at now some deep
+learning some very advanced
+object detectors that make things like
+this possible this is pretty cool isn't
+it
+car dog horse person in the back over
+here so what exactly is this now object
+detection as i said in earlier chapters
+is a mix of
+object classification and localization
+classification means determining what
+the object is and localization means
+identifying the region or the bounding
+box of the object and it's used in face
+detection quite often which we've seen
+in previous chapters
+now the difference with object detection
+and classification
+is that object detection doesn't just
+tell you when an image contains a cat or
+not but it actually tells you where the
+cat order objects or
+animals could be in the image so that's
+pretty cool
+now non-learning methods of object
+detection included
+what we discussed earlier which was
+horror cascade classifiers and another
+one we didn't discuss in earlier
+chapters was histogram of gradients hog
+with linear svms that support vector
+machines it's a machine learning
+classifier
+and the reason we didn't discuss these
+is because they are pretty much
+outdated now because deep learning
+object detectors
+are significantly better and it can be
+used in a wide variety of applications
+that make it very powerful but the
+reason why these aren't useful although
+they are
+technically very useful when you're
+detecting just one object that's why
+they're still very useful for face
+detection
+however when you try to apply this for
+multiple objects
+detectors it actually breaks down it
+doesn't work too well and it can often
+be quite slow and that's because it
+involves
+an approach called sliding windows where
+you have to slide this window at various
+scales across the image
+and that's why it is not a very
+efficient method
+so in 2014 deep learning object
+detectors had
+a huge breakthrough with something
+called regions with cnns or rcnns for
+short
+and this achieved remarkably high
+performance in the pascal
+voc challenge that is object detection
+data set that has been used to compete
+and score in computer vision journals
+and researchers
+to assess how good their object
+detection methods are so basically
+imagenet
+variation of it and in 2014 as i said
+our cnn's achieved remarkable success
+now let's take a look at how our cnns
+work so rcnn's attempted to solve the
+exhaustive search problem
+previously performed by sliding windows
+by proposing
+bounding boxes and passing these
+extracted boxes to an image classifier
+so now how do we get these bounding box
+proposals and that's where we use an
+algorithm called selective sig
+so imagine we have an input image here
+and we just extract
+interesting regions here we send these
+regions now to a cnn
+to classify and then we get different
+classifications of what it thinks it is
+so now let's take a look at the
+selective search algorithm
+this attempts to segment the image into
+different groups by combining
+similar areas such as colors or textures
+this could be
+interpreted as blobs or contours and
+proposes which of these regions
+it is interesting using some of the
+metrics within the classified algorithm
+and it proposes these boxes here coming
+out of this
+segmentation type task and basically
+feeds these
+boxes here to the cnn to classify
+one selective search found these
+interesting boxes it takes these boxes
+and passes it through the cnn as i said
+before
+one was trained on imagenet dataset so
+with the imagenet dataset so it's
+quite well tuned and well exposed to a
+lot of data
+and then what we do we don't actually
+use the cnn directly for classification
+all that we can
+we then use the svm i said it's a
+support vector machine classifier to
+classify the cnn extracted features we
+just compute the cnn features and feed
+it into another classifier
+and svm type classifier so after the
+region proposal has been classified
+we then use a simple linear regression
+to generate a tighter bounding box
+but what exactly makes a good box how do
+we know
+this box puzzle over this guy here is a
+good box
+now before we move on to other types of
+deep learning object detectors
+we're going to discuss some metrics and
+how you assess object detectors
+now this brings us to something called
+intersection over union
+or the iou metric so iou is defined as
+the size of the union
+over the size of the prediction box so
+typically an iou over
+0.5 is considered acceptable now let's
+take a look at this metric in a little
+bit more detail
+imagine this green box over this car
+here is our true
+human labeled box to identify the car
+remember
+what we want in localized boxes we don't
+want a box that predicts
+half of the car and then it says at the
+back wheel or we don't want a box that
+covers
+the car yes but covers a lot of extra
+area around the car we want a box to be
+nice and tight
+exactly over the object in question that
+we detected
+so let's imagine this red box here is
+the box
+our object detector has proposed now it
+looks fairly good it covers roughly
+about 80 percent of the image
+that's pretty good now let's take a look
+at the one on the right
+here this box which is actually covers a
+lot more of the car covers almost 95
+percent or more of the car
+pretty much just missing out this little
+little back piece here covers even more
+so technically shouldn't this be
+classified as a better box than this
+well that's not exactly what we want
+there is it
+we don't want our box to be all over
+here so that's how the iou metric
+is developed it's the size of the union
+over the size of the prediction box
+so the union basically is this zone here
+what is this zone here this zone is we
+compute the area of this zone here
+and the size of the prediction box is
+put over here so
+what we do okay this is the size
+objection box is always going to be
+bigger
+so what this tells us is that we want
+this prediction box
+to cover as much of the green as
+possible
+without with being as small on the green
+on the out as small as possible
+over the green essentially hope you
+understand that maybe i'm saying it
+wrong
+but essentially we just want this red
+hair to cover
+the green as much as possible without
+being too
+much over it or too much inside of it so
+that's how we get this metric here
+so anything over 0.5 is considered
+fairly acceptable in my opinion
+a lot of there are a lot more stricter
+guidelines when it depends on type of
+classifier you're building i mean
+detective
+but essentially 0.5 is a reasonable
+score as you can see in this
+box over here let's take a look at where
+the iou would be
+so the size of the union here looks
+let's say estimated at 50 percent
+maybe even a bit yeah 50 and then
+besides the prediction box is definitely
+maybe another 50 percent here
+so you're going to end up with five
+basically it's a fifty percent over a
+hundred percent which is double the size
+of this
+so you're going to end up with something
+like 0.5 whereas in this one
+this one is basically you can say this
+is 80 percent here
+and this area that is on the outside is
+probably like
+0.6 of the ratio of this thing here so
+you can understand how you get a much
+higher iou
+with this metric here now there's
+another problem
+when we have object vectors often times
+we will have
+multiple boxes being proposed over the
+same object
+and the object detector may not even
+know it's doing it more than once
+because remember it doesn't actually
+know what's in the image it is
+predicting interesting boxes in the
+image
+that it may or may not be correct it's
+very hard to determine
+for algorithm to determine is it two
+cars packed side by side
+is it one car so what we have to do is
+if we have our ground shoot labels which
+is the green
+box here when we're testing our object
+detectors you may often get
+multiple windows proposed like this so
+there's another metric called mean
+average position or map for short
+that we can use to get when we have
+multiple boxes over the same thing
+we can actually over the same true label
+here ground truth
+we can actually use this metric now to
+determine the map score
+and that determines the form of accuracy
+of
+our object detector so this one is
+actually a bit confusing you can read
+some pretty long blogs explaining this
+metric that will help you understand
+however for now just remember it's a
+metric used to determine the performance
+of
+object detectors so now now that you
+understand the metrics we can go back on
+to the evolution of deep learning object
+detectors
+and let's take a look at something
+called fast rcnn which is the evolution
+of
+our cnns by the same researchers and
+what they did
+they basically made some speed
+improvements over the original rcnn
+the original rcnn was quite slow because
+it required three models to
+train separately and use them in
+conjunction when you're doing the
+classification type work
+execution in the end and this required
+feature extraction
+model an svm to predict a class and then
+a linear regression to tighten the
+bounding boxes in the end so you can see
+in real time this would be quite slow so
+fast rcnn solved this problem by
+removing the overlap generated
+now how what they did is that they ran
+the scene and across the image just once
+using a technique called
+region of interest or roi pool so
+essentially the problem the faster our
+xenon solved was instead of running the
+cnn
+to extract features on all different
+regions identified what they did sorry
+they actually ran the cnn just once over
+the entire image and then used those
+features going forward into the second
+and third
+layers of models in the network so even
+still that wasn't fast enough
+and the researchers developed an even
+faster rcnn and named it appropriately
+faster or cnn however note there is no
+fastest rcnn
+just yet so what the researchers of the
+microsoft research team did
+to speed up our cnns or fast rcnns to
+give it the faster flavor
+was that they eliminated the bottleneck
+that was involved when using selective
+siege
+so this sped up regent proposal
+significantly as well
+which now brings us to something called
+single shot detectors or
+ssds so we've just discussed and linked
+the rcnn family and we've seen how
+successful they can be and how they
+evolved
+however typically they still run at
+roughly 7 frames per second
+even on some fairly powerful hardware
+however
+ssds and even yellow are significantly
+faster and you can actually see some of
+the stats right here this is the fbs
+as well you can see yellow and ssd is
+topping the fps at 45 and 46 and you can
+see the different scores
+and in resolutions as well okay so how
+did ssds improve speed so significantly
+well
+ssds use multiscale features and they
+use something called default boxes
+instead of looking at interesting
+regions
+and furthermore they actually dropped
+resolution of the images that were fed
+into the classifier itself
+so this allowed ssds to achieve near
+real-time speed performance
+with almost no drop in accuracy and
+sometimes they actually saw improved
+accuracy when with well-trained ssds
+so this is a general ssd structure it's
+composed of two main parts
+there's the feature map extractor and
+vdd-16 was used
+in the published paper but however
+resonant and dead snap may provide
+better results now
+and then they used a convolutional
+filter for the object detection part of
+it
+as well here so you can read the paper
+in this link here if you want to get an
+in-depth explanation of it but just to
+summarize ssds are definitely faster
+than faster rcnns however they are less
+accurate in detecting
+smaller objects now accuracy increases
+if we increase the number of default
+boxes
+that allows us to get a more finer grid
+on the image
+however that actually slows down the
+speed as well
+and what it does with multi-scale
+feature maps it allows it to improve the
+optic detection
+at various scales that's why we actually
+can increase the accuracy
+if we increase the density of the grid
+so now
+let's move on to yolo so the idea behind
+yellow instead of using
+a lot of different models and networks
+and different
+sections to do different things in the
+object detector
+yolo uses a single neural network that's
+applied to the full image and this
+allows yellow to reason about globally
+across the image
+when generating its predictions now it
+is the direct development and evolution
+of something called multibox
+it basically takes multibox which was
+used for region proposal
+and turns it into object recognition and
+then adds
+a softmax layer in parallel with the box
+regressor that combines everything into
+a box classifier as well so you have the
+entire object detector
+built into it here so how it works it
+divides the images into regions and
+predicts boundary boxes and
+probabilities for each region
+so euler then uses a full convolutional
+neural network allowing for inputs of
+various sizes and i must say yolo is one
+of the most impressive object detectors
+that have
+ever been built and so nice to use to
+train
+to evolve into different different
+situations so now let's take a further
+look at it and by the way if you want to
+read and learn more about yolo you can
+click this link here or go to the site
+here to read the actual paper it's quite
+good and actually
+surprisingly entertaining as well so how
+exactly does yolo work
+well the image is firstly divided into
+an s by s
+grid and if the center of an object
+falls into this grid cell
+that cell is responsible for detecting
+that object so let's say
+this dog here falls into the center of
+the cell here this cell is responsible
+for
+saying that this is a dog technically
+however let's move on to the other steps
+and you get a bigger picture of how it
+works
+so each grid then predicts a number of
+bounding boxes and confidence scores for
+those boxes and our confidence here is
+defined
+as the probability of an object
+multiplied by the thresholded iu score
+and iu scores of less than 0.5 are
+typically just given a confidence
+level of zero then by multiplying the
+conditional
+class probability and individual box
+confidence predictions we get something
+called the class specific confidence
+score for each box
+so you can see the steps here we have
+all these bonding boxes here
+you can see it proposes now a box region
+around this dog here
+and this is all based on the class
+probability map and then once it gets
+the final boxes here that it wants to
+classify you can actually see the final
+detections here
+and the yellow is quite good and
+effective in practice and quite
+fast you can take a look at your
+architecture here as well
+or if you want as i said i encourage you
+to read this paper here
+now the architecture here has 24
+convolutional
+layers and followed by two fully
+connected layers and
+alternating one by one confidential
+layers to reduce the feature spaces from
+proceeding layers
+now this may not make much sense to you
+but you can read the paper to actually
+understand the reasoning behind this
+design
+so let's talk about the evolution of
+yolo now and was voted the people's
+choice award people
+at cvpr that's a big computer vision
+conference
+and then later on yellow vision 2 was
+later released
+and they were introduced batch
+normalization which resulted in
+improvements in the map score by two
+percent and it was also fine-tuned to
+work at higher resolutions
+this is fairly high resolution for the
+computer vision optic detection that is
+working in real time i must say
+and it gave a four percent increase in
+map overall
+yolo vision tree now was fine-tuned even
+further and introduced multi-scale
+training to help better detect smaller
+objects
+so this concludes our discussion on
+yellow i hope you appreciated
+what eola has brought to the table
+yellow and ssds are basically neck and
+neck
+in the two best type of object detectors
+out there
+so now let's take a look at the summary
+of what we just learned we learned
+basically the evolution
+of object detectors from hara cascade
+classifiers and hogs
+to the first deep learning object
+detector which was our cnns then we
+introduced fast rcnns and faster rcnns
+we then explored single shot detectors
+with ssds which are also quite good and
+give quite good performance
+and then we took a high level overview
+of the yellow object detectors
+where euler vision 3's latest one and
+it's quite good right now
+so now let's move on to the next video
+where we start taking a look at
+implementing object detection with
+ssds and yolo in python using opencv 4.
+so stay tuned thank you
