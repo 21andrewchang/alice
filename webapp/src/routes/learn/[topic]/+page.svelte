@@ -11,13 +11,14 @@
 	];
 
 	const timeline = [
-		'Introduction',
-		'Linear Algebra',
-		'Probability',
-		'Convolution',
-		'Filtering',
-		'Transforms',
-		'Detection'
+		{ title: 'Introduction', difficulty: 1 },
+		{ title: 'Convolution', difficulty: 2 },
+		{ title: 'Filtering', difficulty: 2 },
+		{ title: 'Histogram', difficulty: 3 },
+		{ title: 'Thresholding', difficulty: 3 },
+		{ title: 'SIFT', difficulty: 4 },
+		{ title: 'SURF', difficulty: 5 },
+		{ title: 'Tracking', difficulty: 5 }
 	];
 </script>
 
@@ -34,20 +35,20 @@
 		</div>
 
 		<!-- Right: timeline -->
-		<div class="w-1/3">
-			<h2 class="mb-2 text-sm text-[#606060]">Timeline</h2>
-			<div class="max-h-80 overflow-y-auto rounded-lg bg-[#1E1E1E] p-4">
-				<ul class="space-y-2 text-sm">
-					{#each timeline as step, i}
-						<li class="flex items-center">
-							<span class="mr-2 h-2 w-2 rounded-full bg-[#BB9AF7]"></span>
-							<span class={i === 0 ? 'font-semibold' : ''}>
-								{step}
-							</span>
-						</li>
-					{/each}
-				</ul>
-			</div>
+		<div class="w-1/4">
+			<h2 class="mb-2 text-xs text-[#606060]">Milestones</h2>
+			<ul class="space-y-2 text-sm">
+				{#each timeline as step}
+					<li class="flex items-center">
+						<button
+							class="flex w-full flex-row items-center justify-between rounded-xl bg-[#191919] p-4 hover:bg-[#1E1E1E]"
+						>
+							<text>{step.title}</text>
+							<div class="h-2 w-2 rounded-full bg-[#BB9AF7]"></div>
+						</button>
+					</li>
+				{/each}
+			</ul>
 		</div>
 	</div>
 </div>
