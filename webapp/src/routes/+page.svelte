@@ -9,15 +9,12 @@
 	}
 </script>
 
-<div class="flex min-h-screen flex-col items-center justify-center bg-[#0E0F14] px-4 text-white">
+<div class="flex min-h-screen flex-col items-center justify-center bg-[#151515] px-4 text-white">
 	<div class="absolute top-4 left-4 opacity-30"></div>
-	<div class="absolute top-4 right-4">
-		<!-- Avatar -->
-		<img src="/avatar.png" alt="user" class="h-10 w-10 rounded-full" />
-	</div>
+	<div class="absolute top-4 right-4"></div>
 
 	<!-- Prompt -->
-	<h1 class="mb-6 text-center text-2xl font-semibold text-[#D2D7EB] sm:text-3xl">
+	<h1 class="mb-6 text-center text-2xl font-semibold text-[#DFDFDF] sm:text-3xl">
 		What would you like to learn?
 	</h1>
 
@@ -27,24 +24,27 @@
 		bind:value={query}
 		on:keydown={(e) => e.key === 'Enter' && handleSubmit()}
 		placeholder="Ask about anything..."
-		class="mb-6 w-full max-w-xl rounded-xl bg-[#1E2335] px-6 py-3 text-[#3B4161] outline-none focus:ring-2"
+		class="mb-4 w-full max-w-xl rounded-xl bg-[#191919] px-6 py-3 text-[#4D4D4D] ring-[#1F1F1F] outline-none hover:ring-1 focus:ring-1"
 	/>
 
 	<!-- Preset topic buttons -->
-	<div class="flex flex-wrap justify-center gap-4">
+	<div class="flex flex-wrap justify-center gap-3">
 		<button
-			on:click={() => goto('/ml')}
-			class="rounded-full bg-[#171A27] px-4 py-2 text-xs text-[#BB9AF7]"
+			on:click={() => goto('/learn/ml')}
+			class="rounded-full bg-[#191919] px-4 py-2 text-xs text-[#BB9AF7] transition duration-300 ease-in-out hover:bg-[#1F1F1F]"
 		>
 			<span class="mr-2">🤖</span> Machine Learning
 		</button>
-		<button class="rounded-full bg-[#171A27] px-4 py-2 text-xs text-[#EC6C75]"
-			><span class="mr-2">📖</span> Linguistics</button
+		<button
+			class="rounded-full bg-[#191919] px-4 py-2 text-xs text-[#EC6C75] transition duration-300 ease-in-out hover:bg-[#1F1F1F]"
+			><span class="mr-2">💬</span> Linguistics</button
 		>
-		<button class="rounded-full bg-[#171A27] px-4 py-2 text-xs text-[#7AA2F7]"
+		<button
+			class="rounded-full bg-[#191919] px-4 py-2 text-xs text-[#7AA2F7] transition duration-300 ease-in-out hover:bg-[#1F1F1F]"
 			><span class="mr-2">🕹️</span>3D Graphics</button
 		>
-		<button class="rounded-full bg-[#171A27] px-4 py-2 text-xs text-[#4FD6BE]"
+		<button
+			class="rounded-full bg-[#191919] px-4 py-2 text-xs text-[#4FD6BE] transition duration-300 ease-in-out hover:bg-[#1F1F1F]"
 			><span class="mr-2">🧠</span>Neuroanatomy</button
 		>
 	</div>
