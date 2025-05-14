@@ -1,49 +1,79 @@
 <script lang="ts">
-	const resources = [
-		{ title: 'Video 1: What Is Machine Learning?', url: '#' },
-		{ title: 'Video 2: Introduction to Linear Algebra', url: '#' },
-		{ title: 'Video 3: Probability Basics', url: '#' },
-		{ title: 'Video 4: Convolution Explained', url: '#' },
-		{ title: 'Video 5: Histogram Filtering', url: '#' },
-		{ title: 'Video 6: Thresholding Techniques', url: '#' },
-		{ title: 'Video 7: Fourier Transforms', url: '#' },
-		{ title: 'Video 8: Edge Detection Fundamentals', url: '#' }
-	];
-
 	const timeline = [
-		{ title: 'Introduction', difficulty: 1 },
-		{ title: 'Convolution', difficulty: 2 },
-		{ title: 'Filtering', difficulty: 2 },
-		{ title: 'Histogram', difficulty: 3 },
-		{ title: 'Thresholding', difficulty: 3 },
-		{ title: 'SIFT', difficulty: 4 },
-		{ title: 'SURF', difficulty: 5 },
-		{ title: 'Tracking', difficulty: 5 }
+		{
+			title: 'Convolution',
+			difficulty: 1,
+			url: 'KuXjwB4LzSA'
+		},
+		{
+			title: 'Filtering',
+			difficulty: 1,
+			url: 'C_zFhWdM4ic'
+		},
+		{
+			title: 'Histogram',
+			difficulty: 2,
+			url: 'zSbXfnQPx_k'
+		},
+		{
+			title: 'Thresholding',
+			difficulty: 3,
+			url: '6pX3II2eVs0'
+		},
+		{
+			title: 'SIFT',
+			difficulty: 4,
+			url: 'flFbNka62v8'
+		},
+		{
+			title: 'SURF',
+			difficulty: 4,
+			url: 'PBTrwymDVCg'
+		},
+		{
+			title: 'Tracking',
+			difficulty: 5,
+			url: 'p6gp8CLMDOo'
+		}
 	];
+	let content = $state(timeline[0]);
 </script>
 
 <div class="min-h-screen bg-[#151515] p-4 text-white">
 	<!-- Header -->
-	<div class="flex items-end justify-between px-8">
-		<h1 class="text-4xl font-semibold">Introduction</h1>
+	<div class="flex items-end justify-between">
+		<h1 class="text-4xl font-semibold">{content.title}</h1>
+		<div class="w-1/4">
+			<h2 class="text-xs text-[#606060]">Milestones</h2>
+		</div>
 	</div>
 
-	<!-- Content: two columns -->
-	<div class="mt-6 flex gap-8 px-8">
+	<div class="mt-2 flex gap-8">
 		<div class="flex-1">
-			<div class="h-100 overflow-y-auto rounded-lg bg-[#1E1E1E] p-4"></div>
+			<div class="overflow-y-auto rounded-lg bg-[#1E1E1E] p-4">
+				<iframe
+					class="aspect-video w-full overflow-hidden rounded-lg"
+					src={`https://www.youtube.com/embed/${content.url}`}
+					title="YouTube video player"
+					frameborder="0"
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+					allowfullscreen
+				></iframe>
+			</div>
 		</div>
 
 		<!-- Right: timeline -->
 		<div class="w-1/4">
-			<h2 class="mb-2 text-xs text-[#606060]">Milestones</h2>
 			<ul class="space-y-2 text-sm">
-				{#each timeline as step}
+				{#each timeline as subtopic, index}
 					<li class="flex items-center">
 						<button
-							class="flex w-full flex-row items-center justify-between rounded-xl bg-[#191919] p-4 hover:bg-[#1E1E1E]"
+							onclick={() => {
+								content = timeline[index];
+							}}
+							class="flex w-full flex-row items-center justify-between rounded-lg bg-[#191919] p-4 py-3 hover:bg-[#242424]"
 						>
-							<text>{step.title}</text>
+							<text>{subtopic.title}</text>
 							<div class="h-2 w-2 rounded-full bg-[#BB9AF7]"></div>
 						</button>
 					</li>
