@@ -3,24 +3,21 @@
 	import { goto } from '$app/navigation';
 </script>
 
+<!-- flex‐col so header + main stack vertically -->
 <div class="flex min-h-screen flex-col bg-[#151515] text-white">
-	<!-- Top bar -->
-	<header class="flex items-center justify-between bg-[#151515] px-6 py-4">
-		<div class="justify-row flex justify-center">
-			<button on:click={() => history.back()} class="mr-6 text-sm text-[#B0B0B0] hover:underline">
+	<!-- stick this header at the top -->
+	<header class="sticky top-0 z-10 flex items-center justify-between bg-[#151515] px-6 py-4">
+		<div class="flex items-center space-x-2">
+			<button on:click={() => goto('/')} class="mr-6 text-sm text-[#B0B0B0] hover:underline">
 				← Back
 			</button>
-			<div class="flex items-center space-x-2">
-				<slot name="topic" />
-				<text class="text-xs text-[#BB9AF7]">🤖 Machine Learning</text>
-				<span class="text-xs text-[#3A3A3A]">/</span>
-				<slot name="lesson-title" />
-				<text class="text-xs text-[#B0B0B0]">Introduction</text>
-			</div>
+			<span class="text-xs text-[#BB9AF7]">🤖 Machine Learning</span>
+			<span class="text-xs text-[#3A3A3A]">/</span>
+			<span class="text-xs text-[#B0B0B0]">Convolution</span>
 		</div>
 	</header>
 
-	<!-- Lesson content -->
+	<!-- give main the rest of the height and allow scrolling -->
 	<main class="flex-1 overflow-auto p-6">
 		<slot />
 	</main>
