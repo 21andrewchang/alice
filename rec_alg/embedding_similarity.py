@@ -26,7 +26,7 @@ def cosine_similarity(v1, v2):
 topic1 = "nlp"
 topic2 = "nlp"
 idx1 = 2
-idx2 = 5
+idx2 = 4
 emb1 = load_embedding(topic1, idx1)
 emb2 = load_embedding(topic2, idx2)
 
