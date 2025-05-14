@@ -3,6 +3,7 @@ import glob
 import numpy as np
 from tqdm import tqdm
 from sentence_transformers import SentenceTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # paths
 root_dir = os.path.dirname(os.path.abspath(__file__)) # alice/rec_alg
@@ -32,6 +33,20 @@ def chunk_text(text, max_tokens, overlap):
 
     return chunks
 
+def weighted_embedding(chunks, chunk_embeddings):
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(chunks) # (n_chunks, vocab_size)
+    weights = np.array(tfidf_matrix.sum(axis=1)).ravel() # sum TF-IDF scores for each chunk
+
+    # normalize weights
+    if weights.sum() == 0:
+        weights = np.ones_like(weights)
+    else:
+        weights /= weights.sum()
+
+    weighted_embedding = (chunk_embeddings * weights[:, None]).sum(axis=0)
+    return weighted_embedding
+
 if __name__ == "__main__":
     vid_embeddings = {}
     for topic in topics:
@@ -42,9 +57,10 @@ if __name__ == "__main__":
 
             chunks = chunk_text(text, max_tokens, overlap)
             chunk_embed = model.encode(chunks, convert_to_numpy=True, show_progress_bar=False, truncate=True, max_length=max_tokens)
-            vid_embed = np.mean(chunk_embed, axis=0)
+            # vid_vec = weighted_embedding(chunks, chunk_embed) # weighted embedding with TF-IDF
+            vid_vec = chunk_embed.mean(axis=0) # mean embedding
             vid_key = os.path.splitext(os.path.basename(path))[0]
-            vid_embed[vid_key] = vid_embed
-            np.save(os.path.join(out_dir, f"{vid_key}.npy"), vid_embed)
+            vid_embeddings[vid_key] = vid_vec
+            np.save(os.path.join(out_dir, f"{vid_key}.npy"), vid_vec)
         
 print(f"Done! Generated embeddings for {len(vid_embeddings)} videos.")
