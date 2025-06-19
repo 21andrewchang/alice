@@ -1,0 +1,90 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "Convolutional Neural Network",
+      "description": "A class of deep learning models for processing grid-like data",
+      "difficulty": 3
+    },
+    {
+      "id": 1,
+      "label": "Dot product",
+      "description": "Multiplying corresponding entries of two vectors and summing the results",
+      "difficulty": 1
+    },
+    {
+      "id": 2,
+      "label": "Matrix multiplication",
+      "description": "Combining two matrices by summing element-wise products of rows and columns",
+      "difficulty": 2
+    },
+    {
+      "id": 3,
+      "label": "Im2Col operation",
+      "description": "Rearranging image blocks into columns to perform convolution as matrix multiplication",
+      "difficulty": 3
+    },
+    {
+      "id": 4,
+      "label": "Padding and stride",
+      "description": "Adjusting convolution output dimensions by adding borders and skipping positions",
+      "difficulty": 2
+    },
+    {
+      "id": 5,
+      "label": "Multi-channel convolution",
+      "description": "Applying convolution across multiple input feature maps simultaneously",
+      "difficulty": 4
+    },
+    {
+      "id": 6,
+      "label": "Backpropagation through convolution",
+      "description": "Computing gradients of convolutional layers for training neural networks",
+      "difficulty": 5
+    },
+    {
+      "id": 7,
+      "label": "Dilated convolution",
+      "description": "Expanding the receptive field by inserting gaps between kernel elements",
+      "difficulty": 4
+    },
+    {
+      "id": 8,
+      "label": "Transposed convolution",
+      "description": "Performing upsampling by reversing the forward convolution process",
+      "difficulty": 4
+    },
+    {
+      "id": 9,
+      "label": "1D convolution for NLP",
+      "description": "Using convolutional kernels on sequential text data",
+      "difficulty": 3
+    },
+    {
+      "id": 10,
+      "label": "Graph convolutional networks",
+      "description": "Extending convolution operations to graph-structured data",
+      "difficulty": 4
+    },
+    {
+      "id": 11,
+      "label": "Depthwise separable convolution",
+      "description": "Factorizing convolution into depthwise and pointwise operations for efficiency",
+      "difficulty": 4
+    }
+  ],
+  "links": [
+    { "source": 1,  "target": 0,  "relation": "prerequisite" },
+    { "source": 2,  "target": 0,  "relation": "prerequisite" },
+    { "source": 3,  "target": 0,  "relation": "prerequisite" },
+    { "source": 4,  "target": 0,  "relation": "prerequisite" },
+    { "source": 0,  "target": 5,  "relation": "advance"      },
+    { "source": 0,  "target": 6,  "relation": "advance"      },
+    { "source": 0,  "target": 7,  "relation": "advance"      },
+    { "source": 0,  "target": 8,  "relation": "advance"      },
+    { "source": 9,  "target": 0,  "relation": "lateral"      },
+    { "source": 10, "target": 0,  "relation": "lateral"      },
+    { "source": 11, "target": 0,  "relation": "lateral"      }
+  ]
+}
+

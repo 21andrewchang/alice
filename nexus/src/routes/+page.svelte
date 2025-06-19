@@ -3,47 +3,89 @@
 	import * as d3 from 'd3';
 
 	let element;
+	let tooltipEl;
 
-	// Load local JSON from your "static" folder (place graph.json in /static)
 	async function loadData() {
-		return await fetch('/graph.json').then((r) => r.json());
+		return fetch('/cnn.json').then((r) => r.json());
 	}
 
 	function chart(data) {
 		const width = 928;
 		const height = 680;
-		const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-		const links = data.links.map((d) => ({ ...d }));
+		// Color scales
+		const difficultyColor = d3.scaleSequential().domain([1, 5]).interpolator(d3.interpolateBlues);
+
+		const linkColor = d3
+			.scaleOrdinal()
+			.domain(['prerequisite', 'advance', 'lateral'])
+			.range(['#3182bd', '#31a354', '#e6550d']);
+
+		// Clone data
 		const nodes = data.nodes.map((d) => ({ ...d }));
+		const links = data.links.map((d) => ({ ...d }));
 
+		// Map central relations
+		const centralId = 0;
+		const relationMap = {};
+		links.forEach((l) => {
+			if (l.source === centralId) relationMap[l.target] = l.relation;
+			else if (l.target === centralId) relationMap[l.source] = l.relation;
+		});
+
+		// Simulation with clustering
 		const simulation = d3
 			.forceSimulation(nodes)
 			.force(
 				'link',
-				d3.forceLink(links).id((d) => d.id)
+				d3
+					.forceLink(links)
+					.id((d) => d.id)
+					.distance(100)
 			)
-			.force('charge', d3.forceManyBody())
-			.force('x', d3.forceX())
-			.force('y', d3.forceY());
+			.force('charge', d3.forceManyBody().strength(-200))
+			.force('center', d3.forceCenter(0, 0))
+			.force(
+				'x',
+				d3
+					.forceX((d) => {
+						const r = relationMap[d.id];
+						if (r === 'prerequisite') return -width / 4;
+						if (r === 'advance') return width / 4;
+						return 0;
+					})
+					.strength(0.2)
+			)
+			.force(
+				'y',
+				d3
+					.forceY((d) => {
+						const r = relationMap[d.id];
+						return r === 'lateral' ? height / 4 : 0;
+					})
+					.strength(0.2)
+			);
 
+		// Create SVG
 		const svg = d3
 			.create('svg')
-			.attr('width', width)
-			.attr('height', height)
+			.attr('width', '100%')
+			.attr('height', '100%')
 			.attr('viewBox', [-width / 2, -height / 2, width, height])
-			.style('max-width', '100%');
+			.attr('preserveAspectRatio', 'xMidYMid meet');
 
-		const link = svg
+		// Draw links
+		svg
 			.append('g')
-			.attr('stroke', '#999')
 			.attr('stroke-opacity', 0.6)
 			.selectAll('line')
 			.data(links)
 			.join('line')
-			.attr('stroke-width', (d) => Math.sqrt(d.value));
+			.attr('stroke-width', (d) => Math.sqrt(d.value))
+			.attr('stroke', (d) => linkColor(d.relation));
 
-		const node = svg
+		// Draw nodes & attach hover events
+		const nodeSel = svg
 			.append('g')
 			.attr('stroke', '#fff')
 			.attr('stroke-width', 1.5)
@@ -51,33 +93,47 @@
 			.data(nodes)
 			.join('circle')
 			.attr('r', 5)
-			.attr('fill', (d) => color(d.group))
-			.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended));
+			.attr('fill', (d) => difficultyColor(d.difficulty))
+			.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
+			.on('mouseover', (event, d) => {
+				d3.select(tooltipEl).classed('hidden', false).text(d.label);
+			})
+			.on('mousemove', (event) => {
+				d3.select(tooltipEl)
+					.style('left', event.pageX + 10 + 'px')
+					.style('top', event.pageY + 10 + 'px');
+			})
+			.on('mouseout', () => {
+				d3.select(tooltipEl).classed('hidden', true);
+			});
 
-		node.append('title').text((d) => d.id);
-
+		// Tick update
 		simulation.on('tick', () => {
-			link
+			svg
+				.selectAll('line')
 				.attr('x1', (d) => d.source.x)
 				.attr('y1', (d) => d.source.y)
 				.attr('x2', (d) => d.target.x)
 				.attr('y2', (d) => d.target.y);
-			node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
+			svg
+				.selectAll('circle')
+				.attr('cx', (d) => d.x)
+				.attr('cy', (d) => d.y);
 		});
 
-		function dragstarted(event) {
-			if (!event.active) simulation.alphaTarget(0.3).restart();
-			event.subject.fx = event.subject.x;
-			event.subject.fy = event.subject.y;
+		function dragstarted(e) {
+			if (!e.active) simulation.alphaTarget(0.3).restart();
+			e.subject.fx = e.subject.x;
+			e.subject.fy = e.subject.y;
 		}
-		function dragged(event) {
-			event.subject.fx = event.x;
-			event.subject.fy = event.y;
+		function dragged(e) {
+			e.subject.fx = e.x;
+			e.subject.fy = e.y;
 		}
-		function dragended(event) {
-			if (!event.active) simulation.alphaTarget(0);
-			event.subject.fx = null;
-			event.subject.fy = null;
+		function dragended(e) {
+			if (!e.active) simulation.alphaTarget(0);
+			e.subject.fx = null;
+			e.subject.fy = null;
 		}
 
 		return svg.node();
@@ -85,9 +141,18 @@
 
 	onMount(async () => {
 		const data = await loadData();
-		const svgNode = chart(data);
-		element.appendChild(svgNode);
+		element.innerHTML = '';
+		element.appendChild(chart(data));
 	});
 </script>
 
-<div bind:this={element} class="h-[680px] w-full"></div>
+<main class="relative h-screen w-screen">
+	<!-- Tooltip div, hidden by default -->
+	<div
+		bind:this={tooltipEl}
+		class="pointer-events-none absolute hidden rounded border border-gray-300 bg-white p-1 text-xs shadow"
+	></div>
+
+	<!-- Graph container fills the rest -->
+	<div bind:this={element} class="h-full w-full"></div>
+</main>
