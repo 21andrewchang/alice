@@ -190,135 +190,49 @@ Track key metrics:
 ## Approval Gates
 
 ### Epic Start Gate
-**Required before starting any epic:**
-- [ ] Epic summary reviewed and understood
-- [ ] Technical approach planned and approved
-- [ ] Dependencies identified and resolved
-- [ ] Success metrics defined
-- [ ] User explicitly approves with "✅ APPROVED"
+Before starting any epic, conduct **Epic Consultation IN CHAT ONLY**:
+- **Purpose**: Lock down epic scope, add/remove features, ensure alignment on goals
+- **Process**: Ask clarifying questions about epic objectives, approach, priorities
+- **High Priority TODO Notification**: Report ALL high priority todos found anywhere in docs
+- **Outcome**: Clear go/no-go decision with any epic adjustments made directly to files
+- **Requirement**: User must explicitly approve before epic implementation begins
 
-### Story Consultation Gate
-**Required before starting any story:**
-- [ ] Story consultation document written
-- [ ] Context gathering questions answered
-- [ ] Implementation approach reviewed
-- [ ] Scope optimization discussed
-- [ ] User explicitly approves with "✅ CONSULTATION APPROVED"
+### Story Consultation Gate ⭐ NEW
+Before implementing any story, conduct consultation **IN CHAT ONLY** (no documents):
+- **Purpose**: Lock down exactly what will be built, add/remove features, ensure alignment
+- **Process**: Ask clarifying questions about scope, approach, design decisions
+- **High Priority TODO Notification**: Report ALL high priority todos found anywhere in docs
+- **Outcome**: Clear go/no-go decision with any epic/story adjustments made directly to files
+- **Requirement**: User must explicitly approve before implementation begins
 
-### Story Completion Gate  
-**Required before moving to next story:**
-- [ ] All acceptance criteria met
-- [ ] Code reviewed and tested
-- [ ] Demo provided to user
-- [ ] User testing completed
-- [ ] User explicitly approves with "✅ STORY COMPLETE"
+### Story Completion Gate
+Before marking story complete:
+1. **Demo** - Working functionality that can be tested
+2. **Testing** - User validates core functionality works
+3. **Approval** - Explicit approval before moving to next story
 
 ### Epic Completion Gate
-**Required before moving to next epic:**
-- [ ] All stories completed and approved
-- [ ] Epic success criteria validated
-- [ ] Performance requirements met
-- [ ] User acceptance testing passed
-- [ ] **Epic Completion Summary written** (see format below)
-- [ ] User explicitly approves with "✅ EPIC COMPLETE"
+Before starting next epic:
+1. **Completion Summary Document** - What was built, testing areas, known issues
+2. **Metrics Review** - Success criteria assessment
+3. **Next Epic Generation** - Only after current epic fully approved
 
-### Epic Completion Summary Format
-When an epic is complete, create a summary document:
+## High Priority TODO Tracking
+- **Mandatory Reporting**: At start of every epic and story, scan all docs for high priority todos
+- **Notification Format**: List all found high priority todos with file locations
+- **Scope Impact**: High priority todos may affect story/epic scope and should be addressed
 
-```markdown
-# Epic [X] Completion Summary
+## Scope Limiting Rules
+- **Epic Duration**: Maximum 4 days
+- **Story Duration**: Maximum 2 days  
+- **Stories Per Epic**: Maximum 3 stories
+- **Scope Growth**: Split into new epics rather than extend timeline
 
-## What Was Accomplished
-- [ ] Story 1: Brief description of what was delivered
-- [ ] Story 2: Brief description of what was delivered
-- [ ] Story N: Brief description of what was delivered
-
-## Key Features Delivered
-- Bullet point summary of user-facing features
-- Technical improvements made
-- Performance metrics achieved
-
-## What's Next
-- Brief description of the next epic
-- How it builds on this epic
-- Expected timeline
-
-## Critical Testing Areas
-- [ ] Specific functionality that needs manual testing
-- [ ] Edge cases to verify
-- [ ] Performance benchmarks to check
-- [ ] Browser/device compatibility to test
-
-## Known Issues/Technical Debt
-- Any shortcuts taken that need future attention
-- Performance optimizations needed later
-- Features that were scoped down
-
-## Metrics to Track
-- User engagement metrics to monitor
-- Performance metrics to watch
-- Business metrics that matter
-```
-
-**After Epic Completion:**
-1. AI writes epic completion summary
-2. User reviews and tests critical areas
-3. User approves with "✅ EPIC COMPLETE"
-4. AI generates next epic directory structure:
-   - Creates `/docs/epics/[next_epic_number]_[epic_name]/`
-   - Writes `epic_summary.md` based on master timeline
-   - Creates individual story files for all stories in that epic
-   - Each story file includes: user story, acceptance criteria, technical requirements, definition of done
-5. AI presents next epic summary for approval before starting work
-
-### Epic Directory Structure Template
-```
-/docs/epics/[epic_number]_[epic_name]/
-├── epic_summary.md
-├── story_01_[story_name].md
-├── story_02_[story_name].md
-└── epic_completion_summary.md (created after completion)
-```
-
-### Story File Template
-```markdown
-# Story [Epic].[Story]: [Story Name]
-
-**Epic**: [Epic Name]
-**Priority**: P0/P1/P2
-**Estimate**: [X] days
-
-## User Story
-As a [user type], I want [goal] so that [benefit].
-
-## Acceptance Criteria
-- [ ] Specific, testable requirement 1
-- [ ] Specific, testable requirement 2
-- [ ] Specific, testable requirement N
-
-## Technical Requirements
-- Technical implementation details
-- Architecture decisions
-- Dependencies and constraints
-
-## Definition of Done
-- [ ] All acceptance criteria met
-- [ ] Code reviewed and tested
-- [ ] Performance requirements met
-- [ ] Browser compatibility verified
-- [ ] User testing completed
-
-## Testing Approach
-- Specific testing scenarios
-- Edge cases to verify
-- Performance benchmarks
-```
-
-### Scope Limiting Rules
-- **Epic Max Duration**: 4 days maximum per epic
-- **Story Max Duration**: 2 days maximum per story  
-- **Epic Max Stories**: 3 stories maximum per epic
-- **If scope grows**: Split into multiple epics rather than extending timeline
+## Development Principles
+- **Incremental Delivery**: Each story must produce working functionality
+- **User Validation**: No story complete without user testing
+- **Fast Iteration**: Prefer smaller, tested increments over large features
+- **Scope Discipline**: When in doubt, cut scope and move to next epic
 
 ## Communication Guidelines
 - **Story consultations**: Always start each story with consultation document
