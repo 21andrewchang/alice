@@ -97,7 +97,7 @@
 								{#each Array(5) as _, i}
 									<div
 										class="h-2 w-2 rounded-full"
-										class:bg-[#BB9AF7]={i < item.difficulty}
+										class:bg-[#5B8DF2]={i < item.difficulty}
 										class:bg-[#212121]={i >= item.difficulty}
 									></div>
 								{/each}
@@ -143,7 +143,7 @@
 								{#each Array(5) as _, i}
 									<div
 										class="h-2 w-2 rounded-full"
-										class:bg-[#BB9AF7]={i < subtopic.difficulty}
+										class:bg-[#5B8DF2]={i < subtopic.difficulty}
 										class:bg-[#212121]={i >= subtopic.difficulty}
 									></div>
 								{/each}

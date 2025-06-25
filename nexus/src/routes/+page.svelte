@@ -5,15 +5,35 @@
 	let element;
 	let tooltipEl;
 	let selectedNode = null;
+	let pdfLoading = false;
+	let showPdfFrame = false;
 	let learnedNodes = new Set();
+	
+	// Idle animation variables
+	let simulation;
+	let idleTime = 0;
+	let idleAnimationId;
+	
+
 
 	async function loadData() {
-		return fetch('/cnn.json').then((r) => r.json());
+		return fetch('/believable_acting.json').then((r) => r.json());
 	}
 
 	function selectNode(node) {
 		selectedNode = node;
 		learnedNodes.add(node.id);
+		
+		// For PDFs, delay iframe creation to avoid lag
+		if (node.type === 'paper' && node.url) {
+			pdfLoading = true;
+			showPdfFrame = false;
+			// Delay iframe creation slightly to let panel open smoothly
+			setTimeout(() => {
+				showPdfFrame = true;
+			}, 100);
+		}
+		
 		// Re-render to show glow effect
 		updateNodeStyles();
 	}
@@ -29,13 +49,35 @@
 
 	let nodeSel; // Store node selection for updates
 
+	function getDomainColor(domain) {
+		const domainColors = {
+			'math': '#5B8DF2',          // Electric Pulse
+			'tech': '#73DACA',          // Cyber Teal  
+			'sciences': '#BA6FFF',      // Cosmic Violet
+			'humanities': '#F88951',    // Sunset Amber
+			'art': '#F7768E',           // Rose Bloom
+			'research-papers': '#BFCAF3' // Papyrus
+		};
+		return domainColors[domain] || '#3A5A8F'; // Default to Desaturated Electric Pulse
+	}
+
 	function updateNodeStyles() {
 		if (nodeSel) {
 			nodeSel
-				.attr('fill', (d) => learnedNodes.has(d.id) ? '#5B8DF2' : '#4D5072') // node-learned : node-base
-				.attr('stroke', (d) => learnedNodes.has(d.id) ? '#5B8DF2' : '#3A3F59') // Same color glow : border
+				.attr('fill', (d) => {
+					if (d.type === 'paper') return '#BFCAF3'; // Always Papyrus for papers
+					return getDomainColor(d.domain || 'tech'); // Always domain color, never changes
+				})
+				.attr('stroke', (d) => {
+					if (d.type === 'paper') return '#BFCAF3'; // Matching stroke for papers
+					return getDomainColor(d.domain || 'tech'); // Always domain color, never ugly gray border
+				})
 				.attr('stroke-width', (d) => learnedNodes.has(d.id) ? 3 : 1.5)
-				.style('filter', (d) => learnedNodes.has(d.id) ? 'drop-shadow(0 0 8px #5B8DF2)' : null);
+				.style('filter', (d) => {
+					if (d.type === 'paper') return learnedNodes.has(d.id) ? 'drop-shadow(0 0 8px #BFCAF3)' : null;
+					const domainColor = getDomainColor(d.domain || 'tech');
+					return learnedNodes.has(d.id) ? `drop-shadow(0 0 8px ${domainColor})` : null;
+				});
 		}
 	}
 
@@ -46,11 +88,11 @@
 		// Purple color scale for nodes
 		const nodeColor = d3.scaleSequential().domain([1, 5]).interpolator(d3.interpolatePurples);
 
-		// Light gray connections
+		// Pure gray connections
 		const linkColor = d3
 			.scaleOrdinal()
 			.domain(['prerequisite', 'advance', 'lateral'])
-			.range(['#8B93C3', '#8B93C3', '#8B93C3']); // All connections light gray (text-primary)
+			.range(['#333333', '#333333', '#333333']); // All connections pure gray
 
 		// Clone data
 		const nodes = data.nodes.map((d) => ({ ...d }));
@@ -114,6 +156,14 @@
 
 		svg.call(zoom);
 
+		// Add solid background rectangle to SVG
+		svg.append('rect')
+			.attr('x', -width / 2)
+			.attr('y', -height / 2)
+			.attr('width', width)
+			.attr('height', height)
+			.attr('fill', '#080808');
+
 		// Main group for all graph elements
 		const g = svg.append('g');
 
@@ -133,9 +183,9 @@
 			.selectAll('circle')
 			.data(nodes)
 			.join('circle')
-			.attr('r', 8)
-			.attr('fill', '#4D5072') // node-base (Circuit Slate)
-			.attr('stroke', '#3A3F59') // border-color (Neon Grid Gray)
+			.attr('r', (d) => d.type === 'paper' ? 12 : 8) // Larger radius for research papers
+			.attr('fill', (d) => d.type === 'paper' ? '#BFCAF3' : getDomainColor(d.domain || 'tech')) // Papyrus for papers, domain colors for others
+			.attr('stroke', (d) => d.type === 'paper' ? '#BFCAF3' : getDomainColor(d.domain || 'tech')) // Matching stroke for both
 			.attr('stroke-width', 1.5)
 			.attr('cursor', 'pointer')
 			.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
@@ -184,69 +234,139 @@
 			e.subject.fy = null;
 		}
 
+		// Store simulation reference for idle animation
+		window.simulation = simulation;
+
+		// Start idle animation after a delay
+		setTimeout(() => {
+			startIdleAnimation();
+		}, 1000);
+
 		return svg.node();
+	}
+
+	function startIdleAnimation() {
+		function animate() {
+			idleTime += 0.02;
+			const breathingStrength = -300 + 150 * Math.sin(idleTime); // Oscillate between -450 and -150
+			
+			if (window.simulation) {
+				window.simulation.force('charge', d3.forceManyBody().strength(breathingStrength));
+				window.simulation.alpha(0.03).restart();
+			}
+			
+			idleAnimationId = requestAnimationFrame(animate);
+		}
+		animate();
+	}
+
+	function stopIdleAnimation() {
+		if (idleAnimationId) {
+			cancelAnimationFrame(idleAnimationId);
+			idleAnimationId = null;
+		}
 	}
 
 	onMount(async () => {
 		const data = await loadData();
 		element.innerHTML = '';
 		element.appendChild(chart(data));
+
+		// Cleanup on unmount
+		return () => {
+			stopIdleAnimation();
+		};
 	});
 </script>
 
 <!-- Cyberpunk theme main container with side-by-side layout -->
-<main class="relative h-screen w-screen flex" style="background-color: #0D0D0D; color: #B3B3B3;">
+<main class="relative h-screen w-screen flex" style="background-color: #080808; color: #B3B3B3;">
 	<!-- Tooltip -->
 	<div
 		bind:this={tooltipEl}
 		class="pointer-events-none absolute hidden rounded p-2 text-sm shadow-lg z-50"
-		style="background-color: #2A2A2A; border: 1px solid #333333;"
+		style="background-color: #080808; border: 1px solid #333333;"
 	></div>
 
 	<!-- Graph container - left side or full width -->
-	<div class="{selectedNode ? 'w-1/2' : 'w-full'} h-full transition-all duration-300" style="border-right: 1px solid #333333;">
+	<div class="{selectedNode ? 'w-1/2' : 'w-full'} h-full transition-all duration-150">
 		<div bind:this={element} class="h-full w-full"></div>
 	</div>
 
 	<!-- Node Preview panel - right side -->
 	{#if selectedNode}
-		<div class="w-1/2 h-full p-6 overflow-y-auto" style="background-color: #2A2A2A;">
-			<div class="mb-4">
-				<h2 class="text-2xl font-bold mb-2" style="color: #5B8DF2;">{selectedNode.label}</h2>
-				<div class="flex items-center gap-2 mb-4">
-					<span class="text-sm" style="color: #B3B3B3;">Difficulty: {selectedNode.difficulty}/5</span>
-					<div class="flex">
-						{#each Array(selectedNode.difficulty) as _}
-							<div class="w-2 h-2 rounded-full mr-1" style="background-color: #5B8DF2;"></div>
-						{/each}
-						{#each Array(5 - selectedNode.difficulty) as _}
-							<div class="w-2 h-2 rounded-full mr-1" style="background-color: #3A3F59;"></div>
-						{/each}
+		<div class="w-1/2 h-full" style="background-color: #080808;">
+			<div class="h-full p-6">
+				<div class="h-full rounded-2xl overflow-hidden" style="background-color: #111111;">
+					<div class="h-full overflow-hidden">
+				{#if selectedNode.type === 'paper' && selectedNode.url}
+					<!-- PDF display for papers -->
+					<div class="h-full flex flex-col">
+						<div class="flex items-center justify-between p-6">
+							<h2 class="text-2xl font-bold" style="color: #BFCAF3;">{selectedNode.label}</h2>
+							<button
+								on:click={() => selectedNode = null}
+								class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-600 transition-colors"
+								aria-label="Close"
+							>
+								✕
+							</button>
+						</div>
+						
+						<div class="flex-1">
+							<iframe 
+								src="{selectedNode.url}#navpanes=0&scrollbar=0"
+								class="w-full h-full border-0"
+								title="PDF Viewer"
+							></iframe>
+						</div>
+					</div>
+				{:else}
+					<!-- Regular node display -->
+					<div class="p-6 h-full overflow-y-auto">
+						<div class="mb-4">
+							<div class="flex items-center justify-between mb-4">
+								<h2 class="text-2xl font-bold" style="color: {getDomainColor(selectedNode.domain)};">{selectedNode.label}</h2>
+								<button
+									on:click={() => selectedNode = null}
+									class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-600 transition-colors"
+									aria-label="Close"
+								>
+									✕
+								</button>
+							</div>
+							<div class="flex items-center gap-2 mb-4">
+								<span class="text-sm" style="color: #B3B3B3;">Difficulty: {selectedNode.difficulty}/5</span>
+								<div class="flex">
+									{#each Array(selectedNode.difficulty) as _}
+										<div class="w-2 h-2 rounded-full mr-1" style="background-color: {getDomainColor(selectedNode.domain)};"></div>
+									{/each}
+									{#each Array(5 - selectedNode.difficulty) as _}
+										<div class="w-2 h-2 rounded-full mr-1" style="background-color: #3A3F59;"></div>
+									{/each}
+								</div>
+							</div>
+						</div>
+
+						<div class="mb-6">
+							<h3 class="text-lg font-semibold mb-2" style="color: #B3B3B3;">Description</h3>
+							<p class="leading-relaxed" style="color: #B3B3B3;">{selectedNode.description}</p>
+						</div>
+
+						<div class="flex gap-3">
+							<button
+								on:click={() => toggleLearned(selectedNode.id)}
+								class="px-4 py-2 rounded-lg transition-colors"
+								style="background-color: {learnedNodes.has(selectedNode.id) ? '#8060D0' : '#5B8DF2'}; 
+								       color: {learnedNodes.has(selectedNode.id) ? '#A9AEED' : '#080808'};"
+							>
+								{learnedNodes.has(selectedNode.id) ? 'Mark as Unlearned' : 'Mark as Learned'}
+							</button>
+						</div>
+					</div>
+				{/if}
 					</div>
 				</div>
-			</div>
-
-			<div class="mb-6">
-				<h3 class="text-lg font-semibold mb-2" style="color: #B3B3B3;">Description</h3>
-				<p class="leading-relaxed" style="color: #B3B3B3;">{selectedNode.description}</p>
-			</div>
-
-			<div class="flex gap-3">
-				<button
-					on:click={() => toggleLearned(selectedNode.id)}
-					class="px-4 py-2 rounded-lg transition-colors"
-					style="background-color: {learnedNodes.has(selectedNode.id) ? '#8060D0' : '#5B8DF2'}; 
-					       color: {learnedNodes.has(selectedNode.id) ? '#A9AEED' : '#0D0D0D'};"
-				>
-					{learnedNodes.has(selectedNode.id) ? 'Mark as Unlearned' : 'Mark as Learned'}
-				</button>
-				<button
-					on:click={() => selectedNode = null}
-					class="px-4 py-2 rounded-lg transition-colors"
-					style="background-color: #8060D0; color: #A9AEED;"
-				>
-					Close
-				</button>
 			</div>
 		</div>
 	{/if}
