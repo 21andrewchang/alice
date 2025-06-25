@@ -1,11 +1,17 @@
-# Epic 2: Content Expansion System
+# Epic 4: Content Expansion System
 
 **Timeline**: 4-5 days (Week 2)  
 **Priority**: P0 - Critical Path  
-**Status**: 🚀 **STARTING NOW**
+**Status**: 🚧 **IN PROGRESS** (Story 3.3 from Epic 3 is blocking)
 
 ## Epic Goal
 Build a robust content expansion system that allows easy addition of new learning materials, making Nexus grow from a demo into a genuinely useful learning platform with multiple knowledge domains.
+
+## **CRITICAL BLOCKER**
+Epic 4 is blocked by **Story 3.3: Seed Network Population** from Epic 3. We need to complete the data collection system and populate the initial seed network before expanding the content system further.
+
+## **CURRENT HIGH PRIORITY**
+**Complete Epic 3, Story 3.3 FIRST**: Build content processing pipeline to convert existing `rec_alg/transcripts/` to graph JSON and create the initial multi-domain network.
 
 ## Success Criteria
 - [ ] Local directory system for adding new content (PDFs, transcripts, etc.)
@@ -28,7 +34,7 @@ Build a robust content expansion system that allows easy addition of new learnin
 
 ## Stories
 
-### Story 2.1: Local Content Directory System (2 days)
+### Story 4.1: Local Content Directory System (2 days)
 **Goal**: Organized file structure for easy content addition
 
 **User Story**: As a content creator, I want to easily add new learning materials by dropping files in organized directories, so that expanding the knowledge graph doesn't require code changes.
@@ -40,7 +46,7 @@ Build a robust content expansion system that allows easy addition of new learnin
 - [ ] Content validation and error handling
 - [ ] Integration with existing graph data structure
 
-### Story 2.2: Multi-Domain Knowledge Expansion (2-3 days)
+### Story 4.2: Multi-Domain Knowledge Expansion (2-3 days)
 **Goal**: Add multiple learning domains beyond current content
 
 **User Story**: As a learner, I want to explore different knowledge domains (Computer Science, Machine Learning, etc.) so that I can learn across multiple fields within the same platform.
@@ -60,7 +66,9 @@ Build a robust content expansion system that allows easy addition of new learnin
 - **Scalability**: Structure ready for future database migration
 
 ## Dependencies
+- ⚠️ **BLOCKING**: Epic 3, Story 3.3 (Seed Network Population) must complete first
 - Completed Epic 1 (graph visualization)
+- Completed Epic 2 (graph interactions)
 - Content organization from existing rec_alg transcripts
 - PDF handling capabilities
 
