@@ -213,6 +213,9 @@
 				
 				g.selectAll('text')
 					.style('opacity', showLabels ? 1 : 0);
+				
+				// Store zoom level for tooltip logic
+				window.currentZoomScale = scale;
 			});
 
 		svg.call(zoom);
@@ -319,15 +322,31 @@
 			.attr('cursor', 'pointer')
 			.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
 			.on('mouseover', (event, d) => {
-				d3.select(tooltipEl).classed('hidden', false).text(d.label);
+				// Only show tooltip if zoom level is below text threshold (labels not visible)
+				if (!window.currentZoomScale || window.currentZoomScale < 1.5) {
+					d3.select(tooltipEl).classed('hidden', false).text(d.label);
+				}
+				
+				// Scale up the hovered node
+				d3.select(event.target)
+					.transition()
+					.duration(150)
+					.attr('r', (d.type === 'paper' ? 12 : 8) * 1.15); // 15% bigger
 			})
 			.on('mousemove', (event) => {
 				d3.select(tooltipEl)
 					.style('left', event.pageX + 10 + 'px')
 					.style('top', event.pageY + 10 + 'px');
 			})
-			.on('mouseout', () => {
+			.on('mouseout', (event, d) => {
+				// Always hide tooltip on mouseout
 				d3.select(tooltipEl).classed('hidden', true);
+				
+				// Scale back down to original size
+				d3.select(event.target)
+					.transition()
+					.duration(150)
+					.attr('r', d.type === 'paper' ? 12 : 8); // Back to original size
 			})
 			.on('click', (event, d) => {
 				event.stopPropagation();
