@@ -24,6 +24,36 @@
 		selectedNode = node;
 		learnedNodes.add(node.id);
 		
+		// Zoom in and center on the selected node
+		if (zoomBehavior && svgElement) {
+			const scale = 2; // Zoom scale factor
+			const [x, y] = [node.x || 0, node.y || 0]; // Node position
+			
+			// Get the current container dimensions
+			const containerWidth = 928;
+			const containerHeight = 680;
+			
+			// SVG viewBox is centered at (0,0), so we need to account for that
+			// When side panel is open, we want to center in the left half
+			const visibleWidth = containerWidth / 2; // Left half for graph
+			
+			// Calculate target position in SVG coordinates (viewBox is centered)
+			// We want the node to appear at 1/4 from left edge and 1/3 from top
+			const targetX = -containerWidth / 4 + visibleWidth / 2; // Center of left half
+			const targetY = -containerHeight / 2 + containerHeight / 3; // 1/3 from top
+			
+			// Create transform to move the node to the target position
+			const transform = d3.zoomIdentity
+				.translate(targetX - x * scale, targetY - y * scale)
+				.scale(scale);
+			
+			// Apply zoom transform with smooth transition
+			d3.select(svgElement)
+				.transition()
+				.duration(750)
+				.call(zoomBehavior.transform, transform);
+		}
+		
 		// For PDFs, delay iframe creation to avoid lag
 		if (node.type === 'paper' && node.url) {
 			pdfLoading = true;
@@ -48,6 +78,8 @@
 	}
 
 	let nodeSel; // Store node selection for updates
+	let zoomBehavior; // Store zoom behavior for programmatic control
+	let svgElement; // Store SVG element reference
 
 	function getDomainColor(domain) {
 		const domainColors = {
@@ -65,20 +97,42 @@
 		if (nodeSel) {
 			nodeSel
 				.attr('fill', (d) => {
-					if (d.type === 'paper') return '#BFCAF3'; // Always Papyrus for papers
-					return getDomainColor(d.domain || 'tech'); // Always domain color, never changes
+					if (d.type === 'paper') {
+						return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Dimmer papyrus for unlearned papers
+					}
+					const baseColor = getDomainColor(d.domain || 'tech');
+					return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Dimmer for unlearned nodes
 				})
 				.attr('stroke', (d) => {
-					if (d.type === 'paper') return '#BFCAF3'; // Matching stroke for papers
-					return getDomainColor(d.domain || 'tech'); // Always domain color, never ugly gray border
+					if (d.type === 'paper') {
+						return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Matching stroke for papers
+					}
+					const baseColor = getDomainColor(d.domain || 'tech');
+					return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Matching stroke, dimmed for unlearned
 				})
 				.attr('stroke-width', (d) => learnedNodes.has(d.id) ? 3 : 1.5)
 				.style('filter', (d) => {
-					if (d.type === 'paper') return learnedNodes.has(d.id) ? 'drop-shadow(0 0 8px #BFCAF3)' : null;
+					if (d.type === 'paper') return learnedNodes.has(d.id) ? 'drop-shadow(0 0 6px #BFCAF3)' : null;
 					const domainColor = getDomainColor(d.domain || 'tech');
-					return learnedNodes.has(d.id) ? `drop-shadow(0 0 8px ${domainColor})` : null;
+					return learnedNodes.has(d.id) ? `drop-shadow(0 0 6px ${domainColor})` : null;
 				});
 		}
+	}
+
+	// Helper function to dim colors for unlearned nodes
+	function dimColor(color) {
+		// Convert hex to RGB, reduce brightness, convert back
+		const hex = color.replace('#', '');
+		const r = parseInt(hex.substr(0, 2), 16);
+		const g = parseInt(hex.substr(2, 2), 16);
+		const b = parseInt(hex.substr(4, 2), 16);
+		
+		// Reduce brightness by ~40%
+		const dimR = Math.round(r * 0.6);
+		const dimG = Math.round(g * 0.6);
+		const dimB = Math.round(b * 0.6);
+		
+		return `#${dimR.toString(16).padStart(2, '0')}${dimG.toString(16).padStart(2, '0')}${dimB.toString(16).padStart(2, '0')}`;
 	}
 
 	function chart(data) {
@@ -152,9 +206,20 @@
 			.scaleExtent([0.1, 10])
 			.on('zoom', (event) => {
 				g.attr('transform', event.transform);
+				
+				// Show/hide text labels based on zoom level
+				const scale = event.transform.k;
+				const showLabels = scale >= 1.5; // Show labels when zoomed to 1.5x or more
+				
+				g.selectAll('text')
+					.style('opacity', showLabels ? 1 : 0);
 			});
 
 		svg.call(zoom);
+		
+		// Store references for programmatic zoom control
+		zoomBehavior = zoom;
+		svgElement = svg.node();
 
 		// Add solid background rectangle to SVG
 		svg.append('rect')
@@ -205,6 +270,21 @@
 				selectNode(d);
 			});
 
+		// Add text labels for nodes (excluding papers)
+		const textSel = g
+			.append('g')
+			.selectAll('text')
+			.data(nodes)
+			.join('text')
+			.attr('text-anchor', 'middle')
+			.attr('dy', '0.35em')
+			.attr('font-size', '6px')
+			.attr('font-family', 'Arial, sans-serif')
+			.attr('fill', '#333333')
+			.attr('pointer-events', 'none')
+			.style('opacity', 0) // Start hidden
+			.text(d => d.label);
+
 		// Tick update
 		simulation.on('tick', () => {
 			g
@@ -217,6 +297,10 @@
 				.selectAll('circle')
 				.attr('cx', (d) => d.x)
 				.attr('cy', (d) => d.y);
+			g
+				.selectAll('text')
+				.attr('x', (d) => d.x)
+				.attr('y', (d) => d.y + (d.type === 'paper' ? 26 : 20)); // Position labels farther below paper nodes
 		});
 
 		function dragstarted(e) {
@@ -234,48 +318,18 @@
 			e.subject.fy = null;
 		}
 
-		// Store simulation reference for idle animation
+		// Store simulation reference
 		window.simulation = simulation;
-
-		// Start idle animation after a delay
-		setTimeout(() => {
-			startIdleAnimation();
-		}, 1000);
 
 		return svg.node();
 	}
 
-	function startIdleAnimation() {
-		function animate() {
-			idleTime += 0.02;
-			const breathingStrength = -300 + 150 * Math.sin(idleTime); // Oscillate between -450 and -150
-			
-			if (window.simulation) {
-				window.simulation.force('charge', d3.forceManyBody().strength(breathingStrength));
-				window.simulation.alpha(0.03).restart();
-			}
-			
-			idleAnimationId = requestAnimationFrame(animate);
-		}
-		animate();
-	}
 
-	function stopIdleAnimation() {
-		if (idleAnimationId) {
-			cancelAnimationFrame(idleAnimationId);
-			idleAnimationId = null;
-		}
-	}
 
 	onMount(async () => {
 		const data = await loadData();
 		element.innerHTML = '';
 		element.appendChild(chart(data));
-
-		// Cleanup on unmount
-		return () => {
-			stopIdleAnimation();
-		};
 	});
 </script>
 
@@ -351,17 +405,6 @@
 						<div class="mb-6">
 							<h3 class="text-lg font-semibold mb-2" style="color: #B3B3B3;">Description</h3>
 							<p class="leading-relaxed" style="color: #B3B3B3;">{selectedNode.description}</p>
-						</div>
-
-						<div class="flex gap-3">
-							<button
-								on:click={() => toggleLearned(selectedNode.id)}
-								class="px-4 py-2 rounded-lg transition-colors"
-								style="background-color: {learnedNodes.has(selectedNode.id) ? '#8060D0' : '#5B8DF2'}; 
-								       color: {learnedNodes.has(selectedNode.id) ? '#A9AEED' : '#080808'};"
-							>
-								{learnedNodes.has(selectedNode.id) ? 'Mark as Unlearned' : 'Mark as Learned'}
-							</button>
 						</div>
 					</div>
 				{/if}

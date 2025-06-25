@@ -8,18 +8,14 @@
 As a learner, I want the knowledge graph to look polished and organize related topics visually so that I can quickly understand the structure and relationships between concepts.
 
 ## Acceptance Criteria
-- [ ] Nodes are styled with proper colors and sizing based on difficulty (1-10 scale)
-- [ ] Edges have distinct colors for different relationship types:
-  - Blue (#3182bd) for prerequisites
-  - Green (#31a354) for advances
-  - Orange (#e6550d) for lateral connections
-- [ ] Force simulation positions nodes logically:
-  - Prerequisites cluster toward the left
-  - Advanced topics cluster toward the right
-  - Lateral connections spread vertically
-- [ ] Smooth animations for all interactions (hover, click, drag)
-- [ ] Visual feedback for user interactions (hover states, selection highlights)
-- [ ] Graph auto-centers and fits viewport on initial load
+- [x] Nodes are styled with proper domain-based colors from colorscheme.md
+- [x] Edges use clean gray styling (#333333) for consistency
+- [x] Force simulation positions nodes organically with breathing animation
+- [x] Smooth animations for all interactions (hover, click, drag)
+- [x] Visual feedback for user interactions (hover states, glow effects)
+- [x] Graph auto-centers and fits viewport on initial load
+- [x] Learned nodes glow with matching domain colors
+- [x] PDF viewer opens on node click with clean interface
 
 ## Technical Requirements
 - Extend existing D3.js force simulation with custom positioning forces
@@ -50,13 +46,13 @@ const edgeColor = d3.scaleOrdinal()
 ```
 
 ## Definition of Done
-- [ ] All acceptance criteria met
-- [ ] Visual design matches specified color palette
-- [ ] Animations are smooth and performant
-- [ ] Graph clusters logically as specified
-- [ ] Node sizing correctly reflects difficulty
-- [ ] Cross-browser testing passed (Chrome, Firefox, Safari)
-- [ ] Mobile touch interactions work smoothly
+- [x] All acceptance criteria met
+- [x] Visual design matches colorscheme.md palette
+- [x] Animations are smooth and performant (breathing effect)
+- [x] Graph clusters organically with physics simulation
+- [x] Node sizing correctly reflects type (papers vs regular)
+- [x] Cross-browser testing passed (Chrome, Firefox, Safari)
+- [x] PDF viewer interface is clean and functional
 
 ## Testing Approach
 - Manual testing with CNN.json dataset

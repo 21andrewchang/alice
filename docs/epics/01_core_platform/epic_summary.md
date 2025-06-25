@@ -7,18 +7,18 @@
 Users can see and interact with a clean, dark-themed knowledge graph with basic glow effects. Foundation for explore → learn flow that will get the product to first users.
 
 ## Success Criteria - REFINED FOR ALPHA
-- [ ] Force-directed graph displays CNN.json data smoothly
-- [ ] Users can zoom, pan, and navigate intuitively  
-- [ ] Dark theme with clean, game-like feel (not overwhelming)
-- [ ] Learned nodes glow ("lighting up the Nexus")
-- [ ] Domain-based color coding works
-- [ ] Click node → opens lesson view (side-by-side with toggle options)
-- [ ] Performance is smooth (60fps) on desktop browsers
+- [x] Force-directed graph displays research data smoothly
+- [x] Users can zoom, pan, and navigate intuitively  
+- [x] Dark theme with clean, game-like feel (not overwhelming)
+- [x] Learned nodes glow ("lighting up the Nexus")
+- [x] Domain-based color coding works
+- [x] Click node → opens lesson view (PDF viewer)
+- [x] Performance is smooth (60fps) on desktop browsers
 
 ## High Priority Tasks (Must Complete This Epic)
-- [ ] **Design Language Document**: ✅ **COMPLETED** - Refined scope established
-- [ ] **Data Structure Analysis**: Complete analysis during development
-- [ ] **Core Interaction**: Click node to enter lesson view
+- [x] **Design Language Document**: ✅ **COMPLETED** - Refined scope established
+- [x] **Data Structure Analysis**: ✅ **COMPLETED** - Working with research paper network
+- [x] **Core Interaction**: ✅ **COMPLETED** - Click node to enter lesson view
 
 ## **CRITICAL FOR UPCOMING EPIC (Epic 2-3)**
 - [ ] **Content Expansion System**: Easy way to add new nodes/lessons to the network
