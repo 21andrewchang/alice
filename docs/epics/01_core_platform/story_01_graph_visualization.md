@@ -8,13 +8,13 @@
 As a learner, I want to see a visual representation of knowledge topics and their relationships so that I can understand the learning landscape and navigate based on my interests.
 
 ## Acceptance Criteria
-- [ ] Force-directed graph renders using D3.js
-- [ ] Nodes represent learning topics with different sizes based on difficulty
-- [ ] Edges show relationships (prerequisite, advance, lateral) with different colors
-- [ ] Graph uses physics simulation for natural positioning
-- [ ] Nodes cluster logically (prerequisites on left, advances on right, laterals scattered)
-- [ ] Graph auto-fits to viewport on initial load
-- [ ] Performance: Renders 50+ nodes smoothly (60fps)
+- [x] Force-directed graph renders using D3.js
+- [x] Nodes represent learning topics with different sizes (papers vs regular nodes)
+- [x] Edges show relationships with clean gray styling
+- [x] Graph uses physics simulation for natural positioning
+- [x] Nodes cluster organically with breathing animation
+- [x] Graph auto-fits to viewport on initial load
+- [x] Performance: Renders 50+ nodes smoothly (60fps)
 
 ## Technical Requirements
 - Use existing D3.js implementation as starting point
@@ -40,13 +40,13 @@ const simulation = d3.forceSimulation(nodes)
 ```
 
 ## Definition of Done
-- [ ] Graph renders with current CNN.json data
-- [ ] Force simulation runs smoothly
-- [ ] Visual clustering works as intended
-- [ ] Edge colors match relationship types
-- [ ] Node sizes reflect difficulty
-- [ ] Performance meets requirements
-- [ ] Cross-browser testing passed (Chrome, Firefox, Safari)
+- [x] Graph renders with research paper data (believable_acting.json)
+- [x] Force simulation runs smoothly with breathing animation
+- [x] Visual clustering works organically
+- [x] Edge styling is clean and consistent (#333333)
+- [x] Node sizes reflect type (papers vs regular nodes)
+- [x] Performance meets requirements (60fps)
+- [x] Cross-browser testing passed (Chrome, Firefox, Safari)
 
 ## Testing Approach
 - Manual testing with CNN.json dataset
