@@ -56,6 +56,11 @@
   - *Vision*: "See that friend Nico is deep in Reinforcement Learning → Q-Learning right now"
   - *Effect*: Creates FOMO and motivation to "lock in" and study
   - *Implementation*: Real-time status, friend activity feed, competitive learning
+- **Hierarchical Paper Nodes**: Research papers that expand into sub-modules
+  - *Vision*: Large nodes for entire papers (e.g., "Attention Is All You Need") 
+  - *Interaction*: Click or zoom in → node splits into constituent concepts/modules
+  - *Example*: "Attention Is All You Need" → Multi-Head Attention, Positional Encoding, Transformer Architecture, etc.
+  - *Visual*: Larger nodes indicate paper-level concepts, smaller nodes for individual concepts
 
 ## Technical Requirements - Alpha
 - D3.js force-directed graph

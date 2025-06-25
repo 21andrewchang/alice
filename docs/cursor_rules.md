@@ -157,10 +157,11 @@ interface Link {
 
 ### 7. UI/UX Guidelines
 - **Design System**: Use Tailwind CSS consistently
-- **Color Palette**: 
-  - Primary: Blue (#3182bd) for prerequisites
-  - Secondary: Green (#31a354) for advances  
-  - Accent: Orange (#e6550d) for lateral connections
+- **🎨 COLOR SCHEME RULE**: **ALWAYS check docs/colorscheme.md before making ANY UI changes**
+  - NEVER use arbitrary hex codes or colors
+  - ALWAYS reference the color scheme document for consistent colors
+  - User will create and maintain custom color scheme
+  - Glow effects must match node colors (same color for glow as node)
 - **Typography**: System fonts for performance
 - **Interactions**: Smooth animations, clear loading states
 - **Accessibility**: WCAG 2.1 AA compliance
