@@ -223,6 +223,13 @@ Before starting next epic:
 - **Notification Format**: List all found high priority todos with file locations
 - **Scope Impact**: High priority todos may affect story/epic scope and should be addressed
 
+### 🔥 HIGH PRIORITY TODOS
+1. **Force-Directed Graph Link Weight Balancing** - CRITICAL VISUAL ISSUE
+   - **Issue**: Nodes with more prerequisites (like Procedural Animation with 3 math prerequisites) get pulled further from their targets than nodes with fewer prerequisites (like Reinforcement Learning with 0 prerequisites)
+   - **Impact**: Creates inconsistent visual hierarchy where direct prerequisites appear at different distances from their targets
+   - **Solution Needed**: Adjust link forces for deeper prerequisites OR add weight balancing to keep direct prerequisites equidistant from targets
+   - **Priority**: High - affects core graph visualization UX
+
 ## Scope Limiting Rules
 - **Epic Duration**: Maximum 4 days
 - **Story Duration**: Maximum 2 days  

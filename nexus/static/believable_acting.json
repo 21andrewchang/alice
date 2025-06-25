@@ -25,6 +25,30 @@
       "description": "Automated generation of character movements and gestures using algorithms rather than hand-crafted animations.",
       "difficulty": 3,
       "domain": "tech"
+    },
+    {
+      "id": 3,
+      "label": "Vectors & Matrices",
+      "type": "concept",
+      "description": "Mathematical structures for representing positions, directions, and transformations in space.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 4,
+      "label": "Matrix Multiplication",
+      "type": "concept",
+      "description": "Mathematical operation for chaining rotations, translations, and scalings in computer graphics and animation.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 5,
+      "label": "Eigenvalues & Eigenvectors",
+      "type": "concept",
+      "description": "Advanced mathematical concepts used for deformation and smoothing in procedural animation systems.",
+      "difficulty": 3,
+      "domain": "math"
     }
   ],
   "links": [
@@ -37,6 +61,30 @@
     {
       "source": 2,
       "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 4,
       "relation": "prerequisite",
       "value": 1
     }
