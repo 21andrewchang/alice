@@ -31,7 +31,7 @@
 	<div class="flex flex-wrap justify-center gap-3">
 		<button
 			on:click={() => goto('/ml')}
-			class="rounded-full bg-[#191919] px-4 py-2 text-xs text-[#BB9AF7] transition duration-300 ease-in-out hover:bg-[#1F1F1F]"
+			class="rounded-full bg-[#191919] px-4 py-2 text-xs text-[#5B8DF2] transition duration-300 ease-in-out hover:bg-[#1F1F1F]"
 		>
 			<span class="mr-2">🤖</span> Machine Learning
 		</button>

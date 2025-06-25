@@ -9,10 +9,12 @@
 ## Component Colors
 
 ### **Backgrounds**
-- `bg-primary`: `#0D0D0D` - **Neo Void Black** (primary background)
-- `bg-secondary`: `#1A1A1A` - **Deep Shadow** (secondary background - very dark)
+- `bg-primary`: `#111111` - **Void Black** (primary background - safest dark color)
+- `bg-secondary`: `#0F0F0F` - **Deep Shadow** (secondary background - darker)
 - `bg-surface`: `#A9AEED` - **Quantum Drift** (surface cards/panels)
 - `bg-legacy-slate`: `#4D5072` - **Circuit Slate** (legacy color - borders/accents only)
+
+⚠️ **Browser Limitation**: Colors darker than `#111111` (such as `#0A0A0A`, `#0C0C0C`, `#0F0F0F`) cause visual striping artifacts in some browsers. Always use `#111111` as the darkest background color.
 
 ### **Buttons**
 - `btn-primary`: `#5B8DF2` - **Electric Pulse** (primary button default)
@@ -41,25 +43,23 @@
 
 ### **Subject Domains**
 - `topic-math`: `#5B8DF2` - **Electric Pulse** (Math)
-- `topic-science`: `#64C5FF` - **Photon Wave** (Science)
-- `topic-history`: `#FF8B48` - **Cyber Ember** (History)
-- `topic-literature`: `#B585FF` - **Neon Orchid** (Literature)
-- `topic-art`: `#FF007F` - **Neon Fuchsia** (Art)
-- `topic-coding`: `#334089` - **Flux Indigo** (Coding)
-- `topic-languages`: `#C7EC68` - **Acid Forest** (Languages)
-- `topic-music`: `#3A3F59` - **Neon Grid Gray** (Music)
-- `topic-design`: `#3AA4A8` - **Neon Cyan** (Design)
+- `topic-tech`: `#73DACA` - **Cyber Teal** (Tech)
+- `topic-sciences`: `#BA6FFF` - **Cosmic Violet** (Sciences)
+- `topic-humanities`: `#F88951` - **Sunset Amber** (Humanities)
+- `topic-art`: `#F7768E` - **Rose Bloom** (Art)
+- `topic-research-papers`: `#BFCAF3` - **Papyrus** (Research Papers)
 
 ## Node States (For Graph Visualization)
 
 ### **Node Colors**
-- `node-base`: `#4D5072` - **Circuit Slate** (unexplored nodes)
-- `node-learned`: `#5B8DF2` - **Electric Pulse** (learned nodes - matches Math for CNN)
+- `node-base`: `#3A5A8F` - **Desaturated Electric Pulse** (unexplored nodes - less saturated)
+- `node-learned`: `#5B8DF2` - **Electric Pulse** (learned nodes with glow)
 - `node-glow`: `#5B8DF2` - **Electric Pulse** (glow color - same as learned)
 - `node-hover`: `#64C5FF` - **Photon Wave** (hover state)
+- `node-paper`: `#BFCAF3` - **Papyrus** (research paper nodes)
 
 ### **Connection Colors**
-- `link-all`: `#8B93C3` - **Data Stream** (all connections - light gray)
+- `link-all`: `#333333` - **Dark Gray** (all connections - ALWAYS use this color)
 
 ## Usage Guidelines
 
@@ -82,8 +82,8 @@
 ```css
 :root {
   /* Backgrounds */
-  --bg-primary: #0D0D0D;      /* Neo Void Black */
-  --bg-secondary: #1A1A1A;    /* Deep Shadow */
+  --bg-primary: #111111;      /* Void Black - safest dark */
+  --bg-secondary: #0F0F0F;    /* Deep Shadow */
   --bg-surface: #A9AEED;      /* Quantum Drift */
   --bg-legacy-slate: #4D5072; /* Circuit Slate - borders only */
   
@@ -107,27 +107,41 @@
   --success-color: #C7EC68;   /* Acid Forest */
   --info-color: #3AA4A8;      /* Neon Cyan */
   
+  /* Topic Domains */
+  --topic-math: #5B8DF2;      /* Electric Pulse */
+  --topic-tech: #73DACA;      /* Cyber Teal */
+  --topic-sciences: #BA6FFF;  /* Cosmic Violet */
+  --topic-humanities: #F88951; /* Sunset Amber */
+  --topic-art: #F7768E;       /* Rose Bloom */
+  --topic-research-papers: #BFCAF3; /* Papyrus */
+  
   /* Nodes */
-  --node-base: #4D5072;       /* Circuit Slate */
-  --node-learned: #5B8DF2;    /* Electric Pulse */
+  --node-base: #3A5A8F;       /* Desaturated Electric Pulse for CNN */
+  --node-learned: #5B8DF2;    /* Electric Pulse full saturation */
   --node-glow: #5B8DF2;       /* Electric Pulse */
+  --node-paper: #BFCAF3;      /* Papyrus */
   
   /* Connections */
-  --link-all: #8B93C3;        /* Data Stream - light gray */
+  --link-all: #333333;        /* Dark Gray - ALWAYS use for edges */
 }
 ```
 
 ### **Quick Reference**
 - **Primary Action**: Electric Pulse (`#5B8DF2`)
 - **Accent/Glow**: Neon Fuchsia (`#FF007F`) 
-- **Background**: Neo Void Black (`#0D0D0D`)
+- **Background**: Void Black (`#111111`)
 - **Text**: Light Gray (`#B3B3B3`)
-- **CNN Topic**: Electric Pulse (`#5B8DF2`) - Math domain
-- **Connections**: Data Stream (`#8B93C3`) - light gray
+- **Math**: Electric Pulse (`#5B8DF2`)
+- **Tech**: Cyber Teal (`#73DACA`) 
+- **Sciences**: Cosmic Violet (`#BA6FFF`)
+- **Humanities**: Sunset Amber (`#F88951`)
+- **Art**: Rose Bloom (`#F7768E`)
+- **Research Papers**: Papyrus (`#BFCAF3`)
+- **Connections**: Dark Gray (`#333333`) - ALWAYS use for edges
 
 ## Notes
 - Colors are subject to change as design evolves
 - Topic colors can be reassigned based on content domains
 - Glow effects should use accent color or match element color
 - Maintain cyberpunk aesthetic across all components
-- All connections now use light gray for subtlety 
+- **CRITICAL**: All edges/connections must ALWAYS use `#333333` - never change this 

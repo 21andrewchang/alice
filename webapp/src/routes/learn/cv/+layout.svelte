@@ -11,7 +11,7 @@
 			<button on:click={() => goto('/')} class="mr-6 text-sm text-[#B0B0B0] hover:underline">
 				← Back
 			</button>
-			<span class="text-xs text-[#BB9AF7]">🤖 Machine Learning</span>
+			<span class="text-xs text-[#5B8DF2]">🤖 Machine Learning</span>
 			<span class="text-xs text-[#3A3A3A]">/</span>
 			<span class="text-xs text-[#B0B0B0]">Computer Vision</span>
 		</div>

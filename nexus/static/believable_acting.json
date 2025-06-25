@@ -1,0 +1,44 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "Towards Believable Acting",
+      "type": "paper",
+      "description": "A research paper on creating believable AI-driven character acting using reinforcement learning and procedural animation systems.",
+      "difficulty": 4,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "toward_believable.pdf"
+    },
+    {
+      "id": 1,
+      "label": "Reinforcement Learning",
+      "type": "concept",
+      "description": "Machine learning technique where agents learn optimal actions through trial and error interactions with an environment.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 2,
+      "label": "Procedural Animation",
+      "type": "concept",
+      "description": "Automated generation of character movements and gestures using algorithms rather than hand-crafted animations.",
+      "difficulty": 3,
+      "domain": "tech"
+    }
+  ],
+  "links": [
+    {
+      "source": 1,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+} 
