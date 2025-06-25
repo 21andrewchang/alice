@@ -181,7 +181,7 @@
 						if (r === 'advance') return width / 4;
 						return 0;
 					})
-					.strength(0.2)
+					.strength(0.1)
 			)
 			.force(
 				'y',
@@ -190,7 +190,7 @@
 						const r = relationMap[d.id];
 						return r === 'lateral' ? height / 4 : 0;
 					})
-					.strength(0.2)
+					.strength(0.1)
 			);
 
 		// Create SVG with zoom behavior
@@ -233,14 +233,66 @@
 		const g = svg.append('g');
 
 		// Draw links
-		g
-			.append('g')
-			.attr('stroke-opacity', 0.6)
-			.selectAll('line')
+		const linkGroup = g.append('g').attr('stroke-opacity', 0.6);
+		
+		// Regular links
+		linkGroup
+			.selectAll('line.regular-link')
 			.data(links)
 			.join('line')
+			.attr('class', 'regular-link')
 			.attr('stroke-width', (d) => Math.sqrt(d.value || 1))
 			.attr('stroke', (d) => linkColor(d.relation));
+		
+		// Add shooting star effects for prerequisite links
+		const prerequisiteLinks = links.filter(link => link.relation === 'prerequisite');
+		
+		prerequisiteLinks.forEach((link, index) => {
+			// Create gradient for each shooting star
+			const gradientId = `shooting-star-gradient-${index}`;
+			const gradient = svg.append('defs').append('linearGradient')
+				.attr('id', gradientId)
+				.attr('gradientUnits', 'userSpaceOnUse');
+			
+			// Create gradient stops for shooting star effect (much longer trail)
+			gradient.append('stop')
+				.attr('offset', '0%')
+				.attr('stop-color', '#ffffff')
+				.attr('stop-opacity', 0);
+			
+			gradient.append('stop')
+				.attr('offset', '10%')
+				.attr('stop-color', '#ffffff')
+				.attr('stop-opacity', 0.5);
+				
+			gradient.append('stop')
+				.attr('offset', '50%')
+				.attr('stop-color', '#ffffff')
+				.attr('stop-opacity', 0.9);
+				
+			gradient.append('stop')
+				.attr('offset', '90%')
+				.attr('stop-color', '#ffffff')
+				.attr('stop-opacity', 0.5);
+			
+			gradient.append('stop')
+				.attr('offset', '100%')
+				.attr('stop-color', '#ffffff')
+				.attr('stop-opacity', 0);
+			
+			// Create shooting star line (overlay on regular edge)
+			const starLine = linkGroup
+				.append('line')
+				.attr('class', 'star-line')
+				.attr('stroke-width', Math.sqrt(link.value || 1)) // Same thickness as regular edge
+				.attr('stroke', `url(#${gradientId})`)
+				.attr('opacity', 0.5);
+			
+			// Store references
+			link.starLine = starLine;
+			link.gradientId = gradientId;
+			link.gradient = gradient;
+		});
 
 		// Draw nodes & attach events
 		nodeSel = g
@@ -249,8 +301,20 @@
 			.data(nodes)
 			.join('circle')
 			.attr('r', (d) => d.type === 'paper' ? 12 : 8) // Larger radius for research papers
-			.attr('fill', (d) => d.type === 'paper' ? '#BFCAF3' : getDomainColor(d.domain || 'tech')) // Papyrus for papers, domain colors for others
-			.attr('stroke', (d) => d.type === 'paper' ? '#BFCAF3' : getDomainColor(d.domain || 'tech')) // Matching stroke for both
+			.attr('fill', (d) => {
+				if (d.type === 'paper') {
+					return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Dimmer papyrus for unlearned papers
+				}
+				const baseColor = getDomainColor(d.domain || 'tech');
+				return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Dimmer for unlearned nodes
+			})
+			.attr('stroke', (d) => {
+				if (d.type === 'paper') {
+					return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Matching stroke for papers
+				}
+				const baseColor = getDomainColor(d.domain || 'tech');
+				return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Matching stroke, dimmed for unlearned
+			})
 			.attr('stroke-width', 1.5)
 			.attr('cursor', 'pointer')
 			.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
@@ -287,12 +351,33 @@
 
 		// Tick update
 		simulation.on('tick', () => {
+			// Update regular links
 			g
-				.selectAll('line')
+				.selectAll('line.regular-link')
 				.attr('x1', (d) => d.source.x)
 				.attr('y1', (d) => d.source.y)
 				.attr('x2', (d) => d.target.x)
 				.attr('y2', (d) => d.target.y);
+			
+			// Update shooting star links
+			prerequisiteLinks.forEach(link => {
+				if (link.starLine && link.gradient) {
+					// Update gradient coordinates
+					link.gradient
+						.attr('x1', link.source.x)
+						.attr('y1', link.source.y)
+						.attr('x2', link.target.x)
+						.attr('y2', link.target.y);
+					
+					// Update shooting star line
+					link.starLine
+						.attr('x1', link.source.x)
+						.attr('y1', link.source.y)
+						.attr('x2', link.target.x)
+						.attr('y2', link.target.y);
+				}
+			});
+			
 			g
 				.selectAll('circle')
 				.attr('cx', (d) => d.x)
@@ -321,7 +406,48 @@
 		// Store simulation reference
 		window.simulation = simulation;
 
+		// Start shooting star animation
+		startShootingStarAnimation(prerequisiteLinks);
+
 		return svg.node();
+	}
+
+	function startShootingStarAnimation(prerequisiteLinks) {
+		function animate() {
+			prerequisiteLinks.forEach((link, index) => {
+				if (link.gradient) {
+					// Animate with "zip" easing - slow, fast, slow (with 0.5s pause)
+					const time = (Date.now() * 0.002) % 2; // 2 second cycle (1.5s animation + 0.5s pause)
+					const rawProgress = time < 1.5 ? time / 1.5 : 1; // Animation for first 1.5s, then hold at end
+					
+					// Apply dramatic easing curve for "zip" effect: very slow -> current speed -> very slow
+					const progress = rawProgress < 0.2 
+						? Math.pow(rawProgress / 0.2, 4) * 0.10 // Very slow start (quartic ease - covers 5% of distance)
+						: rawProgress < 0.8 
+						? 0.05 + (rawProgress - 0.2) / 0.6 * 0.8 // Current speed middle section (covers 90% of distance)
+						: 0.95 + Math.pow((rawProgress - 0.8) / 0.2, 4) * 0.1; // Very slow end (quartic ease - covers 5% of distance)
+					
+					// Move the centered gradient along the line
+					const centerPos = (progress * 120 - 10) + '%'; // Move from -10% to 110%
+					const startPos = (progress * 120 - 15) + '%';  // 5% before center
+					const endPos = (progress * 120 - 5) + '%';     // 5% after center
+					
+					// Update gradient stops with centered positions
+					link.gradient.selectAll('stop')
+						.attr('offset', (d, i) => {
+							if (i === 0) return Math.max(0, progress * 120 - 20) + '%';
+							if (i === 1) return Math.max(0, progress * 120 - 7.5) + '%'; // 45% before center
+							if (i === 2) return Math.max(0, Math.min(100, progress * 120 - 5)) + '%'; // Center
+							if (i === 3) return Math.min(100, progress * 120 - 2.5) + '%'; // 55% after center  
+							if (i === 4) return Math.min(100, progress * 120) + '%';
+							return '0%';
+						});
+				}
+			});
+			
+			requestAnimationFrame(animate);
+		}
+		animate();
 	}
 
 
@@ -332,6 +458,42 @@
 		element.appendChild(chart(data));
 	});
 </script>
+
+<!-- CSS Animations for shooting stars -->
+<style>
+	@keyframes shooting-star-0 {
+		0% { 
+			mask-position: -100% 0;
+			-webkit-mask-position: -100% 0;
+		}
+		100% { 
+			mask-position: 100% 0;
+			-webkit-mask-position: 100% 0;
+		}
+	}
+	
+	@keyframes shooting-star-1 {
+		0% { 
+			mask-position: -100% 0;
+			-webkit-mask-position: -100% 0;
+		}
+		100% { 
+			mask-position: 100% 0;
+			-webkit-mask-position: 100% 0;
+		}
+	}
+	
+	@keyframes shooting-star-2 {
+		0% { 
+			mask-position: -100% 0;
+			-webkit-mask-position: -100% 0;
+		}
+		100% { 
+			mask-position: 100% 0;
+			-webkit-mask-position: 100% 0;
+		}
+	}
+</style>
 
 <!-- Cyberpunk theme main container with side-by-side layout -->
 <main class="relative h-screen w-screen flex" style="background-color: #080808; color: #B3B3B3;">
