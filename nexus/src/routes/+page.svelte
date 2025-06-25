@@ -549,7 +549,7 @@
 
 	<!-- Node Preview panel - right side -->
 	{#if selectedNode}
-		<div class="w-1/2 h-full" style="background-color: #080808;">
+		<div class="w-1/2 h-full" style="background-color: rgba(8, 8, 8, 0.0);">
 			<div class="h-full p-6">
 				<div class="h-full rounded-2xl overflow-hidden" style="background-color: #111111;">
 					<div class="h-full overflow-hidden">
