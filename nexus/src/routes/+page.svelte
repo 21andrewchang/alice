@@ -160,7 +160,7 @@
 			else if (l.target === centralId) relationMap[l.source] = l.relation;
 		});
 
-		// Simulation with clustering
+		// Simulation with domain-aware clustering
 		const simulation = d3
 			.forceSimulation(nodes)
 			.force(
@@ -176,21 +176,40 @@
 				'x',
 				d3
 					.forceX((d) => {
+						// Domain-based positioning with relation override
 						const r = relationMap[d.id];
+						
+						// Math domain gets extra leftward positioning (deeper prerequisites)
+						if (d.domain === 'math') {
+							return -width / 2.5; // Math concepts go further left
+						}
+						
+						// Standard relation-based positioning for other domains
 						if (r === 'prerequisite') return -width / 4;
 						if (r === 'advance') return width / 4;
 						return 0;
 					})
-					.strength(0.1)
+					.strength((d) => {
+						// Stronger positioning force for math domain to separate from tech
+						return d.domain === 'math' ? 0.15 : 0.1;
+					})
 			)
 			.force(
 				'y',
 				d3
 					.forceY((d) => {
 						const r = relationMap[d.id];
+						
+						// Math domain gets slight downward offset for visual separation
+						if (d.domain === 'math') {
+							return height / 6; // Slight downward positioning
+						}
+						
 						return r === 'lateral' ? height / 4 : 0;
 					})
-					.strength(0.1)
+					.strength((d) => {
+						return d.domain === 'math' ? 0.12 : 0.1;
+					})
 			);
 
 		// Create SVG with zoom behavior
@@ -541,7 +560,7 @@
 							<h2 class="text-2xl font-bold" style="color: #BFCAF3;">{selectedNode.label}</h2>
 							<button
 								on:click={() => selectedNode = null}
-								class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-600 transition-colors"
+								class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
 								aria-label="Close"
 							>
 								✕
@@ -564,7 +583,7 @@
 								<h2 class="text-2xl font-bold" style="color: {getDomainColor(selectedNode.domain)};">{selectedNode.label}</h2>
 								<button
 									on:click={() => selectedNode = null}
-									class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-600 transition-colors"
+									class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
 									aria-label="Close"
 								>
 									✕
