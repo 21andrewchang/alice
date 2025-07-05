@@ -24,6 +24,23 @@
 		selectedNode = node;
 		learnedNodes.add(node.id);
 		
+		// Set up focus effect - find all connected nodes
+		focusedNode = node;
+		connectedNodes.clear();
+		connectedNodes.add(node.id); // Include the selected node itself
+		
+		// Find all directly connected nodes
+		if (graphData) {
+			graphData.links.forEach(link => {
+				if (link.source.id === node.id || link.source === node.id) {
+					connectedNodes.add(link.target.id || link.target);
+				}
+				if (link.target.id === node.id || link.target === node.id) {
+					connectedNodes.add(link.source.id || link.source);
+				}
+			});
+		}
+		
 		// Zoom in and center on the selected node
 		if (zoomBehavior && svgElement) {
 			const scale = 2; // Zoom scale factor
@@ -64,7 +81,7 @@
 			}, 100);
 		}
 		
-		// Re-render to show glow effect
+		// Re-render to show glow effect and focus dimming
 		updateNodeStyles();
 	}
 
@@ -120,6 +137,65 @@
 					if (d.type === 'paper') return learnedNodes.has(d.id) ? 'drop-shadow(0 0 6px #BFCAF3)' : null;
 					const domainColor = getDomainColor(d.domain || 'tech');
 					return learnedNodes.has(d.id) ? `drop-shadow(0 0 6px ${domainColor})` : null;
+				})
+			
+			// Apply focus dimming effect with smooth transition
+			nodeSel
+				.transition()
+				.duration(300)
+				.style('opacity', (d) => {
+					if (focusedNode && !connectedNodes.has(d.id)) {
+						return 0.2; // Dim unconnected nodes
+					}
+					return 1; // Full opacity for connected nodes
+				});
+		}
+		
+		// Update link opacity based on focus
+		if (linkSel) {
+			linkSel
+				.transition()
+				.duration(300)
+				.style('opacity', (d) => {
+					if (!focusedNode) return 1; // No focus, show all links
+					
+					// Show links that connect to the focused node or between connected nodes
+					const sourceConnected = connectedNodes.has(d.source.id || d.source);
+					const targetConnected = connectedNodes.has(d.target.id || d.target);
+					if (sourceConnected || targetConnected) {
+						return 1; // Full opacity for connected links
+					}
+					return 0.2; // Dim other links
+				});
+		}
+		
+		// Update text styling based on focus
+		if (textSel) {
+			textSel
+				.transition()
+				.duration(300)
+				.style('opacity', (d) => {
+					if (!focusedNode) return 1; // No focus, show all text normally
+					
+					// Only apply dimming to visible text (zoom level check is handled elsewhere)
+					if (!connectedNodes.has(d.id)) {
+						return 0.2; // Dim unconnected text
+					}
+					return 1; // Full opacity for connected text
+				})
+				.attr('font-size', (d) => {
+					// Make text larger for connected nodes when focused
+					if (focusedNode && connectedNodes.has(d.id)) {
+						return '8px'; // Larger font for connected nodes
+					}
+					return '6px'; // Normal font size
+				})
+				.attr('fill', (d) => {
+					// Make text brighter for connected nodes when focused
+					if (focusedNode && connectedNodes.has(d.id)) {
+						return '#CCCCCC'; // Light gray text for connected nodes
+					}
+					return '#333333'; // Default gray text
 				});
 		}
 	}
@@ -143,6 +219,9 @@
 	function chart(data) {
 		const width = 928;
 		const height = 680;
+
+		// Store graph data for connection analysis
+		graphData = data;
 
 		// Purple color scale for nodes
 		const nodeColor = d3.scaleSequential().domain([1, 5]).interpolator(d3.interpolatePurples);
@@ -247,6 +326,13 @@
 		// Store references for programmatic zoom control
 		zoomBehavior = zoom;
 		svgElement = svg.node();
+		
+		// Add click handler to clear focus when clicking on empty space
+		svg.on('click', () => {
+			focusedNode = null;
+			connectedNodes.clear();
+			updateNodeStyles();
+		});
 
 		// Add solid background rectangle to SVG
 		svg.append('rect')
@@ -263,7 +349,7 @@
 		const linkGroup = g.append('g').attr('stroke-opacity', 0.6);
 		
 		// Regular links
-		linkGroup
+		linkSel = linkGroup
 			.selectAll('line.regular-link')
 			.data(links)
 			.join('line')
@@ -378,7 +464,7 @@
 			});
 
 		// Add text labels for nodes (excluding papers)
-		const textSel = g
+		textSel = g
 			.append('g')
 			.selectAll('text')
 			.data(nodes)
