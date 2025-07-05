@@ -1,0 +1,226 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "O3 System Card",
+      "type": "paper",
+      "description": "System card describing OpenAI's O3 model, including capabilities, safety evaluations, and deployment considerations. Represents advancement in reasoning capabilities and AI safety measures.",
+      "difficulty": 4,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "o3_system_card.pdf"
+    },
+    {
+      "id": 1,
+      "label": "Large Language Models",
+      "type": "concept",
+      "description": "Advanced neural language models with billions of parameters capable of complex language understanding and generation.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 2,
+      "label": "Transformer Architecture",
+      "type": "concept",
+      "description": "Neural network architecture based on attention mechanisms that underlies modern LLMs.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 3,
+      "label": "Reinforcement Learning from Human Feedback",
+      "type": "concept",
+      "description": "Training technique that uses human preferences to align AI systems with human values.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 4,
+      "label": "AI Safety",
+      "type": "concept",
+      "description": "Field focused on ensuring AI systems behave safely and beneficially.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 5,
+      "label": "Constitutional AI",
+      "type": "concept",
+      "description": "Method for training AI systems to follow a set of principles or constitution.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 6,
+      "label": "Reasoning and Planning",
+      "type": "concept",
+      "description": "Cognitive capabilities for multi-step problem solving and strategic thinking.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 7,
+      "label": "Evaluation Methodologies",
+      "type": "concept",
+      "description": "Systematic approaches to testing and measuring AI system capabilities.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 8,
+      "label": "Alignment Research",
+      "type": "concept",
+      "description": "Research on ensuring AI systems behave according to intended goals and values.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 9,
+      "label": "Scaling Laws",
+      "type": "concept",
+      "description": "Mathematical relationships describing how AI capabilities scale with compute and data.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 10,
+      "label": "Neural Networks",
+      "type": "concept",
+      "description": "Computational models inspired by biological neural networks.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 11,
+      "label": "Machine Learning",
+      "type": "concept",
+      "description": "Field of study focused on algorithms that improve through experience.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 12,
+      "label": "Ethics in AI",
+      "type": "concept",
+      "description": "Ethical considerations and principles in AI development and deployment.",
+      "difficulty": 2,
+      "domain": "tech"
+    }
+  ],
+  "links": [
+    {
+      "source": 1,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 8,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 9,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 1,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 10,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 12,
+      "target": 4,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 5,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 7,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+} 

@@ -1,0 +1,200 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "Attention Is All You Need",
+      "type": "paper",
+      "description": "Introduces the Transformer architecture based entirely on attention mechanisms, dispensing with recurrence and convolutions. This paper revolutionized natural language processing and became the foundation for modern large language models.",
+      "difficulty": 4,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "attention_is_all_you_need.pdf"
+    },
+    {
+      "id": 1,
+      "label": "Neural Networks",
+      "type": "concept",
+      "description": "Computational models inspired by biological neural networks, consisting of interconnected nodes that process information.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 2,
+      "label": "Backpropagation",
+      "type": "concept",
+      "description": "Algorithm for training neural networks by calculating gradients and updating weights through reverse differentiation.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 3,
+      "label": "Sequence-to-Sequence Models",
+      "type": "concept",
+      "description": "Neural architectures that transform input sequences into output sequences, commonly used in translation and text generation.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 4,
+      "label": "Attention Mechanisms",
+      "type": "concept",
+      "description": "Techniques that allow models to focus on relevant parts of input when making predictions.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 5,
+      "label": "Recurrent Neural Networks",
+      "type": "concept",
+      "description": "Neural networks with loops that allow information to persist, designed for sequential data processing.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 6,
+      "label": "Encoder-Decoder Architecture",
+      "type": "concept",
+      "description": "Neural network design pattern where an encoder processes input and a decoder generates output.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 7,
+      "label": "Multi-Head Attention",
+      "type": "concept",
+      "description": "Extension of attention mechanism that allows the model to jointly attend to information from different representation subspaces.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 8,
+      "label": "Positional Encoding",
+      "type": "concept",
+      "description": "Method to inject information about the relative or absolute position of tokens in a sequence.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 9,
+      "label": "Linear Algebra",
+      "type": "concept",
+      "description": "Mathematical foundation involving vectors, matrices, and linear transformations essential for understanding neural networks.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 10,
+      "label": "Calculus",
+      "type": "concept",
+      "description": "Mathematical foundation for understanding derivatives and gradients used in neural network training.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 11,
+      "label": "Probability Theory",
+      "type": "concept",
+      "description": "Mathematical framework for handling uncertainty and randomness in machine learning models.",
+      "difficulty": 2,
+      "domain": "math"
+    }
+  ],
+  "links": [
+    {
+      "source": 1,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 8,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 9,
+      "target": 1,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 10,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 4,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 7,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 9,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 5,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+} 
