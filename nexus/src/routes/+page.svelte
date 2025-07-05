@@ -17,7 +17,7 @@
 
 
 	async function loadData() {
-		return fetch('/believable_acting.json').then((r) => r.json());
+		return fetch('/merged_graph.json').then((r) => r.json());
 	}
 
 	function selectNode(node) {
@@ -78,8 +78,13 @@
 	}
 
 	let nodeSel; // Store node selection for updates
+	let linkSel; // Store link selection for updates
+	let textSel; // Store text selection for updates
 	let zoomBehavior; // Store zoom behavior for programmatic control
 	let svgElement; // Store SVG element reference
+	let focusedNode = null; // Currently focused node for dimming effect
+	let connectedNodes = new Set(); // Set of nodes connected to focused node
+	let graphData = null; // Store graph data for connection analysis
 
 	function getDomainColor(domain) {
 		const domainColors = {

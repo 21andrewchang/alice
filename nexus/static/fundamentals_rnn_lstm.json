@@ -1,0 +1,202 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "Fundamentals of RNN and LSTM",
+      "type": "paper",
+      "description": "Mathematical tutorial on RNN and LSTM derivations from differential equations.",
+      "difficulty": 4,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "fundamentals_rnn_lstm.pdf"
+    },
+    {
+      "id": 1,
+      "label": "Calculus",
+      "type": "concept",
+      "description": "Differential equations and derivatives.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 2,
+      "label": "Linear Algebra",
+      "type": "concept",
+      "description": "Matrix operations and vector calculus.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 3,
+      "label": "Neural Networks",
+      "type": "concept",
+      "description": "Basic neural network architecture.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 4,
+      "label": "Differential Equations",
+      "type": "concept",
+      "description": "Mathematical models for dynamic systems.",
+      "difficulty": 4,
+      "domain": "math"
+    },
+    {
+      "id": 5,
+      "label": "LSTM Networks",
+      "type": "concept",
+      "description": "Long Short-Term Memory networks.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 6,
+      "label": "Gradient Descent",
+      "type": "concept",
+      "description": "Optimization algorithm for training neural networks.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 7,
+      "label": "Backpropagation Through Time",
+      "type": "concept",
+      "description": "Extension of backpropagation for training recurrent neural networks.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 8,
+      "label": "Sequence Modeling",
+      "type": "concept",
+      "description": "Techniques for processing and predicting sequential data.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 9,
+      "label": "Vanishing Gradient Problem",
+      "type": "concept",
+      "description": "Challenge in training deep networks where gradients become exponentially small.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 10,
+      "label": "Memory Mechanisms",
+      "type": "concept",
+      "description": "Techniques for maintaining and accessing information across time steps.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 11,
+      "label": "Gating Mechanisms",
+      "type": "concept",
+      "description": "Control structures that regulate information flow in neural networks.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 12,
+      "label": "Time Series Analysis",
+      "type": "concept",
+      "description": "Statistical methods for analyzing time-ordered data.",
+      "difficulty": 2,
+      "domain": "tech"
+    }
+  ],
+  "links": [
+    {
+      "source": 1,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 4,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 5,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 7,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 12,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 11,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+} 

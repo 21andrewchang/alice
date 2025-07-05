@@ -1,0 +1,958 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "Towards Believable Acting",
+      "type": "paper",
+      "description": "A research paper on creating believable AI-driven character acting using reinforcement learning and procedural animation systems.",
+      "difficulty": 4,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "toward_believable.pdf"
+    },
+    {
+      "id": 1,
+      "label": "Reinforcement Learning",
+      "type": "concept",
+      "description": "Machine learning technique where agents learn optimal actions through trial and error interactions with an environment.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 2,
+      "label": "Procedural Animation",
+      "type": "concept",
+      "description": "Automated generation of character movements and gestures using algorithms rather than hand-crafted animations.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 3,
+      "label": "Vectors & Matrices",
+      "type": "concept",
+      "description": "Mathematical structures for representing positions, directions, and transformations in space.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 4,
+      "label": "Matrix Multiplication",
+      "type": "concept",
+      "description": "Mathematical operation for chaining rotations, translations, and scalings in computer graphics and animation.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 5,
+      "label": "Eigenvalues & Eigenvectors",
+      "type": "concept",
+      "description": "Advanced mathematical concepts used for deformation and smoothing in procedural animation systems.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 6,
+      "label": "Attention Is All You Need",
+      "type": "paper",
+      "description": "Introduces the Transformer architecture based entirely on attention mechanisms, dispensing with recurrence and convolutions. This paper revolutionized natural language processing and became the foundation for modern large language models.",
+      "difficulty": 4,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "attention_is_all_you_need.pdf"
+    },
+    {
+      "id": 7,
+      "label": "Neural Networks",
+      "type": "concept",
+      "description": "Computational models inspired by biological neural networks, consisting of interconnected nodes that process information.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 8,
+      "label": "Backpropagation",
+      "type": "concept",
+      "description": "Algorithm for training neural networks by calculating gradients and updating weights through reverse differentiation.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 9,
+      "label": "Sequence-to-Sequence Models",
+      "type": "concept",
+      "description": "Neural architectures that transform input sequences into output sequences, commonly used in translation and text generation.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 10,
+      "label": "Attention Mechanisms",
+      "type": "concept",
+      "description": "Techniques that allow models to focus on relevant parts of input when making predictions.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 11,
+      "label": "Recurrent Neural Networks",
+      "type": "concept",
+      "description": "Neural networks with loops that allow information to persist, designed for sequential data processing.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 12,
+      "label": "Encoder-Decoder Architecture",
+      "type": "concept",
+      "description": "Neural network design pattern where an encoder processes input and a decoder generates output.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 13,
+      "label": "Multi-Head Attention",
+      "type": "concept",
+      "description": "Extension of attention mechanism that allows the model to jointly attend to information from different representation subspaces.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 14,
+      "label": "Positional Encoding",
+      "type": "concept",
+      "description": "Technique to inject information about position of tokens in a sequence since transformers have no inherent notion of order.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 15,
+      "label": "Linear Algebra",
+      "type": "concept",
+      "description": "Mathematical foundation involving vectors, matrices, and linear transformations essential for understanding neural networks.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 16,
+      "label": "Calculus",
+      "type": "concept",
+      "description": "Mathematical field studying rates of change and accumulation, fundamental for understanding backpropagation.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 17,
+      "label": "Probability Theory",
+      "type": "concept",
+      "description": "Mathematical framework for reasoning about uncertainty and randomness in machine learning.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 18,
+      "label": "O3 System Card",
+      "type": "paper",
+      "description": "System card describing OpenAI's O3 model, including capabilities, safety evaluations, and deployment considerations. Represents advancement in reasoning capabilities and AI safety measures.",
+      "difficulty": 4,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "o3_system_card.pdf"
+    },
+    {
+      "id": 19,
+      "label": "Large Language Models",
+      "type": "concept",
+      "description": "Advanced neural language models with billions of parameters capable of complex language understanding and generation.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 20,
+      "label": "Transformer Architecture",
+      "type": "concept",
+      "description": "Neural network architecture based on attention mechanisms that underlies modern LLMs.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 21,
+      "label": "Reinforcement Learning from Human Feedback",
+      "type": "concept",
+      "description": "Training technique that uses human preferences to align AI systems with human values.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 22,
+      "label": "AI Safety",
+      "type": "concept",
+      "description": "Field focused on ensuring AI systems behave safely and beneficially.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 23,
+      "label": "Constitutional AI",
+      "type": "concept",
+      "description": "Method for training AI systems to follow a set of principles or constitution.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 24,
+      "label": "Reasoning and Planning",
+      "type": "concept",
+      "description": "Cognitive capabilities for multi-step problem solving and strategic thinking.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 25,
+      "label": "Evaluation Methodologies",
+      "type": "concept",
+      "description": "Systematic approaches for assessing AI model performance and capabilities.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 26,
+      "label": "Alignment Research",
+      "type": "concept",
+      "description": "Research focused on ensuring AI systems pursue intended goals and behave as desired.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 27,
+      "label": "Model Interpretability",
+      "type": "concept",
+      "description": "Techniques for understanding and explaining how AI models make decisions.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 28,
+      "label": "Scaling Laws",
+      "type": "concept",
+      "description": "Empirical relationships between model size, compute, and performance in AI systems.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 29,
+      "label": "Machine Learning",
+      "type": "concept",
+      "description": "Fundamental algorithms and techniques for learning from data.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 30,
+      "label": "Ethics",
+      "type": "concept",
+      "description": "Moral principles and values that guide responsible AI development.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 31,
+      "label": "A Critical Review of Recurrent Neural Networks for Sequence Learning",
+      "type": "paper",
+      "description": "Comprehensive survey of recurrent neural networks, covering fundamentals, architectures like LSTM and GRU, training challenges, and applications in sequence learning tasks.",
+      "difficulty": 3,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "rnn_critical_review.pdf"
+    },
+    {
+      "id": 32,
+      "label": "Sequence Modeling",
+      "type": "concept",
+      "description": "Techniques for processing and predicting sequential data like time series or text.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 33,
+      "label": "Gradient Descent",
+      "type": "concept",
+      "description": "Optimization algorithm for training neural networks by minimizing loss functions.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 34,
+      "label": "LSTM Networks",
+      "type": "concept",
+      "description": "Long Short-Term Memory networks designed to solve vanishing gradient problems in RNNs.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 35,
+      "label": "GRU Networks",
+      "type": "concept",
+      "description": "Gated Recurrent Unit networks, a simplified variant of LSTM.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 36,
+      "label": "Vanishing Gradient Problem",
+      "type": "concept",
+      "description": "Challenge in training deep networks where gradients become exponentially small in earlier layers.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 37,
+      "label": "Backpropagation Through Time",
+      "type": "concept",
+      "description": "Extension of backpropagation algorithm for training recurrent neural networks.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 38,
+      "label": "Gating Mechanisms",
+      "type": "concept",
+      "description": "Control structures in neural networks that regulate information flow.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 39,
+      "label": "Time Series Analysis",
+      "type": "concept",
+      "description": "Statistical methods for analyzing temporal data and identifying patterns.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 40,
+      "label": "Natural Language Processing",
+      "type": "concept",
+      "description": "Field of AI focused on enabling computers to understand and process human language.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 41,
+      "label": "Optimization Theory",
+      "type": "concept",
+      "description": "Mathematical framework for finding optimal solutions to problems.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 42,
+      "label": "Computational Complexity",
+      "type": "concept",
+      "description": "Study of computational resources required to solve problems.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 43,
+      "label": "Fundamentals of RNN and LSTM",
+      "type": "paper",
+      "description": "Mathematical tutorial on RNN and LSTM derivations from differential equations.",
+      "difficulty": 4,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "fundamentals_rnn_lstm.pdf"
+    },
+    {
+      "id": 44,
+      "label": "Differential Equations",
+      "type": "concept",
+      "description": "Mathematical models for dynamic systems.",
+      "difficulty": 4,
+      "domain": "math"
+    },
+    {
+      "id": 45,
+      "label": "Playing Atari with Deep Reinforcement Learning",
+      "type": "paper",
+      "description": "Introduces Deep Q-Networks (DQN), combining Q-learning with deep neural networks to achieve human-level performance on Atari games.",
+      "difficulty": 4,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "dqn_atari.pdf"
+    },
+    {
+      "id": 46,
+      "label": "Q-Learning",
+      "type": "concept",
+      "description": "Model-free reinforcement learning algorithm for learning optimal actions.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 47,
+      "label": "Convolutional Neural Networks",
+      "type": "concept",
+      "description": "Neural networks specialized for processing grid-like data such as images.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 48,
+      "label": "Experience Replay",
+      "type": "concept",
+      "description": "Technique for storing and reusing past experiences to improve learning stability.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 49,
+      "label": "Target Networks",
+      "type": "concept",
+      "description": "Separate networks used to compute target values for stable training.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 50,
+      "label": "Markov Decision Processes",
+      "type": "concept",
+      "description": "Mathematical framework for modeling decision making problems.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 51,
+      "label": "Function Approximation",
+      "type": "concept",
+      "description": "Using neural networks to approximate value functions in large state spaces.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 52,
+      "label": "Bellman Equations",
+      "type": "concept",
+      "description": "Recursive equations that express optimal value functions.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 53,
+      "label": "Temporal Difference Learning",
+      "type": "concept",
+      "description": "Learning method that updates estimates based on other estimates.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 54,
+      "label": "Epsilon-Greedy Strategy",
+      "type": "concept",
+      "description": "Exploration strategy that balances exploitation and exploration.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 55,
+      "label": "Computer Vision",
+      "type": "concept",
+      "description": "Processing and understanding visual information from images.",
+      "difficulty": 2,
+      "domain": "tech"
+    }
+  ],
+  "links": [
+    {
+      "source": 1,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 4,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 8,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 9,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 10,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 13,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 14,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 15,
+      "target": 7,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 16,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 17,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 12,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 10,
+      "target": 13,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 15,
+      "target": 14,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 11,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 12,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 19,
+      "target": 18,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 20,
+      "target": 18,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 21,
+      "target": 18,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 22,
+      "target": 18,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 23,
+      "target": 18,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 24,
+      "target": 18,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 25,
+      "target": 18,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 26,
+      "target": 18,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 28,
+      "target": 18,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 20,
+      "target": 19,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 29,
+      "target": 20,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 29,
+      "target": 21,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 30,
+      "target": 22,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 22,
+      "target": 23,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 29,
+      "target": 24,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 29,
+      "target": 25,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 22,
+      "target": 26,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 29,
+      "target": 27,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 29,
+      "target": 28,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 8,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 32,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 34,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 35,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 36,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 37,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 42,
+      "target": 7,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 41,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 33,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 32,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 39,
+      "target": 32,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 40,
+      "target": 32,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 38,
+      "target": 34,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 38,
+      "target": 35,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 8,
+      "target": 36,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 8,
+      "target": 37,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 38,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 16,
+      "target": 43,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 15,
+      "target": 43,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 43,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 44,
+      "target": 43,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 34,
+      "target": 43,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 16,
+      "target": 44,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 15,
+      "target": 7,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 34,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 45,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 46,
+      "target": 45,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 45,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 47,
+      "target": 45,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 48,
+      "target": 45,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 49,
+      "target": 45,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 50,
+      "target": 1,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 52,
+      "target": 46,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 53,
+      "target": 46,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 54,
+      "target": 46,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 55,
+      "target": 47,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 51,
+      "target": 48,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 49,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 51,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 53,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+} 

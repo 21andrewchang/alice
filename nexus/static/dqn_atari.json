@@ -1,0 +1,202 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "Playing Atari with Deep Reinforcement Learning",
+      "type": "paper",
+      "description": "Introduces Deep Q-Networks (DQN), combining Q-learning with deep neural networks to achieve human-level performance on Atari games.",
+      "difficulty": 4,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "dqn_atari.pdf"
+    },
+    {
+      "id": 1,
+      "label": "Reinforcement Learning",
+      "type": "concept",
+      "description": "Machine learning paradigm where agents learn through interaction with environments.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 2,
+      "label": "Q-Learning",
+      "type": "concept",
+      "description": "Model-free reinforcement learning algorithm for learning optimal actions.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 3,
+      "label": "Neural Networks",
+      "type": "concept",
+      "description": "Deep neural networks for function approximation.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 4,
+      "label": "Convolutional Neural Networks",
+      "type": "concept",
+      "description": "Neural networks specialized for processing grid-like data such as images.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 5,
+      "label": "Experience Replay",
+      "type": "concept",
+      "description": "Technique for storing and reusing past experiences to improve learning stability.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 6,
+      "label": "Target Networks",
+      "type": "concept",
+      "description": "Separate networks used to compute target values for stable training.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 7,
+      "label": "Markov Decision Processes",
+      "type": "concept",
+      "description": "Mathematical framework for modeling decision making problems.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 8,
+      "label": "Function Approximation",
+      "type": "concept",
+      "description": "Using neural networks to approximate value functions in large state spaces.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 9,
+      "label": "Bellman Equations",
+      "type": "concept",
+      "description": "Recursive equations that express optimal value functions.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 10,
+      "label": "Temporal Difference Learning",
+      "type": "concept",
+      "description": "Learning method that updates estimates based on other estimates.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 11,
+      "label": "Epsilon-Greedy Strategy",
+      "type": "concept",
+      "description": "Exploration strategy that balances exploitation and exploration.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 12,
+      "label": "Computer Vision",
+      "type": "concept",
+      "description": "Processing and understanding visual information from images.",
+      "difficulty": 2,
+      "domain": "tech"
+    }
+  ],
+  "links": [
+    {
+      "source": 1,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 1,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 9,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 10,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 12,
+      "target": 4,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 8,
+      "target": 5,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+} 

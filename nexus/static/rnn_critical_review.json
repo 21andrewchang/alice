@@ -1,0 +1,228 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "A Critical Review of Recurrent Neural Networks for Sequence Learning",
+      "type": "paper",
+      "description": "Comprehensive survey of recurrent neural networks, covering fundamentals, architectures like LSTM and GRU, training challenges, and applications in sequence learning tasks.",
+      "difficulty": 3,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "rnn_critical_review.pdf"
+    },
+    {
+      "id": 1,
+      "label": "Neural Networks",
+      "type": "concept",
+      "description": "Basic understanding of neural network architecture, weights, biases, and activation functions.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 2,
+      "label": "Backpropagation",
+      "type": "concept",
+      "description": "Understanding of gradient computation and parameter updating in neural networks.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 3,
+      "label": "Sequence Modeling",
+      "type": "concept",
+      "description": "Techniques for processing and predicting sequential data like time series or text.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 4,
+      "label": "Gradient Descent",
+      "type": "concept",
+      "description": "Optimization algorithm for training neural networks by minimizing loss functions.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 5,
+      "label": "LSTM Networks",
+      "type": "concept",
+      "description": "Long Short-Term Memory networks designed to solve vanishing gradient problems in RNNs.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 6,
+      "label": "GRU Networks",
+      "type": "concept",
+      "description": "Gated Recurrent Unit networks, a simplified variant of LSTM.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 7,
+      "label": "Vanishing Gradient Problem",
+      "type": "concept",
+      "description": "Challenge in training deep networks where gradients become exponentially small.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 8,
+      "label": "Backpropagation Through Time",
+      "type": "concept",
+      "description": "Extension of backpropagation for training recurrent neural networks over time sequences.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 9,
+      "label": "Gating Mechanisms",
+      "type": "concept",
+      "description": "Control structures in RNNs that regulate information flow and memory retention.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 10,
+      "label": "Time Series Analysis",
+      "type": "concept",
+      "description": "Statistical methods for analyzing and modeling time-ordered data.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 11,
+      "label": "Natural Language Processing",
+      "type": "concept",
+      "description": "Field of AI focused on enabling computers to understand and process human language.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 12,
+      "label": "Linear Algebra",
+      "type": "concept",
+      "description": "Mathematical foundation for understanding matrix operations in neural networks.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 13,
+      "label": "Calculus",
+      "type": "concept",
+      "description": "Mathematical foundation for understanding derivatives and gradients.",
+      "difficulty": 2,
+      "domain": "math"
+    }
+  ],
+  "links": [
+    {
+      "source": 1,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 8,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 12,
+      "target": 1,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 13,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 10,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 9,
+      "target": 5,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 9,
+      "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 7,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+} 
