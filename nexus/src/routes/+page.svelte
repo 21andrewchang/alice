@@ -638,7 +638,7 @@
 				const color = node.type === 'paper' ? '#BFCAF3' : getDomainColor(node.domain || 'tech');
 				return `<span 
 					class="cursor-pointer hover:opacity-80 transition-all duration-200" 
-					style="color: ${color}; text-shadow: 0 0 8px ${color}40;"
+					style="display: inline-flex; align-items: center; background: ${color}18; border: 1px solid ${color}4D; border-radius: 5px; padding: 0px 3px; margin: 2px 0; color: ${color}; font-weight: 500;"
 					onclick="selectNodeById(${nodeId})"
 				>${text}</span>`;
 			}
