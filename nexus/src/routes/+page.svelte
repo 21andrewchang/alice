@@ -118,36 +118,56 @@
 	function updateNodeStyles() {
 		if (nodeSel) {
 			nodeSel
+				.transition()
+				.duration(300)
 				.attr('fill', (d) => {
+					// Determine base color (learned vs unlearned)
+					let baseColor;
 					if (d.type === 'paper') {
-						return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Dimmer papyrus for unlearned papers
+						baseColor = learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8';
+					} else {
+						const domainColor = getDomainColor(d.domain || 'tech');
+						baseColor = learnedNodes.has(d.id) ? domainColor : dimColor(domainColor);
 					}
-					const baseColor = getDomainColor(d.domain || 'tech');
-					return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Dimmer for unlearned nodes
+					
+					// Apply focus dimming by darkening color much more aggressively
+					if (focusedNode && !connectedNodes.has(d.id)) {
+						return veryDimColor(baseColor); // Very dark for unconnected nodes
+					}
+					return baseColor;
 				})
 				.attr('stroke', (d) => {
+					// Determine base stroke color (learned vs unlearned)
+					let baseColor;
 					if (d.type === 'paper') {
-						return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Matching stroke for papers
+						baseColor = learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8';
+					} else {
+						const domainColor = getDomainColor(d.domain || 'tech');
+						baseColor = learnedNodes.has(d.id) ? domainColor : dimColor(domainColor);
 					}
-					const baseColor = getDomainColor(d.domain || 'tech');
-					return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Matching stroke, dimmed for unlearned
+					
+					// Apply focus dimming by darkening color much more aggressively
+					if (focusedNode && !connectedNodes.has(d.id)) {
+						return veryDimColor(baseColor); // Very dark for unconnected nodes
+					}
+					return baseColor;
 				})
-				.attr('stroke-width', (d) => learnedNodes.has(d.id) ? 3 : 1.5)
+				.attr('stroke-width', (d) => {
+					// Reduce stroke width for focused-out nodes
+					let baseWidth = learnedNodes.has(d.id) ? 3 : 1.5;
+					if (focusedNode && !connectedNodes.has(d.id)) {
+						return Math.max(0.5, baseWidth * 0.5); // Thinner stroke for dimmed nodes
+					}
+					return baseWidth;
+				})
 				.style('filter', (d) => {
+					// Only show glow on learned nodes that aren't dimmed by focus
+					if (focusedNode && !connectedNodes.has(d.id)) {
+						return null; // No glow for focused-out nodes
+					}
 					if (d.type === 'paper') return learnedNodes.has(d.id) ? 'drop-shadow(0 0 6px #BFCAF3)' : null;
 					const domainColor = getDomainColor(d.domain || 'tech');
 					return learnedNodes.has(d.id) ? `drop-shadow(0 0 6px ${domainColor})` : null;
-				})
-			
-			// Apply focus dimming effect with smooth transition
-			nodeSel
-				.transition()
-				.duration(300)
-				.style('opacity', (d) => {
-					if (focusedNode && !connectedNodes.has(d.id)) {
-						return 0.2; // Dim unconnected nodes
-					}
-					return 1; // Full opacity for connected nodes
 				});
 		}
 		
@@ -165,7 +185,7 @@
 					if (sourceConnected || targetConnected) {
 						return 1; // Full opacity for connected links
 					}
-					return 0.2; // Dim other links
+					return 0.05; // Very dim for other links
 				});
 		}
 		
@@ -174,15 +194,6 @@
 			textSel
 				.transition()
 				.duration(300)
-				.style('opacity', (d) => {
-					if (!focusedNode) return 1; // No focus, show all text normally
-					
-					// Only apply dimming to visible text (zoom level check is handled elsewhere)
-					if (!connectedNodes.has(d.id)) {
-						return 0.2; // Dim unconnected text
-					}
-					return 1; // Full opacity for connected text
-				})
 				.attr('font-size', (d) => {
 					// Make text larger for connected nodes when focused
 					if (focusedNode && connectedNodes.has(d.id)) {
@@ -191,11 +202,15 @@
 					return '6px'; // Normal font size
 				})
 				.attr('fill', (d) => {
-					// Make text brighter for connected nodes when focused
-					if (focusedNode && connectedNodes.has(d.id)) {
-						return '#CCCCCC'; // Light gray text for connected nodes
+					if (!focusedNode) {
+						return '#333333'; // Default gray text when no focus
 					}
-					return '#333333'; // Default gray text
+					
+					if (connectedNodes.has(d.id)) {
+						return '#CCCCCC'; // Light gray text for connected nodes
+					} else {
+						return '#444444'; // Dimmed but still visible text for unconnected nodes
+					}
 				});
 		}
 	}
@@ -212,6 +227,22 @@
 		const dimR = Math.round(r * 0.6);
 		const dimG = Math.round(g * 0.6);
 		const dimB = Math.round(b * 0.6);
+		
+		return `#${dimR.toString(16).padStart(2, '0')}${dimG.toString(16).padStart(2, '0')}${dimB.toString(16).padStart(2, '0')}`;
+	}
+
+	// Helper function to very aggressively dim colors for focused-out nodes using RGB
+	function veryDimColor(color) {
+		// Convert hex to RGB, reduce brightness aggressively, convert back
+		const hex = color.replace('#', '');
+		const r = parseInt(hex.substr(0, 2), 16);
+		const g = parseInt(hex.substr(2, 2), 16);
+		const b = parseInt(hex.substr(4, 2), 16);
+		
+		// Reduce brightness by ~75% (keep 25% of original)
+		const dimR = Math.round(r * 0.25);
+		const dimG = Math.round(g * 0.25);
+		const dimB = Math.round(b * 0.25);
 		
 		return `#${dimR.toString(16).padStart(2, '0')}${dimG.toString(16).padStart(2, '0')}${dimB.toString(16).padStart(2, '0')}`;
 	}
@@ -545,32 +576,52 @@
 		function animate() {
 			prerequisiteLinks.forEach((link, index) => {
 				if (link.gradient) {
-					// Animate with "zip" easing - slow, fast, slow (with 0.5s pause)
-					const time = (Date.now() * 0.002) % 2; // 2 second cycle (1.5s animation + 0.5s pause)
-					const rawProgress = time < 1.5 ? time / 1.5 : 1; // Animation for first 1.5s, then hold at end
+					// Only animate if no node is focused OR this link is directly connected to the focused node
+					const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+					const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+					const shouldAnimate = !focusedNode || 
+						sourceId === focusedNode.id || 
+						targetId === focusedNode.id;
 					
-					// Apply dramatic easing curve for "zip" effect: very slow -> current speed -> very slow
-					const progress = rawProgress < 0.2 
-						? Math.pow(rawProgress / 0.2, 4) * 0.10 // Very slow start (quartic ease - covers 5% of distance)
-						: rawProgress < 0.8 
-						? 0.05 + (rawProgress - 0.2) / 0.6 * 0.8 // Current speed middle section (covers 90% of distance)
-						: 0.95 + Math.pow((rawProgress - 0.8) / 0.2, 4) * 0.1; // Very slow end (quartic ease - covers 5% of distance)
-					
-					// Move the centered gradient along the line
-					const centerPos = (progress * 120 - 10) + '%'; // Move from -10% to 110%
-					const startPos = (progress * 120 - 15) + '%';  // 5% before center
-					const endPos = (progress * 120 - 5) + '%';     // 5% after center
-					
-					// Update gradient stops with centered positions
-					link.gradient.selectAll('stop')
-						.attr('offset', (d, i) => {
-							if (i === 0) return Math.max(0, progress * 120 - 20) + '%';
-							if (i === 1) return Math.max(0, progress * 120 - 7.5) + '%'; // 45% before center
-							if (i === 2) return Math.max(0, Math.min(100, progress * 120 - 5)) + '%'; // Center
-							if (i === 3) return Math.min(100, progress * 120 - 2.5) + '%'; // 55% after center  
-							if (i === 4) return Math.min(100, progress * 120) + '%';
-							return '0%';
-						});
+					if (shouldAnimate) {
+						// Animate with "zip" easing - slow, fast, slow (with 0.5s pause)
+						const time = (Date.now() * 0.002) % 2; // 2 second cycle (1.5s animation + 0.5s pause)
+						const rawProgress = time < 1.5 ? time / 1.5 : 1; // Animation for first 1.5s, then hold at end
+						
+						// Apply dramatic easing curve for "zip" effect: very slow -> current speed -> very slow
+						const progress = rawProgress < 0.2 
+							? Math.pow(rawProgress / 0.2, 4) * 0.10 // Very slow start (quartic ease - covers 5% of distance)
+							: rawProgress < 0.8 
+							? 0.05 + (rawProgress - 0.2) / 0.6 * 0.8 // Current speed middle section (covers 90% of distance)
+							: 0.95 + Math.pow((rawProgress - 0.8) / 0.2, 4) * 0.1; // Very slow end (quartic ease - covers 5% of distance)
+						
+						// Move the centered gradient along the line
+						const centerPos = (progress * 120 - 10) + '%'; // Move from -10% to 110%
+						const startPos = (progress * 120 - 15) + '%';  // 5% before center
+						const endPos = (progress * 120 - 5) + '%';     // 5% after center
+						
+						// Update gradient stops with centered positions
+						link.gradient.selectAll('stop')
+							.attr('offset', (d, i) => {
+								if (i === 0) return Math.max(0, progress * 120 - 20) + '%';
+								if (i === 1) return Math.max(0, progress * 120 - 7.5) + '%'; // 45% before center
+								if (i === 2) return Math.max(0, Math.min(100, progress * 120 - 5)) + '%'; // Center
+								if (i === 3) return Math.min(100, progress * 120 - 2.5) + '%'; // 55% after center  
+								if (i === 4) return Math.min(100, progress * 120) + '%';
+								return '0%';
+							});
+					} else {
+						// Stop animation by setting a static state (no shooting star visible)
+						link.gradient.selectAll('stop')
+							.attr('offset', (d, i) => {
+								if (i === 0) return '0%';
+								if (i === 1) return '0%';
+								if (i === 2) return '0%';
+								if (i === 3) return '0%';
+								if (i === 4) return '0%';
+								return '0%';
+							});
+					}
 				}
 			});
 			
