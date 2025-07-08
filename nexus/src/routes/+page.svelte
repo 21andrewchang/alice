@@ -4,9 +4,8 @@
 
 	let element;
 	let tooltipEl;
-	let selectedNode = null;
-	let pdfLoading = false;
-	let showPdfFrame = false;
+	// selectedNode replaced with nodeStack system
+	// pdfLoading and showPdfFrame removed - handled per node now
 	let learnedNodes = new Set();
 	
 	// Idle animation variables
@@ -21,68 +20,11 @@
 	}
 
 	function selectNode(node) {
-		selectedNode = node;
-		learnedNodes.add(node.id);
+		// Add to stack instead of setting selectedNode
+		addToNodeStack(node);
 		
-		// Set up focus effect - find all connected nodes
-		focusedNode = node;
-		connectedNodes.clear();
-		connectedNodes.add(node.id); // Include the selected node itself
-		
-		// Find all directly connected nodes
-		if (graphData) {
-			graphData.links.forEach(link => {
-				if (link.source.id === node.id || link.source === node.id) {
-					connectedNodes.add(link.target.id || link.target);
-				}
-				if (link.target.id === node.id || link.target === node.id) {
-					connectedNodes.add(link.source.id || link.source);
-				}
-			});
-		}
-		
-		// Zoom in and center on the selected node
-		if (zoomBehavior && svgElement) {
-			const scale = 2; // Zoom scale factor
-			const [x, y] = [node.x || 0, node.y || 0]; // Node position
-			
-			// Get the current container dimensions
-			const containerWidth = 928;
-			const containerHeight = 680;
-			
-			// SVG viewBox is centered at (0,0), so we need to account for that
-			// When side panel is open, we want to center in the left half
-			const visibleWidth = containerWidth / 2; // Left half for graph
-			
-			// Calculate target position in SVG coordinates (viewBox is centered)
-			// We want the node to appear at 1/4 from left edge and 1/3 from top
-			const targetX = -containerWidth / 4 + visibleWidth / 2; // Center of left half
-			const targetY = -containerHeight / 2 + containerHeight / 3; // 1/3 from top
-			
-			// Create transform to move the node to the target position
-			const transform = d3.zoomIdentity
-				.translate(targetX - x * scale, targetY - y * scale)
-				.scale(scale);
-			
-			// Apply zoom transform with smooth transition
-			d3.select(svgElement)
-				.transition()
-				.duration(750)
-				.call(zoomBehavior.transform, transform);
-		}
-		
-		// For PDFs, delay iframe creation to avoid lag
-		if (node.type === 'paper' && node.url) {
-			pdfLoading = true;
-			showPdfFrame = false;
-			// Delay iframe creation slightly to let panel open smoothly
-			setTimeout(() => {
-				showPdfFrame = true;
-			}, 100);
-		}
-		
-		// Re-render to show glow effect and focus dimming
-		updateNodeStyles();
+		// Center the graph on the selected node
+		centerGraphOnNode(node);
 	}
 
 	function toggleLearned(nodeId) {
@@ -102,6 +44,7 @@
 	let focusedNode = null; // Currently focused node for dimming effect
 	let connectedNodes = new Set(); // Set of nodes connected to focused node
 	let graphData = null; // Store graph data for connection analysis
+	let nodeStack = []; // Stack of open nodes for layered interface
 
 	function getDomainColor(domain) {
 		const domainColors = {
@@ -632,6 +575,136 @@
 
 
 
+	// Function to parse node links in content
+	function parseNodeLinks(content) {
+		return content.replace(/<node id="(\d+)">([^<]+)<\/node>/g, (match, id, text) => {
+			const nodeId = parseInt(id);
+			const node = graphData?.nodes?.find(n => n.id === nodeId);
+			if (node) {
+				const color = node.type === 'paper' ? '#BFCAF3' : getDomainColor(node.domain || 'tech');
+				return `<span 
+					class="inline-block px-2 py-1 rounded cursor-pointer hover:opacity-80 transition-opacity" 
+					style="background-color: ${color}20; color: ${color}; border: 1px solid ${color}40;"
+					onclick="selectNodeById(${nodeId})"
+				>${text}</span>`;
+			}
+			return text;
+		});
+	}
+
+	// Function to select a node by ID (for node links)
+	function selectNodeById(nodeId) {
+		const node = graphData?.nodes?.find(n => n.id === nodeId);
+		if (node) {
+			// Add to the stack first (same order as selectNode)
+			addToNodeStack(node);
+			
+			// Then center the graph on the selected node
+			centerGraphOnNode(node);
+		}
+	}
+
+	// Function to center the graph on a specific node (restored original logic)
+	function centerGraphOnNode(node) {
+		if (zoomBehavior && svgElement) {
+			const scale = 2; // Zoom scale factor
+			const [x, y] = [node.x || 0, node.y || 0]; // Node position
+			
+			// Get the current container dimensions
+			const containerWidth = 928;
+			const containerHeight = 680;
+			
+			// SVG viewBox is centered at (0,0), so we need to account for that
+			// When side panel is open, we want to center in the left half
+			const visibleWidth = containerWidth / 2; // Left half for graph
+			
+			// Calculate target position in SVG coordinates (viewBox is centered)
+			// We want the node to appear at 1/4 from left edge and 1/3 from top
+			const targetX = -containerWidth / 4 + visibleWidth / 2; // Center of left half
+			const targetY = -containerHeight / 2 + containerHeight / 3; // 1/3 from top
+			
+			// Create transform to move the node to the target position
+			const transform = d3.zoomIdentity
+				.translate(targetX - x * scale, targetY - y * scale)
+				.scale(scale);
+			
+			// Apply zoom transform with smooth transition
+			d3.select(svgElement)
+				.transition()
+				.duration(750)
+				.call(zoomBehavior.transform, transform);
+		}
+	}
+
+	// Function to add a node to the stack
+	function addToNodeStack(node) {
+		// Focus on the node for graph effects
+		focusedNode = node;
+		connectedNodes.clear();
+		connectedNodes.add(node.id);
+		
+		// Find all directly connected nodes
+		if (graphData) {
+			graphData.links.forEach(link => {
+				if (link.source.id === node.id || link.source === node.id) {
+					connectedNodes.add(link.target.id || link.target);
+				}
+				if (link.target.id === node.id || link.target === node.id) {
+					connectedNodes.add(link.source.id || link.source);
+				}
+			});
+		}
+		
+		// Mark as learned
+		learnedNodes.add(node.id);
+		
+		// Add to stack (remove if already exists to avoid duplicates)
+		nodeStack = nodeStack.filter(n => n.id !== node.id);
+		nodeStack = [...nodeStack, node];
+		
+		// Update node styles
+		updateNodeStyles();
+	}
+
+	// Function to remove a node from the stack
+	function removeFromStack(nodeId) {
+		nodeStack = nodeStack.filter(n => n.id !== nodeId);
+		
+		// If stack is empty, clear focus
+		if (nodeStack.length === 0) {
+			focusedNode = null;
+			connectedNodes.clear();
+		} else {
+			// Focus on the top node in the stack
+			const topNode = nodeStack[nodeStack.length - 1];
+			focusedNode = topNode;
+			connectedNodes.clear();
+			connectedNodes.add(topNode.id);
+			
+			// Find connected nodes for the top node
+			if (graphData) {
+				graphData.links.forEach(link => {
+					if (link.source.id === topNode.id || link.source === topNode.id) {
+						connectedNodes.add(link.target.id || link.target);
+					}
+					if (link.target.id === topNode.id || link.target === topNode.id) {
+						connectedNodes.add(link.source.id || link.source);
+					}
+				});
+			}
+			
+			// Center the graph on the new top node
+			centerGraphOnNode(topNode);
+		}
+		
+		updateNodeStyles();
+	}
+
+	// Make function available globally for onclick handlers (client-side only)
+	if (typeof window !== 'undefined') {
+		window.selectNodeById = selectNodeById;
+	}
+
 	onMount(async () => {
 		const data = await loadData();
 		element.innerHTML = '';
@@ -685,74 +758,201 @@
 	></div>
 
 	<!-- Graph container - left side or full width -->
-	<div class="{selectedNode ? 'w-1/2' : 'w-full'} h-full transition-all duration-150">
+	<div class="{nodeStack.length > 0 ? 'w-1/2' : 'w-full'} h-full transition-all duration-150">
 		<div bind:this={element} class="h-full w-full"></div>
 	</div>
 
-	<!-- Node Preview panel - right side -->
-	{#if selectedNode}
-		<div class="w-1/2 h-full" style="background-color: rgba(8, 8, 8, 0.0);">
-			<div class="h-full p-6">
-				<div class="h-full rounded-2xl overflow-hidden" style="background-color: #111111;">
-					<div class="h-full overflow-hidden">
-				{#if selectedNode.type === 'paper' && selectedNode.url}
-					<!-- PDF display for papers -->
-					<div class="h-full flex flex-col">
-						<div class="flex items-center justify-between p-6">
-							<h2 class="text-2xl font-bold" style="color: #BFCAF3;">{selectedNode.label}</h2>
-							<button
-								on:click={() => selectedNode = null}
-								class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
-								aria-label="Close"
-							>
-								✕
-							</button>
-						</div>
-						
-						<div class="flex-1">
-							<iframe 
-								src="{selectedNode.url}#navpanes=0&scrollbar=0"
-								class="w-full h-full border-0"
-								title="PDF Viewer"
-							></iframe>
-						</div>
-					</div>
-				{:else}
-					<!-- Regular node display -->
-					<div class="p-6 h-full overflow-y-auto">
-						<div class="mb-4">
-							<div class="flex items-center justify-between mb-4">
-								<h2 class="text-2xl font-bold" style="color: {getDomainColor(selectedNode.domain)};">{selectedNode.label}</h2>
-								<button
-									on:click={() => selectedNode = null}
-									class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
-									aria-label="Close"
-								>
-									✕
-								</button>
-							</div>
-							<div class="flex items-center gap-2 mb-4">
-								<span class="text-sm" style="color: #B3B3B3;">Difficulty: {selectedNode.difficulty}/5</span>
-								<div class="flex">
-									{#each Array(selectedNode.difficulty) as _}
-										<div class="w-2 h-2 rounded-full mr-1" style="background-color: {getDomainColor(selectedNode.domain)};"></div>
-									{/each}
-									{#each Array(5 - selectedNode.difficulty) as _}
-										<div class="w-2 h-2 rounded-full mr-1" style="background-color: #3A3F59;"></div>
-									{/each}
-								</div>
-							</div>
-						</div>
+	<!-- Stacked Node Preview panels - right side -->
+	{#if nodeStack.length > 0}
+		<div class="w-1/2 h-full relative" style="background-color: rgba(8, 8, 8, 0.0);">
+			{#each nodeStack as node, index (node.id)}
+				<div 
+					class="absolute inset-0 transition-all duration-300"
+					style="
+						top: {index * 20}px;
+						left: {index * 16}px;
+						right: {index * 8}px;
+						bottom: {index * 8}px;
+						z-index: {10 + index};
+					"
+				>
+					<div class="h-full p-6">
+						<div 
+							class="h-full rounded-2xl overflow-hidden shadow-lg"
+							style="background-color: #111111; border: 1px solid #333333;"
+						>
+							<div class="h-full overflow-hidden">
+								{#if node.type === 'paper' && node.content}
+									<!-- Custom formatted content for papers -->
+									<div class="h-full flex flex-col">
+										<div class="flex items-center justify-between p-6">
+											<h2 class="text-2xl font-bold" style="color: #BFCAF3;">{node.label}</h2>
+											<button
+												on:click={() => removeFromStack(node.id)}
+												class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
+												aria-label="Close"
+											>
+												✕
+											</button>
+										</div>
+										
+										<div class="flex-1 overflow-y-auto">
+											<div class="px-6 pb-6">
+												<!-- Link to original paper -->
+												{#if node.content.original_paper_url}
+													<div class="mb-6 p-4 rounded-lg" style="background-color: #1a1a1a; border: 1px solid #333333;">
+														<div class="flex items-center gap-3">
+															<div class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: #BFCAF3; color: #111111;">
+																📄
+															</div>
+															<div>
+																<div class="font-medium" style="color: #BFCAF3;">Original Paper</div>
+																<a 
+																	href="{node.content.original_paper_url}" 
+																	target="_blank" 
+																	rel="noopener noreferrer"
+																	class="text-sm hover:underline"
+																	style="color: #888888;"
+																>
+																	View on arXiv →
+																</a>
+															</div>
+														</div>
+													</div>
+												{/if}
 
-						<div class="mb-6">
-							<h3 class="text-lg font-semibold mb-2" style="color: #B3B3B3;">Description</h3>
-							<p class="leading-relaxed" style="color: #B3B3B3;">{selectedNode.description}</p>
+												<!-- Abstract -->
+												{#if node.content.abstract}
+													<div class="mb-6">
+														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Abstract</h3>
+														<div class="leading-relaxed" style="color: #B3B3B3;">
+															{@html parseNodeLinks(node.content.abstract)}
+														</div>
+													</div>
+												{/if}
+
+												<!-- Introduction -->
+												{#if node.content.introduction}
+													<div class="mb-6">
+														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Introduction</h3>
+														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
+															{@html parseNodeLinks(node.content.introduction)}
+														</div>
+													</div>
+												{/if}
+
+												<!-- Model Architecture -->
+												{#if node.content.model_architecture}
+													<div class="mb-6">
+														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Model Architecture</h3>
+														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
+															{@html parseNodeLinks(node.content.model_architecture)}
+														</div>
+													</div>
+												{/if}
+
+												<!-- Why Self-Attention -->
+												{#if node.content.why_self_attention}
+													<div class="mb-6">
+														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Why Self-Attention</h3>
+														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
+															{@html parseNodeLinks(node.content.why_self_attention)}
+														</div>
+													</div>
+												{/if}
+
+												<!-- Training -->
+												{#if node.content.training}
+													<div class="mb-6">
+														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Training</h3>
+														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
+															{@html parseNodeLinks(node.content.training)}
+														</div>
+													</div>
+												{/if}
+
+												<!-- Results -->
+												{#if node.content.results}
+													<div class="mb-6">
+														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Results</h3>
+														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
+															{@html parseNodeLinks(node.content.results)}
+														</div>
+													</div>
+												{/if}
+
+												<!-- Conclusion -->
+												{#if node.content.conclusion}
+													<div class="mb-6">
+														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Conclusion</h3>
+														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
+															{@html parseNodeLinks(node.content.conclusion)}
+														</div>
+													</div>
+												{/if}
+											</div>
+										</div>
+									</div>
+								{:else if node.type === 'paper' && node.url}
+									<!-- PDF display for papers without formatted content -->
+									<div class="h-full flex flex-col">
+										<div class="flex items-center justify-between p-6">
+											<h2 class="text-2xl font-bold" style="color: #BFCAF3;">{node.label}</h2>
+											<button
+												on:click={() => removeFromStack(node.id)}
+												class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
+												aria-label="Close"
+											>
+												✕
+											</button>
+										</div>
+										
+										<div class="flex-1">
+											<iframe 
+												src="{node.url}#navpanes=0&scrollbar=0"
+												class="w-full h-full border-0"
+												title="PDF Viewer"
+											></iframe>
+										</div>
+									</div>
+								{:else}
+									<!-- Regular node display -->
+									<div class="p-6 h-full overflow-y-auto">
+										<div class="mb-4">
+											<div class="flex items-center justify-between mb-4">
+												<h2 class="text-2xl font-bold" style="color: {getDomainColor(node.domain)};">{node.label}</h2>
+												<button
+													on:click={() => removeFromStack(node.id)}
+													class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
+													aria-label="Close"
+												>
+													✕
+												</button>
+											</div>
+											<div class="flex items-center gap-2 mb-4">
+												<span class="text-sm" style="color: #B3B3B3;">Difficulty: {node.difficulty}/5</span>
+												<div class="flex">
+													{#each Array(node.difficulty) as _}
+														<div class="w-2 h-2 rounded-full mr-1" style="background-color: {getDomainColor(node.domain)};"></div>
+													{/each}
+													{#each Array(5 - node.difficulty) as _}
+														<div class="w-2 h-2 rounded-full mr-1" style="background-color: #3A3F59;"></div>
+													{/each}
+												</div>
+											</div>
+										</div>
+
+										<div class="mb-6">
+											<h3 class="text-lg font-semibold mb-2" style="color: #B3B3B3;">Description</h3>
+											<p class="leading-relaxed" style="color: #B3B3B3;">{node.description}</p>
+										</div>
+									</div>
+								{/if}
+							</div>
 						</div>
-					</div>
-				{/if}
 					</div>
 				</div>
-			</div>
+			{/each}
 		</div>
 	{/if}
 </main>
