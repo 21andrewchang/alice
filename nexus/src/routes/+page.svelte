@@ -774,10 +774,10 @@
 				<div 
 					class="absolute inset-0 transition-all duration-300"
 					style="
-						top: {index * 20}px;
-						left: {index * 16}px;
-						right: {index * 8}px;
-						bottom: {index * 8}px;
+						top: 0;
+						left: 0;
+						right: {index * 18}px;
+						bottom: 0;
 						z-index: {10 + index};
 					"
 				>
