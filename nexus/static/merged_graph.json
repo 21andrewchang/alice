@@ -28,9 +28,9 @@
     },
     {
       "id": 3,
-      "label": "Sequence-to-Sequence Models",
+      "label": "Sequence Transduction Model",
       "type": "concept",
-      "description": "Neural architectures that transform input sequences into output sequences, commonly used in translation and text generation.",
+      "description": "Neural architectures that transform input sequences into output sequences, the core problem addressed by the Transformer.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -52,14 +52,22 @@
     },
     {
       "id": 6,
-      "label": "Encoder-Decoder Architecture",
+      "label": "Encoder",
       "type": "concept",
-      "description": "Neural network design pattern where an encoder processes input and a decoder generates output.",
+      "description": "Component that processes input sequence and creates a fixed-size representation.",
       "difficulty": 3,
       "domain": "tech"
     },
     {
       "id": 7,
+      "label": "Decoder",
+      "type": "concept",
+      "description": "Component that generates output sequence from the encoded representation.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 8,
       "label": "Multi-Head Attention",
       "type": "concept",
       "description": "Extension of attention mechanism that allows the model to jointly attend to information from different representation subspaces.",
@@ -67,7 +75,23 @@
       "domain": "tech"
     },
     {
-      "id": 8,
+      "id": 9,
+      "label": "Self Attention",
+      "type": "concept",
+      "description": "Attention mechanism where queries, keys, and values all come from the same sequence.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 10,
+      "label": "Transformer",
+      "type": "concept",
+      "description": "Neural network architecture based entirely on attention mechanisms, dispensing with recurrence and convolutions.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 11,
       "label": "Positional Encoding",
       "type": "concept",
       "description": "Method to inject information about the relative or absolute position of tokens in a sequence.",
@@ -75,26 +99,258 @@
       "domain": "tech"
     },
     {
-      "id": 9,
-      "label": "Linear Algebra",
+      "id": 12,
+      "label": "Feed-forward Network",
       "type": "concept",
-      "description": "Mathematical foundation involving vectors, matrices, and linear transformations essential for understanding neural networks.",
+      "description": "Position-wise fully connected layers that process each position separately and identically.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 13,
+      "label": "Layer Normalization",
+      "type": "concept",
+      "description": "Normalization technique applied within each layer to stabilize training.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 14,
+      "label": "Embedding",
+      "type": "concept",
+      "description": "Dense vector representations of discrete tokens like words or subwords.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 15,
+      "label": "Convolutional Neural Networks",
+      "type": "concept",
+      "description": "Neural networks specialized for processing grid-like data, using convolution operations.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 16,
+      "label": "Convolution",
+      "type": "concept",
+      "description": "Mathematical operation that applies filters to local regions of input data.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 17,
+      "label": "Long Short Term Memory",
+      "type": "concept",
+      "description": "Type of RNN designed to avoid vanishing gradient problems through gating mechanisms.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 18,
+      "label": "Gated Recurrent Neural Network",
+      "type": "concept",
+      "description": "RNN variant that uses gates to control information flow, simpler than LSTM.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 19,
+      "label": "Sequence Modeling",
+      "type": "concept",
+      "description": "Techniques for processing and predicting sequential data like text or time series.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 20,
+      "label": "Machine Translation",
+      "type": "concept",
+      "description": "Automated translation of text from one language to another using computational methods.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 21,
+      "label": "Language Modeling",
+      "type": "concept",
+      "description": "Statistical modeling of natural language to predict word sequences and text patterns.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 22,
+      "label": "Hidden States",
+      "type": "concept",
+      "description": "Internal representations that capture information processed at each step in sequence models.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 23,
+      "label": "Auto-Regressive",
+      "type": "concept",
+      "description": "Generation method where each output depends on previously generated outputs.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 24,
+      "label": "Parallelization",
+      "type": "concept",
+      "description": "Ability to process multiple computations simultaneously, key advantage of Transformers.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 25,
+      "label": "Training a Model",
+      "type": "concept",
+      "description": "Process of optimizing neural network parameters using data and loss functions.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 26,
+      "label": "GPU",
+      "type": "concept",
+      "description": "Graphics Processing Unit optimized for parallel computations, essential for training large models.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 27,
+      "label": "Batching",
+      "type": "concept",
+      "description": "Processing multiple examples simultaneously to improve computational efficiency.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 28,
+      "label": "Dependencies",
+      "type": "concept",
+      "description": "Relationships between elements in sequences that models need to capture.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 29,
+      "label": "ConvS2S",
+      "type": "concept",
+      "description": "Convolutional sequence-to-sequence model, predecessor to Transformer architecture.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 30,
+      "label": "ByteNet",
+      "type": "concept",
+      "description": "Convolutional neural network for sequence modeling with dilated convolutions.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 31,
+      "label": "Matrix Multiplication",
+      "type": "concept",
+      "description": "Mathematical operation for combining two matrices, fundamental to neural network computations.",
       "difficulty": 2,
       "domain": "math"
     },
     {
-      "id": 10,
-      "label": "Calculus",
+      "id": 32,
+      "label": "Dot Product",
       "type": "concept",
-      "description": "Mathematical foundation for understanding derivatives and gradients used in neural network training.",
+      "description": "Mathematical operation that multiplies corresponding elements of vectors and sums them, used in attention scoring.",
       "difficulty": 2,
       "domain": "math"
     },
     {
-      "id": 11,
-      "label": "Probability Theory",
+      "id": 33,
+      "label": "Vector Operations",
       "type": "concept",
-      "description": "Mathematical framework for handling uncertainty and randomness in machine learning models.",
+      "description": "Basic mathematical operations on vectors like addition, subtraction, and scalar multiplication.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 34,
+      "label": "Softmax Function",
+      "type": "concept",
+      "description": "Activation function that converts a vector of real numbers into a probability distribution.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 35,
+      "label": "Gradient",
+      "type": "concept",
+      "description": "Vector of partial derivatives indicating the direction and rate of steepest increase of a function.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 36,
+      "label": "Derivative",
+      "type": "concept",
+      "description": "Mathematical concept measuring how a function changes as its input changes.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 37,
+      "label": "Chain Rule",
+      "type": "concept",
+      "description": "Mathematical rule for computing the derivative of composite functions, essential for backpropagation.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 38,
+      "label": "Partial Derivatives",
+      "type": "concept",
+      "description": "Derivatives of functions with multiple variables, taken with respect to one variable while holding others constant.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 39,
+      "label": "Trigonometric Functions",
+      "type": "concept",
+      "description": "Mathematical functions like sine and cosine used in positional encoding for sequence position.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 40,
+      "label": "Mean",
+      "type": "concept",
+      "description": "Average value of a set of numbers, used in normalization techniques.",
+      "difficulty": 1,
+      "domain": "math"
+    },
+    {
+      "id": 41,
+      "label": "Variance",
+      "type": "concept",
+      "description": "Measure of how spread out numbers are from their mean, used in layer normalization.",
+      "difficulty": 2,
+      "domain": "math"
+    },
+    {
+      "id": 42,
+      "label": "Linear Transformation",
+      "type": "concept",
+      "description": "Mathematical mapping between vector spaces that preserves vector addition and scalar multiplication.",
+      "difficulty": 3,
+      "domain": "math"
+    },
+    {
+      "id": 43,
+      "label": "Weighted Sum",
+      "type": "concept",
+      "description": "Sum of values each multiplied by a corresponding weight, fundamental to neural network operations.",
       "difficulty": 2,
       "domain": "math"
     }
@@ -113,19 +369,7 @@
       "value": 1
     },
     {
-      "source": 3,
-      "target": 0,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 4,
-      "target": 0,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 7,
+      "source": 10,
       "target": 0,
       "relation": "prerequisite",
       "value": 1
@@ -138,49 +382,61 @@
     },
     {
       "source": 9,
-      "target": 1,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 10,
-      "target": 2,
+      "target": 0,
       "relation": "prerequisite",
       "value": 1
     },
     {
       "source": 11,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 43,
+      "target": 1,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 31,
+      "target": 1,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 35,
       "target": 2,
       "relation": "prerequisite",
       "value": 1
     },
     {
-      "source": 5,
-      "target": 3,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 6,
-      "target": 3,
+      "source": 37,
+      "target": 2,
       "relation": "prerequisite",
       "value": 1
     },
     {
       "source": 1,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 19,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 32,
       "target": 4,
       "relation": "prerequisite",
       "value": 1
     },
     {
-      "source": 4,
-      "target": 7,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 9,
-      "target": 8,
+      "source": 34,
+      "target": 4,
       "relation": "prerequisite",
       "value": 1
     },
@@ -193,6 +449,264 @@
     {
       "source": 1,
       "target": 6,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 7,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 42,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 8,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 9,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 12,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 13,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 39,
+      "target": 11,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 33,
+      "target": 11,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 43,
+      "target": 12,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 42,
+      "target": 12,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 40,
+      "target": 13,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 41,
+      "target": 13,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 33,
+      "target": 14,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 16,
+      "target": 15,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 31,
+      "target": 16,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 17,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 18,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 19,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 20,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 19,
+      "target": 21,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 22,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 23,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 26,
+      "target": 24,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 2,
+      "target": 25,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 27,
+      "target": 25,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 19,
+      "target": 28,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 15,
+      "target": 29,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 29,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 15,
+      "target": 30,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 33,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 33,
+      "target": 32,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 36,
+      "target": 35,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 38,
+      "target": 35,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 36,
+      "target": 37,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 36,
+      "target": 38,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 40,
+      "target": 41,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 31,
+      "target": 42,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 33,
+      "target": 43,
       "relation": "prerequisite",
       "value": 1
     }
