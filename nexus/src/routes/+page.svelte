@@ -612,15 +612,8 @@
 	// Function to center the graph on a specific node (restored original logic)
 	function centerGraphOnNode(node) {
 		if (zoomBehavior && svgElement) {
-			// Check if node has valid coordinates, if not, wait for simulation to position it
-			if (!node.x || !node.y || (node.x === 0 && node.y === 0)) {
-				// Node isn't positioned yet, wait for simulation to position it
-				setTimeout(() => centerGraphOnNode(node), 100);
-				return;
-			}
-			
 			const scale = 2; // Zoom scale factor
-			const [x, y] = [node.x, node.y]; // Node position
+			const [x, y] = [node.x || 0, node.y || 0]; // Node position
 			
 			// Get the current container dimensions
 			const containerWidth = 928;
