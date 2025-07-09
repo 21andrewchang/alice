@@ -26,7 +26,7 @@
       "id": 1,
       "label": "Neural Networks",
       "type": "concept",
-      "description": "Computational models inspired by biological neural networks, consisting of interconnected nodes that process information.",
+      "description": "A neural network is a parameterized graph of interconnected \"neurons\" organized into layers. Each neuron computes a weighted sum of its inputs plus a bias, applies a nonlinear activation (e.g., ReLU, sigmoid), and passes its output onward. By stacking many layers, neural networks approximate highly complex functions mapping inputs (images, text, audio) to outputs (labels, translations, predictions).\n\n**Example**\nConsider a 3-layer network for digit recognition:\n\nInput layer takes a 28×28 pixel image flattened to a 784-dim vector.\n\nHidden layer 1 computes h<sub>(1)</sub> = ReLU(W<sub>(1)</sub>x + b<sub>(1)</sub>), learning to detect edges and simple shapes.\n\nHidden layer 2 computes h<sub>(2)</sub> = ReLU(W<sub>(2)</sub>h<sub>(1)</sub> + b<sub>(2)</sub>), composing them into digit-like patterns.\n\nOutput layer computes logits z = W<sub>(3)</sub>h<sub>(2)</sub> + b<sub>(3)</sub> and softmax gives class probabilities 0–9.\n\n**Backward Prerequisites**\n\n<node id=\"43\">Weighted Sum</node> & <node id=\"31\">Matrix Multiplication</node>\nYou know a single neuron aggregates inputs: y = ∑<sub>i</sub> w<sub>i</sub>x<sub>i</sub> + b. A full layer applies that to many neurons simultaneously via y = Wx + b. Without this, you cannot form the core building block of each neural layer.\n\nNonlinear Activation Functions\nYou know why we apply functions like ReLU: to introduce nonlinearity so networks can approximate arbitrary functions. Without activations, a stack of linear layers would collapse to a single linear transform, unable to learn complex patterns.\n\n**Why It Matters**\nNeural networks are the foundation of nearly every deep learning architecture. Their ability to learn hierarchical feature representations—from pixels to objects, from characters to sentence meaning—drives breakthroughs in vision, language, and audio.\n\n**How It Powers Downstream**\n\n<node id=\"3\">Sequence Transduction Models</node> use stacked neural layers for encoders and decoders.\n\n<node id=\"5\">RNNs</node>/<node id=\"15\">CNNs</node> and <node id=\"10\">Transformers</node> all embed their core computations in weighted sums + activations.",
       "difficulty": 2,
       "domain": "tech"
     },
@@ -34,7 +34,7 @@
       "id": 2,
       "label": "Backpropagation",
       "type": "concept",
-      "description": "Algorithm for training neural networks by calculating gradients and updating weights through reverse differentiation.",
+      "description": "Backpropagation is the algorithm that computes the gradient of the loss with respect to every weight in a network by applying the chain rule through the computation graph. It consists of a forward pass (compute outputs and loss) and a backward pass (propagate error signals to adjust weights).\n\n**Example**\nIn a 3-layer MLP:\n\nForward: compute activations h<sub>(1)</sub>, h<sub>(2)</sub>, z and loss L(z,y).\n\nBackward: compute ∂L/∂W<sub>(3)</sub>, then ∂L/∂W<sub>(2)</sub>, then ∂L/∂W<sub>(1)</sub> by chaining derivatives.\n\n**Backward Prerequisites**\n\n<node id=\"36\">Derivative</node> & <node id=\"38\">Partial Derivatives</node>\nYou know d/dx f(x) measures how a small change in x changes f. Partial derivatives extend this to multivariate functions. Without them, you can't quantify how each weight influences the loss.\n\n<node id=\"37\">Chain Rule</node>\nYou know d/dx f(g(x)) = f'(g(x))g'(x). Backprop uses repeated chain-rule applications to propagate gradients from output to each weight layer by layer.\n\n**Why It Matters**\nBackpropagation is the engine that powers all gradient-based deep learning. It efficiently computes weight updates for millions of parameters in a single backward pass over the network.\n\n**How It Powers Downstream**\n\nOptimizers (SGD, Adam) use backprop gradients to update model parameters.\n\nLearning-rate schedules and regularization techniques modify backprop signals to improve convergence and generalization.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -42,7 +42,7 @@
       "id": 3,
       "label": "Sequence Transduction Model",
       "type": "concept",
-      "description": "Neural architectures that transform input sequences into output sequences, the core problem addressed by the Transformer.",
+      "description": "A sequence transduction model maps an input sequence x<sub>1</sub>, …, x<sub>n</sub> to an output sequence y<sub>1</sub>, …, y<sub>m</sub> via an <node id=\"6\">encoder</node> that compresses input into a latent representation and a <node id=\"7\">decoder</node> that generates output token-by-token conditioned on that representation.\n\n**Example**\nIn <node id=\"20\">machine translation</node>:\n\n<node id=\"6\">Encoder</node> reads \"Bonjour\" and outputs contextual vectors {z<sub>i</sub>}.\n\n<node id=\"7\">Decoder</node> generates \"Hello\" one token at a time, attending to {z<sub>i</sub>} and its own past outputs.\n\n**Backward Prerequisites**\n\n<node id=\"1\">Neural Networks</node>\nYou know how to stack feed-forward layers to transform vectors. <node id=\"6\">Encoders</node> and <node id=\"7\">decoders</node> are built from those.\n\n<node id=\"19\">Sequence Modeling</node>\nYou know how to represent ordered data (embeddings, positional signals). This lets the model ingest sequences and maintain order information.\n\n**Why It Matters**\nSequence transduction forms the core of tasks like translation, summarization, and speech recognition. Its <node id=\"6\">encoder</node>–<node id=\"7\">decoder</node> abstraction makes models modular and reusable across domains.\n\n**How It Powers Downstream**\n\n<node id=\"29\">ConvS2S</node>/<node id=\"30\">ByteNet</node> extended transduction with convolutions.\n\n<node id=\"10\">Transformer</node> replaces recurrence/convolution entirely with <node id=\"4\">attention</node> in both <node id=\"6\">encoder</node> and <node id=\"7\">decoder</node>.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -50,7 +50,7 @@
       "id": 4,
       "label": "Attention Mechanisms",
       "type": "concept",
-      "description": "Techniques that allow models to focus on relevant parts of input when making predictions.",
+      "description": "An <node id=\"4\">attention mechanism</node> computes, for each query vector q, a weighted sum over value vectors {v<sub>i</sub>}, where weights come from compatibility scores between the query and key vectors {k<sub>i</sub>}. In scaled dot-product attention:\n\n$$\n\\mathrm{Attention}(Q, K, V) = \\mathrm{softmax}\\biggl(\\frac{QK^T}{\\sqrt{d_k}}\\biggr) V.\n$$\n\n**Example**\nTranslating \"chat\" to English: query vector for target position compares against key vectors for source tokens \"le,\" \"chat\" etc., placing highest weight on the \"chat\" key to produce correct alignment.\n\n**Backward Prerequisites**\n\n<node id=\"32\">Dot Product</node>\nYou know u·v = ∑<sub>i</sub> u<sub>i</sub>v<sub>i</sub> yields a scalar similarity measure. This is used to score query–key pairs.\n\n<node id=\"34\">Softmax Function</node>\nYou know how softmax(z<sub>i</sub>) = e<sup>z<sub>i</sub></sup>/∑<sub>j</sub> e<sup>z<sub>j</sub></sup> converts raw scores into a probability distribution summing to 1. This turns similarity scores into attention weights.\n\n**Why It Matters**\n<node id=\"4\">Attention</node> enables models to focus on different parts of the input when producing each output, capturing long-range dependencies without recurrence, and allowing full parallelization.\n\n**How It Powers Downstream**\n\n<node id=\"9\">Self-Attention</node> uses the same formula within a sequence.\n\n<node id=\"6\">Encoder</node>–<node id=\"7\">Decoder</node> <node id=\"4\">Attention</node> lets the <node id=\"7\">decoder</node> attend to <node id=\"6\">encoder</node> outputs.\n\n<node id=\"8\">Multi-Head Attention</node> runs multiple parallel attentions to capture diverse relationships.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -58,7 +58,7 @@
       "id": 5,
       "label": "Recurrent Neural Networks",
       "type": "concept",
-      "description": "Neural networks with loops that allow information to persist, designed for sequential data processing.",
+      "description": "A <node id=\"5\">Recurrent Neural Network</node> processes sequences one element at a time, maintaining a hidden \"memory\" state that captures past information. At each step t, it takes:\n\nCurrent input x<sub>t</sub> (e.g. word embedding)\n\nPrevious hidden state h<sub>t-1</sub>\n\nand computes a new hidden state:\n\n$$\nh_t = f(W_x x_t + W_h h_{t-1} + b),\n$$\n\nwhere f is a nonlinearity (tanh or ReLU). This looping structure allows the network to accumulate context through time.\n\n**Example**\nTo predict the next character in \"hello_\":\n\nRead 'h', compute h<sub>1</sub>.\n\nRead 'e', compute h<sub>2</sub> = f(W<sub>x</sub>e + W<sub>h</sub>h<sub>1</sub> + b).\n\n… Eventually predict '_' using final h<sub>5</sub>.\n\n**Backward Prerequisites**\n\n<node id=\"1\">Neural Networks</node> (per-step cell)\nYou know a feed-forward neuron computes ∑<sub>i</sub> w<sub>i</sub>x<sub>i</sub> + b and applies f(·). In <node id=\"5\">RNNs</node>, that same neuron is re-used at every time step, but its inputs include the previous state h<sub>t-1</sub> as well as the new data x<sub>t</sub>.\n\n<node id=\"19\">Sequence Modeling</node>\nYou know how to represent ordered inputs and why order matters (e.g., \"the cat sat\" vs. \"sat the cat\"). <node id=\"5\">RNNs</node> address this by carrying the hidden state forward, allowing long-term dependencies to influence current predictions.\n\n**Why It Matters**\n\nCaptures Temporal Dependencies: can, in principle, learn arbitrary-length dependencies (matching parentheses, subject-verb agreement).\n\nFlexible Sequence Lengths: naturally handles varying input/output lengths without fixed windows.\n\nFoundation for Gated Variants: vanilla <node id=\"5\">RNN</node> issues (vanishing/exploding gradients) led to <node id=\"17\">LSTM</node>/<node id=\"18\">GRU</node> for better long-range learning.\n\n**How It Powers Downstream**\n\n<node id=\"17\">Long Short-Term Memory (LSTM)</node>: adds gates to control memory flow and mitigate gradient issues.\n\n<node id=\"18\">Gated Recurrent Unit (GRU)</node>: simpler gating variant with similar benefits.\n\n<node id=\"10\">Transformer</node> Comparison: contrasts sequential hidden states with <node id=\"10\">Transformer</node>'s parallel <node id=\"9\">self-attention</node>, highlighting speed and scalability advantages.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -66,7 +66,7 @@
       "id": 6,
       "label": "Encoder",
       "type": "concept",
-      "description": "Component that processes input sequence and creates a fixed-size representation.",
+      "description": "An encoder transforms an input sequence of token embeddings (x<sub>1</sub>, …, x<sub>n</sub>) into a sequence of contextual vectors (z<sub>1</sub>, …, z<sub>n</sub>). In the <node id=\"10\">Transformer</node>, each encoder layer consists of:\n\n<node id=\"8\">Multi-Head Self-Attention</node> over (x<sub>1</sub>, …, x<sub>n</sub>),\n\nAdd & Norm,\n\n<node id=\"12\">Position-wise Feed-Forward Network</node>,\n\nAdd & Norm.\n\nStacking N such layers yields deep, context-aware representations for every position.\n\n**Example**\nFor \"The cat sat,\" layer 1's self-attention lets \"cat\" attend equally to \"The\" and \"sat,\" producing z<sub>cat</sub><sup>(1)</sup>. After the FFN and Norm, z<sub>cat</sub><sup>(1)</sup> encodes both lexical meaning and positional context. Deeper layers refine these embeddings.\n\n**Backward Prerequisites**\n\n<node id=\"8\">Multi-Head Attention</node>\nYou know how to run h parallel attention heads on projections of X. The encoder uses multi-head self-attention where Q, K, V all equal the previous layer's outputs, capturing global context at each layer.\n\n<node id=\"12\">Position-wise Feed-Forward Networks</node>\nYou know how an FFN applies two linear layers with ReLU: FFN(x) = max(0, xW<sub>1</sub> + b<sub>1</sub>)W<sub>2</sub> + b<sub>2</sub>. In the encoder, it mixes features at each position independently after attention.\n\n<node id=\"13\">Layer Normalization</node> & Residuals\nYou know residual connections x + Sublayer(x) followed by LayerNorm stabilize training. The encoder wraps both self-attention and FFN in this pattern.\n\n**Why It Matters**\nEncoders generate the foundation of representations that carry semantic and positional information forward. They eliminate the need for recurrence by capturing all pairwise interactions in each layer.\n\n**How It Powers Downstream**\n\n<node id=\"7\">Decoder</node> Cross-Attention queries these encoder outputs for every generation step.\n\nPretrained Encoders (BERT) repurpose the encoder stack for classification, QA, and feature extraction.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -74,7 +74,7 @@
       "id": 7,
       "label": "Decoder",
       "type": "concept",
-      "description": "Component that generates output sequence from the encoded representation.",
+      "description": "A decoder generates the output sequence one token at a time, combining:\n\nMasked <node id=\"8\">Multi-Head Self-Attention</node> over previous outputs to enforce causality,\n\nAdd & Norm,\n\n<node id=\"6\">Encoder</node>–<node id=\"7\">Decoder</node> <node id=\"4\">Attention</node> where queries come from the decoder and keys/values from the encoder,\n\nAdd & Norm,\n\n<node id=\"12\">Position-wise FFN</node>,\n\nAdd & Norm.\n\n**Example**\nTranslating \"Le chat\" to \"The cat\":\n\nStep 1: masked self-attn on <s> yields context.\n\nStep 2: encoder–decoder attention lets the decoder focus on encoder's \"chat\" vector to produce \"The.\"\n\nStep 3: masked self-attn on <s>,The, then cross-attn on encoder \"chat\" yields \"cat.\"\n\n**Backward Prerequisites**\n\nMasked <node id=\"9\">Self-Attention</node>\nYou know self-attention. Masking sets attention weights to zero for positions ≥ current index, preventing peeking at future tokens—essential for auto-regressive generation.\n\n<node id=\"6\">Encoder</node> Outputs\nYou know the encoder produces contextual vectors (z<sub>i</sub>). Decoder cross-attention uses queries from the decoder layer and keys/values from (z<sub>i</sub>) to ground generation in the input.\n\n**Why It Matters**\nDecoders fuse past outputs and input context at every layer, ensuring each prediction is both causally correct and contextually informed. This architecture generalizes across translation, summarization, and beyond.\n\n**How It Powers Downstream**\n\nGPT-style Models drop encoder–decoder attention and use only masked self-attention for language modeling.\n\nSeq2Seq Tasks like dialogue systems rely on decoder structure for fluent, context-aware responses.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -82,15 +82,15 @@
       "id": 8,
       "label": "Multi-Head Attention",
       "type": "concept",
-      "description": "Extension of attention mechanism that allows the model to jointly attend to information from different representation subspaces.",
+      "description": "An extension of basic scaled dot-product attention that runs h separate attention operations (\"heads\") in parallel, each on its own learned projection of the inputs, then concatenates and projects the results:\n\n**Linear Projections:**\nProject the inputs Q, K, V into h different query/key/value subspaces:\nQ<sub>i</sub> = X W<sub>i</sub><sup>Q</sup>,   K<sub>i</sub> = X W<sub>i</sub><sup>K</sup>,   V<sub>i</sub> = X W<sub>i</sub><sup>V</sup>\nwhere W<sub>i</sub><sup>Q</sup>, W<sub>i</sub><sup>K</sup>, W<sub>i</sub><sup>V</sup> ∈ ℝ<sup>(d_model×d_k)</sup>.\n\n**Independent Attention Heads:**\nFor each head i, compute single-head attention:\nhead<sub>i</sub> = Attention(Q<sub>i</sub>, K<sub>i</sub>, V<sub>i</sub>)\n       = softmax( Q<sub>i</sub> K<sub>i</sub><sup>T</sup> / √d<sub>k</sub> ) V<sub>i</sub>.\n\n**Concatenation & Final Projection:**\nMultiHead(X) = Concat(head<sub>1</sub>, …, head<sub>h</sub>) W<sup>O</sup>\nwhere W<sup>O</sup> ∈ ℝ<sup>(h·d_v × d_model)</sup>.\n\n**Example**\nSuppose h = 4.\n- Head 1 learns syntax (subject → verb dependencies).\n- Head 2 learns positional patterns (nearby word relationships).\n- Head 3 tracks coreference (pronoun → noun).\n- Head 4 captures semantic similarity (synonyms).\nAll four heads run in parallel on the same inputs, then their outputs are concatenated and mixed, producing a richer representation than any single head alone.\n\n**Backward Prerequisites**\n<node id=\"4\">Attention Mechanisms</node> (Scaled Dot-Product Attention)\nYou know how Attention(Q, K, V) = softmax(Q K<sup>T</sup> / √d<sub>k</sub>) V works. Multi-Head simply duplicates that computation in parallel across h smaller subspaces, enabling multiple simultaneous \"views\" of the same data.\n\nLinear Projections\nYou know a single linear layer X W<sup>Q</sup> maps inputs X into queries Q. Here, we learn h distinct sets of projection matrices W<sub>i</sub><sup>Q</sup>, W<sub>i</sub><sup>K</sup>, W<sub>i</sub><sup>V</sup>, so each head \"views\" the data through its own learned lens. This allows different heads to specialize in different relationships.\n\nConcatenation & Projection\nYou know how concatenating vectors [v₁; v₂; …; v<sub>h</sub>] and applying a final linear map W<sup>O</sup> fuses multiple feature streams back into a single d_model-dimensional vector. In Multi-Head Attention, after each head produces a d<sub>v</sub>-dimensional output per position, we stack them (shape n×(h·d<sub>v</sub>)) and project back to d_model, mixing all head-specific information.\n\n**Why It Matters**\n- **Diverse Pattern Learning**: different heads can simultaneously capture orthogonal aspects of the data (syntax, semantics, coreference, position).  \n- **Computational Efficiency**: splitting the model dimension into smaller subspaces per head keeps the overall FLOPs comparable to single-head attention of full dimensionality.  \n- **Enhanced Expressiveness**: empirical results show multi-head attention produces richer, more nuanced representations than single-head variants.\n\n**How It Powers Downstream**\n- **<node id=\"10\">Transformer</node> Layers**: every attention sub-layer in both <node id=\"6\">encoder</node> and <node id=\"7\">decoder</node> uses Multi-Head Attention, allowing each layer to process multiple relational patterns at once.  \n- **Pretrained Models**: BERT, GPT, T5, and others rely on multi-head attention to learn diverse linguistic phenomena concurrently during pretraining.  \n- **Cross-Domain Extensions**: Vision <node id=\"10\">Transformers</node> and Graph Attention Networks adopt the same multi-head mechanism to capture varied spatial or relational patterns in images and graphs.",
       "difficulty": 4,
       "domain": "tech"
     },
     {
       "id": 9,
-      "label": "Self Attention",
+      "label": "Self-Attention",
       "type": "concept",
-      "description": "Attention mechanism where queries, keys, and values all come from the same sequence.",
+      "description": "Self-attention lets each position in a single sequence attend to all others. Given input X, compute:\n\nQ = X W<sup>Q</sup>, K = X W<sup>K</sup>, V = X W<sup>V</sup>,\nSelfAtt(X) = softmax(QK<sup>T</sup>/√d<sub>k</sub>) V.\n\n**Example**\nIn \"bright red apple,\" at position \"apple,\" self-attention weights highest \"red\" (adjective) and \"bright\" (modifier), producing a context-aware embedding that encodes both color and object.\n\n**Backward Prerequisites**\n\n<node id=\"4\">Attention Mechanisms</node>\nYou know the attention recipe of (score→softmax→weighted sum). Self-attention is just that applied when queries, keys, and values all derive from the same input.\n\n<node id=\"19\">Sequence Modeling</node>\nYou know sequences need global context. Self-attention replaces recurrence by computing all pairwise interactions in one matrix multiply.\n\n**Why It Matters**\nCaptures global dependencies in O(1) sequential operations. Enables models to learn relationships between distant tokens without deep recurrence or dilated convolution.\n\n**How It Powers Downstream**\n\n<node id=\"6\">Encoder</node> & <node id=\"7\">Decoder</node> Blocks: foundational sublayer.\n\nBERT / GPT: stacks of self-attention build deep bidirectional or causal representations.",
       "difficulty": 4,
       "domain": "tech"
     },
@@ -98,7 +98,7 @@
       "id": 10,
       "label": "Transformer",
       "type": "concept",
-      "description": "Neural network architecture based entirely on attention mechanisms, dispensing with recurrence and convolutions.",
+      "description": "A neural architecture composed entirely of <node id=\"4\">attention</node> and feed-forward layers in an <node id=\"6\">encoder</node>–<node id=\"7\">decoder</node> configuration—no recurrence or convolution. <node id=\"6\">Encoder</node>/<node id=\"7\">decoder</node> stacks interleave (<node id=\"8\">multi-head</node>/<node id=\"9\">self-attn</node> → add&norm → FFN → add&norm).\n\n**Example**\nOn WMT EN→DE, <node id=\"10\">Transformer</node>-big (6 layers each, d<sub>model</sub>=1024, h=16) achieves 28.4 BLEU in 3.5 days on 8 GPUs, outperforming RNN/CNN baselines.\n\n**Backward Prerequisites**\n\n<node id=\"6\">Encoder</node> & <node id=\"7\">Decoder</node> Structure\n\n<node id=\"8\">Multi-Head</node> & <node id=\"9\">Self-Attention</node>\n\n<node id=\"11\">Positional Encoding</node>, FFN, LayerNorm, Residuals\n\n**Why It Matters**\nRevolutionized sequence modeling by offering massive parallelism and superior accuracy, spawning BERT, GPT, T5, Vision <node id=\"10\">Transformers</node>, and nearly every state-of-the-art model in NLP and beyond.\n\n**How It Powers Downstream**\n\nPretraining Paradigms: masked LM (BERT), causal LM (GPT), <node id=\"6\">encoder</node>–<node id=\"7\">decoder</node> LM (T5).\n\nCross-Modal <node id=\"10\">Transformers</node>: apply same block structure to images (ViT), audio, video.",
       "difficulty": 4,
       "domain": "tech"
     },
@@ -106,15 +106,15 @@
       "id": 11,
       "label": "Positional Encoding",
       "type": "concept",
-      "description": "Method to inject information about the relative or absolute position of tokens in a sequence.",
+      "description": "Injects order information into token embeddings via fixed sinusoids:\n\nPE<sub>(pos,2i)</sub> = sin(pos/10000<sup>2i/d</sup>),\nPE<sub>(pos,2i+1)</sub> = cos(pos/10000<sup>2i/d</sup>).\n\nAdded to embeddings so the model knows each token's position.\n\n**Example**\nFor d=512, position 10's encoding in dimension 0 is sin(10/10000<sup>0/512</sup>) ≈ sin(10); dimension 1 is cos(10); dimension 2 uses a higher-frequency sinusoid, etc.\n\n**Backward Prerequisites**\n\nTrigonometric Functions\nYou know sin/cos functions produce smooth periodic signals. These allow the model to decode relative positions via linear combinations.\n\nVector Addition\nYou know how to add the same-dimension vectors. Adding positional encodings to token embeddings integrates order seamlessly.\n\n**Why It Matters**\nProvides each position a unique, continuous representation that generalizes beyond training lengths (extrapolation to longer sequences) and avoids learning separate position embeddings that might overfit to fixed lengths.\n\n**How It Powers Downstream**\n\n<node id=\"10\">Transformer</node> Input: first step before any attention.\n\nRelative Positional Variants: build on this fixed scheme to learn distance biases.",
       "difficulty": 3,
       "domain": "tech"
     },
     {
       "id": 12,
-      "label": "Feed-forward Network",
+      "label": "Feed-Forward Network",
       "type": "concept",
-      "description": "Position-wise fully connected layers that process each position separately and identically.",
+      "description": "A position-wise two-layer MLP applied identically to each token embedding. It consists of:\n  h = ReLU(x W₁ + b₁)\n  FFN(x) = h W₂ + b₂\nwhere W₁ ∈ ℝ<sup>(d_model×d_ff)</sup>, W₂ ∈ ℝ<sup>(d_ff×d_model)</sup>.\n\n**Example**\nFor d_model=512, d_ff=2048:\n- Given x∈ℝ<sup>512</sup>, compute hidden h=ReLU(xW₁ + b₁)∈ℝ<sup>2048</sup>.\n- Then output = hW₂ + b₂ ∈ℝ<sup>512</sup>.\nThis expands and contracts the feature dimension, learning complex per-position transforms.\n\n**Backward Prerequisites**\nLinear Transformations\nYou know how xW + b projects input vectors into new feature spaces. The FFN uses two such projections to increase expressivity.\n\nReLU Activation\nYou know ReLU(z)=max(0,z) adds nonlinearity. Without it, the two-layer FFN would collapse to a single linear map, losing modeling power.\n\n**Why It Matters**\n- Provides deep, nonlinear feature mixing at each position after attention.  \n- Dramatically increases model capacity without affecting sequence length or dependencies.\n\n**How It Powers Downstream**\n- Every <node id=\"6\">encoder</node>/<node id=\"7\">decoder</node> layer's second sublayer is an FFN, refining the context-aware embeddings.  \n- Enables specialization of token-level features before passing to the next attention block.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -122,7 +122,7 @@
       "id": 13,
       "label": "Layer Normalization",
       "type": "concept",
-      "description": "Normalization technique applied within each layer to stabilize training.",
+      "description": "A normalization technique that, for each position's feature vector x∈ℝ<sup>d</sup>:\n  μ = mean(x),  σ = std(x)\n  LN(x) = γ * ((x - μ)/(σ+ε)) + β\nwhere γ,β∈ℝ<sup>d</sup> are learned scale and shift parameters.\n\n**Example**\nFor x=[x₁,…,x₅₁₂]:\n- Compute μ = (1/512)∑x<sub>i</sub>, σ² = (1/512)∑(x<sub>i</sub>-μ)².\n- Normalize: x̂<sub>i</sub> = (x<sub>i</sub>-μ)/√(σ²+1e-6).  \n- Scale & shift: y = γ⊙x̂ + β yields the normalized output.\n\n**Backward Prerequisites**\nMean & Variance Computation\nYou know how to compute averages and variances for a vector. LayerNorm uses these to center and scale features.\n\nAffine Transform (Scale+Shift)\nYou know γx+β lets the layer learn optimal post-normalization magnitudes. Without it, normalization might overshoot or under-shrink.\n\n**Why It Matters**\n- Stabilizes training by reducing internal covariate shift across layers.  \n- Crucial for training deep <node id=\"10\">Transformer</node> stacks efficiently without gradient issues.\n\n**How It Powers Downstream**\n- Every sublayer in <node id=\"6\">encoder</node> and <node id=\"7\">decoder</node> uses Add & Norm—residual followed by LayerNorm.  \n- Ensures consistent scale for inputs to <node id=\"9\">self-attention</node> and <node id=\"12\">FFN</node> sublayers.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -130,7 +130,7 @@
       "id": 14,
       "label": "Embedding",
       "type": "concept",
-      "description": "Dense vector representations of discrete tokens like words or subwords.",
+      "description": "A learned lookup table mapping discrete tokens (words, subwords) to continuous vectors of dimension d_model. Each token t has an embedding e<sub>t</sub>∈ℝ<sup>d_model</sup>.\n\n**Example**\nWith vocabulary size V=32K and d_model=512, the embedding matrix E∈ℝ<sup>(32K×512)</sup>.  \nToken \"apple\" (id=100) maps to the 100th row of E, e<sub>100</sub>∈ℝ<sup>512</sup>.\n\n**Backward Prerequisites**\nVector Representations\nYou know how continuous vectors can encode features. Embeddings turn discrete symbols into vectors for neural processing.\n\nInitialization & Learning\nYou know embedding weights are trainable parameters updated by <node id=\"2\">backprop</node> during training so semantically similar tokens cluster.\n\n**Why It Matters**\n- Converts sparse one-hot token IDs into dense, trainable representations.  \n- Embeddings capture semantic & syntactic relationships via training.\n\n**How It Powers Downstream**\n- **Input to <node id=\"6\">Encoder</node>/<node id=\"7\">Decoder</node>**: initial token vectors.  \n- **Shared Embeddings**: <node id=\"10\">Transformers</node> often tie input and output embeddings for efficiency and consistency.",
       "difficulty": 2,
       "domain": "tech"
     },
@@ -138,7 +138,7 @@
       "id": 15,
       "label": "Convolutional Neural Networks",
       "type": "concept",
-      "description": "Neural networks specialized for processing grid-like data, using convolution operations.",
+      "description": "A network that applies learnable convolutional filters over input sequences or images. For sequence modeling, 1D convolutions slide a kernel of width k over the token sequence, computing:\n  y<sub>t</sub> = ∑<sub>i=−⌊k/2⌋</sub><sup>⌊k/2⌋</sup> x<sub>t+i</sub> ⋅ W<sub>i</sub> + b.\n\n**Example**\nIn ConvS2S for translation, a 1D conv layer with k=3 and d_model=512:\n- At position t, y<sub>t</sub> aggregates x<sub>t−1</sub>, x<sub>t</sub>, x<sub>t+1</sub> weighted by three distinct weight matrices, capturing local context.\n\n**Backward Prerequisites**\n<node id=\"31\">Matrix Multiplication</node>\nYou know how W⋅x multiplies filter weights with input slices. <node id=\"16\">Convolution</node> is just repeated matrix multiplies with shifted windows.\n\n<node id=\"19\">Sequence Modeling</node>\nYou know local context matters in language. Convolutions capture n-gram patterns efficiently across the sequence.\n\n**Why It Matters**\n- Provides **parallelizable** local receptive fields, faster than <node id=\"5\">RNNs</node> for short-range dependencies.  \n- Forms the basis of ConvS2S and ByteNet, earlier alternatives to <node id=\"4\">attention</node>.\n\n**How It Powers Downstream**\n- **Extended Neural GPU / ConvS2S**: build deep stacks of conv layers with pooling or dilation to expand context.  \n- Inspires **convolutional sublayers** in hybrid models.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -146,23 +146,23 @@
       "id": 16,
       "label": "Convolution",
       "type": "concept",
-      "description": "Mathematical operation that applies filters to local regions of input data.",
+      "description": "A mathematical operation applying a kernel/filter to input data by sliding it across positions:\n  (x * w)<sub>t</sub> = ∑<sub>i</sub> x<sub>t+i</sub> w<sub>i</sub>.\n\n**Example**\n1D convolution with kernel [w<sub>−1</sub>, w₀, w₁]:\n- At position t, output y<sub>t</sub> = x<sub>t−1</sub>w<sub>−1</sub> + x<sub>t</sub> w₀ + x<sub>t+1</sub>w₁.\n\n**Backward Prerequisites**\n<node id=\"31\">Matrix Multiplication</node>\nYou know dot products multiply weight vectors with input patches. Convolution repeats that across positions.\n\nVector Operations\nYou know summing weighted inputs yields feature detectors—convolutions generalize this over sliding windows.\n\n**Why It Matters**\n- Captures local patterns (n-grams in text, edges in images) efficiently.  \n- Fundamental building block of <node id=\"15\">CNNs</node> for vision, audio, and sequence tasks.\n\n**How It Powers Downstream**\n- **<node id=\"15\">ConvNets</node>**: stack multiple convolution layers to capture hierarchical patterns.  \n- **Hybrid Architectures**: some <node id=\"10\">Transformers</node> incorporate convolutional mixing for local context.",
       "difficulty": 2,
       "domain": "tech"
     },
     {
       "id": 17,
-      "label": "Long Short Term Memory",
+      "label": "Long Short-Term Memory (LSTM)",
       "type": "concept",
-      "description": "Type of RNN designed to avoid vanishing gradient problems through gating mechanisms.",
+      "description": "A gated RNN variant that adds **input**, **forget**, and **output** gates to control information flow through time:\n  i<sub>t</sub> = σ(W<sub>x</sub><sup>i</sup> x<sub>t</sub> + W<sub>h</sub><sup>i</sup> h<sub>t-1</sub> + b<sub>i</sub>)\n  f<sub>t</sub> = σ(W<sub>x</sub><sup>f</sup> x<sub>t</sub> + W<sub>h</sub><sup>f</sup> h<sub>t-1</sub> + b<sub>f</sub>)\n  o<sub>t</sub> = σ(W<sub>x</sub><sup>o</sup> x<sub>t</sub> + W<sub>h</sub><sup>o</sup> h<sub>t-1</sub> + b<sub>o</sub>)\n  ĉ<sub>t</sub> = tanh(W<sub>x</sub><sup>c</sup> x<sub>t</sub> + W<sub>h</sub><sup>c</sup> h<sub>t-1</sub> + b<sub>c</sub>)\n  c<sub>t</sub> = f<sub>t</sub> ⊙ c<sub>t-1</sub> + i<sub>t</sub> ⊙ ĉ<sub>t</sub>\n  h<sub>t</sub> = o<sub>t</sub> ⊙ tanh(c<sub>t</sub>)\n\n**Example**\nPredicting next word in a sentence:\n- Forget gate f<sub>t</sub> decides what past memory to discard.\n- Input gate i<sub>t</sub> decides what new information ĉ<sub>t</sub> to add.\n- Cell state c<sub>t</sub> carries long-range info.\n- Output gate o<sub>t</sub> controls what flows to next hidden state h<sub>t</sub>.\n\n**Backward Prerequisites**\n<node id=\"5\">Recurrent Neural Networks</node>\n  You know RNNs maintain a hidden state via h<sub>t</sub> = f(W<sub>x</sub> x<sub>t</sub> + W<sub>h</sub> h<sub>t-1</sub> + b). LSTMs build on that by adding gates to mitigate vanishing/exploding gradients, enabling learning of longer dependencies.\n\nSigmoid & Tanh Activations\n  You know sigmoid σ outputs in [0,1] for gating, and tanh bounds in [–1,1] for cell updates. Gates use σ to weight memory flows, while tanh shapes new candidate content.\n\n**Why It Matters**\n- Addresses RNN limitations by preserving gradients through time, learning dependencies hundreds of steps apart.  \n- Became standard for tasks like speech recognition and sequence tagging before attention dominated.\n\n**How It Powers Downstream**\n- **<node id=\"18\">GRU</node>** simplifies LSTM gates into fewer parameters.  \n- **Hybrid Models**: some architectures combine LSTM layers with attention for enhanced sequence modeling.",
       "difficulty": 4,
       "domain": "tech"
     },
     {
       "id": 18,
-      "label": "Gated Recurrent Neural Network",
+      "label": "Gated Recurrent Unit (GRU)",
       "type": "concept",
-      "description": "RNN variant that uses gates to control information flow, simpler than LSTM.",
+      "description": "A streamlined LSTM variant with **reset** and **update** gates:\n  z<sub>t</sub> = σ(W<sub>x</sub><sup>z</sup> x<sub>t</sub> + W<sub>h</sub><sup>z</sup> h<sub>t-1</sub> + b<sub>z</sub>)\n  r<sub>t</sub> = σ(W<sub>x</sub><sup>r</sup> x<sub>t</sub> + W<sub>h</sub><sup>r</sup> h<sub>t-1</sub> + b<sub>r</sub>)\n  ĥ<sub>t</sub> = tanh(W<sub>x</sub><sup>h</sup> x<sub>t</sub> + W<sub>h</sub><sup>h</sup> (r<sub>t</sub> ⊙ h<sub>t-1</sub>) + b<sub>h</sub>)\n  h<sub>t</sub> = (1 - z<sub>t</sub>) ⊙ h<sub>t-1</sub> + z<sub>t</sub> ⊙ ĥ<sub>t</sub>\n\n**Example**\nGenerating text:\n- Update gate z<sub>t</sub> chooses between old state h<sub>t-1</sub> and new candidate ĥ<sub>t</sub>.\n- Reset gate r<sub>t</sub> determines how much past to ignore when computing ĥ<sub>t</sub>.\n\n**Backward Prerequisites**\n<node id=\"5\">Recurrent Neural Networks</node>\n  You know sequential hidden-state updates. GRUs specialize that by merging LSTM's input+forget gates into a single update gate z<sub>t</sub> for parameter efficiency.\n\nGating Mechanisms\n  You know gating (σ) values modulate information flow. GRU's two gates control memory retention and candidate mixing.\n\n**Why It Matters**\n- Achieves similar performance to LSTM with fewer parameters and computational cost.  \n- Popular in resource-constrained settings and sequence tasks requiring moderate context length.\n\n**How It Powers Downstream**\n- **Sequence Models**: GRUs power many RNN-based architectures for translation, speech, and time-series forecasting.  \n- **Comparison**: Understanding GRUs highlights why attention-based <node id=\"10\">Transformers</node> can outperform gated RNNs on long contexts.",
       "difficulty": 4,
       "domain": "tech"
     },
@@ -170,7 +170,7 @@
       "id": 19,
       "label": "Sequence Modeling",
       "type": "concept",
-      "description": "Techniques for processing and predicting sequential data like text or time series.",
+      "description": "Techniques for processing and predicting over ordered data (text, speech, time series). Models must capture dependencies across positions, handle variable lengths, and respect temporal/positional structure.\n\n**Example**\n<node id=\"21\">Language modeling</node>: given \"The cat sat on the,\" predict the next word \"mat.\" The model uses past tokens to estimate probability distribution over vocabulary.\n\n**Backward Prerequisites**\n<node id=\"1\">Neural Networks</node>\n  You know how to map static inputs to outputs. Sequence modeling extends this to ordered sequences by adding recurrence, convolution, or attention to capture order.\n\n<node id=\"14\">Embeddings</node> & <node id=\"11\">Positional Encoding</node>\n  You know how to represent tokens as vectors. Sequence models require position information—via RNN hidden states, convolutional windows, or positional encodings—to differentiate order.\n\n**Why It Matters**\n- Underlies tasks from translation and speech recognition to stock prediction and video analysis.  \n- Good sequence models learn both local patterns (n-grams) and long-range dependencies.\n\n**How It Powers Downstream**\n- **<node id=\"3\">Sequence Transduction</node>**: builds on sequence modeling to map input→output sequences.  \n- **<node id=\"4\">Attention</node> & <node id=\"10\">Transformers</node>**: modern sequence modeling uses attention for global context, replacing older RNN/CNN methods.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -178,7 +178,7 @@
       "id": 20,
       "label": "Machine Translation",
       "type": "concept",
-      "description": "Automated translation of text from one language to another using computational methods.",
+      "description": "Automatically converting text from a source language to a target language. Modern systems frame this as sequence transduction using <node id=\"6\">encoder</node>–<node id=\"7\">decoder</node> models with <node id=\"4\">attention</node>.\n\n**Example**\nEnglish→German: input \"I love apples\" → <node id=\"6\">encoder</node> produces context vectors → <node id=\"7\">decoder</node> generates \"Ich liebe Äpfel\" token by token, attending to relevant source positions.\n\n**Backward Prerequisites**\n<node id=\"3\">Sequence Transduction Model</node>\n  You know the <node id=\"6\">encoder</node>–<node id=\"7\">decoder</node> framework. <node id=\"20\">Machine translation</node> is a prime application, mapping source sequences to target.\n\n<node id=\"4\">Attention Mechanisms</node>\n  You know <node id=\"4\">attention</node> aligns source and target tokens. In translation, <node id=\"4\">attention</node> weights correspond to alignment probabilities between source and target words.\n\n**Why It Matters**\n- One of the earliest and most impactful applications of neural sequence models.  \n- High commercial and social value: breaks language barriers on the internet and in communications.\n\n**How It Powers Downstream**\n- **Other NLP Tasks**: summarization, question answering adopt translation-style seq2seq+<node id=\"4\">attention</node>.  \n- **Pretraining**: multilingual <node id=\"10\">Transformers</node> leverage translation pairs to learn cross-lingual representations.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -186,7 +186,7 @@
       "id": 21,
       "label": "Language Modeling",
       "type": "concept",
-      "description": "Statistical modeling of natural language to predict word sequences and text patterns.",
+      "description": "Estimating the probability distribution over sequences of tokens. Given past context x<sub>1:t-1</sub>, predict next token x<sub>t</sub>. Models assign P(x<sub>1</sub>,…,x<sub>n</sub>)=∏<sub>t=1</sub><sup>n</sup> P(x<sub>t</sub>|x<sub>1:t-1</sub>).\n\n**Example**\nCharacter-level LM: training on \"hello\" computes:\n  P(h)·P(e|h)·P(l|he)·P(l|hel)·P(o|hell)\nA trained model can generate novel text by sampling from learned distributions.\n\n**Backward Prerequisites**\n<node id=\"19\">Sequence Modeling</node>\n  You know the need to capture token dependencies. <node id=\"21\">Language models</node> are the canonical sequence modeling task.  \n\n<node id=\"2\">Backpropagation</node> & <node id=\"1\">Neural Networks</node>\n  You know how to train networks on loss functions. LMs minimize negative log-likelihood via <node id=\"2\">backprop</node>.\n\n**Why It Matters**\n- Foundation for text generation, speech recognition, and downstream fine-tuning tasks (e.g., BERT, GPT).  \n- Pretrained LMs provide rich representations that significantly improve many NLP tasks.\n\n**How It Powers Downstream**\n- **Pretraining Paradigms**: masked LM (BERT) and autoregressive LM (GPT).  \n- **Fine-Tuning**: LM heads are reused for classification, generation, and more.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -194,7 +194,7 @@
       "id": 22,
       "label": "Hidden States",
       "type": "concept",
-      "description": "Internal representations that capture information processed at each step in sequence models.",
+      "description": "A hidden state is an internal vector representation maintained by sequential models (<node id=\"5\">RNNs</node>/<node id=\"17\">LSTMs</node>/<node id=\"18\">GRUs</node>) that summarizes all information processed up to the current time step. Denoted h<sub>t</sub>, it acts as a memory slot carrying context forward.\n\n**Example**\nIn an <node id=\"5\">RNN</node> reading \"hello\":\n- After 'h', h₁ encodes features of 'h'.\n- After 'e', h₂ = f(W<sub>x</sub>·e + W<sub>h</sub>·h₁ + b) encodes both 'h' and 'e'.\n- By 'o', h₅ contains a compressed summary of \"hell\".\n\n**Backward Prerequisites**\n<node id=\"5\">Recurrent Neural Networks</node>\n  You know <node id=\"5\">RNNs</node> update hidden states via h<sub>t</sub> = f(W<sub>x</sub> x<sub>t</sub> + W<sub>h</sub> h<sub>t-1</sub> + b). Hidden states are the core mechanism by which <node id=\"5\">RNNs</node> carry sequence information forward.\n\n<node id=\"1\">Neural Networks</node>\n  You know how weight matrices W transform inputs. The hidden-state update is just a specialized feed-forward step repeated over time.\n\n**Why It Matters**\n- Hidden states enable sequential models to maintain a dynamic memory of past inputs.  \n- They allow models to capture temporal patterns and dependencies of arbitrary length (subject to vanishing gradients without gating).\n\n**How It Powers Downstream**\n- **<node id=\"17\">LSTM</node>/<node id=\"18\">GRU</node> Gates** act on hidden states to control memory flow.  \n- **Contrast to <node id=\"10\">Transformers</node>**: instead of a hidden state, <node id=\"10\">Transformers</node> recompute context via <node id=\"9\">self-attention</node> each layer, eliminating recurrence.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -202,7 +202,7 @@
       "id": 23,
       "label": "Auto-Regressive",
       "type": "concept",
-      "description": "Generation method where each output depends on previously generated outputs.",
+      "description": "An auto-regressive model generates each output token conditioned on all previously generated tokens. Formally, P(y₁…y<sub>m</sub>) = ∏<sub>t=1</sub><sup>m</sup> P(y<sub>t</sub> | y<sub><t</sub>).\n\n**Example**\n<node id=\"10\">Transformer</node> <node id=\"7\">decoder</node> at step t masks future positions so:\n- P(y₃) uses only y₁ and y₂ to predict y₃.\n- Masked <node id=\"9\">self-attention</node> ensures no peeking at y₄…y<sub>m</sub>.\n\n**Backward Prerequisites**\nMasked <node id=\"9\">Self-Attention</node>\n  You know how masking sets attention weights to –∞ for future positions. This enforces the auto-regressive property in <node id=\"7\">decoder</node> layers.\n\n<node id=\"19\">Sequence Modeling</node>\n  You know sequence tasks require conditioning on past context. Auto-regression explicitly models this dependency chain.\n\n**Why It Matters**\n- Guarantees causality in generation, preventing information leakage from future tokens.  \n- Enables likelihood computation for arbitrary sequences, supporting both training (teacher forcing) and sampling.\n\n**How It Powers Downstream**\n- **GPT-family Models** use purely auto-regressive decoding for text generation.  \n- **Beam Search** and **Sampling Algorithms** rely on auto-regressive probabilities to explore candidate sequences.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -210,7 +210,7 @@
       "id": 24,
       "label": "Parallelization",
       "type": "concept",
-      "description": "Ability to process multiple computations simultaneously, key advantage of Transformers.",
+      "description": "The ability to perform multiple computations simultaneously. In <node id=\"10\">Transformers</node>, parallelization refers to computing <node id=\"4\">attention</node> and <node id=\"12\">feed-forward</node> operations for all positions in a sequence at once, rather than sequentially.\n\n**Example**\nGiven a batch of 64 sequences of length 128:\n- <node id=\"9\">Self-attention</node> computes QK<sup>T</sup>/V for all 64×128 tokens in parallel via optimized matrix multiplications on <node id=\"26\">GPUs</node>.\n\n**Backward Prerequisites**\n<node id=\"31\">Matrix Multiplication</node> & Broadcasting\n  You know how <node id=\"26\">GPUs</node> execute large matrix multiplies efficiently. <node id=\"10\">Transformers</node> leverage this to compute <node id=\"4\">attention</node> across all positions in one go.\n\n<node id=\"9\">Self-Attention Mechanism</node>\n  You know that <node id=\"9\">self-attention</node> doesn't depend on previous time steps; it attends to all tokens at once, enabling simultaneous computation.\n\n**Why It Matters**\n- Eliminates the O(n) sequential steps of <node id=\"5\">RNNs</node>, reducing training time dramatically for long sequences.  \n- Fully utilizes modern hardware (TPUs, <node id=\"26\">GPUs</node>), scaling to large batch sizes and model dimensions.\n\n**How It Powers Downstream**\n- **<node id=\"25\">Training</node> Schedules** can use large batches for faster convergence.  \n- **Model Scaling**: allows deeper and wider architectures (BERT-large, GPT-3) previously impractical with sequential models.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -218,7 +218,7 @@
       "id": 25,
       "label": "Training a Model",
       "type": "concept",
-      "description": "Process of optimizing neural network parameters using data and loss functions.",
+      "description": "The process of optimizing model parameters (weights) to minimize a loss function over training data. Involves forward passes to compute loss and backward passes (<node id=\"2\">backpropagation</node>) to update weights via an optimizer.\n\n**Example**\nTraining a translation model on WMT:\n- Forward: compute predicted token probabilities for each source–target pair.  \n- Loss: cross-entropy between predictions and ground truth.  \n- Backward: compute gradients and apply Adam updates.  \n- Repeat for 100K steps.\n\n**Backward Prerequisites**\n<node id=\"2\">Backpropagation</node>\n  You know how to propagate error gradients through the network computation graph. Training is repeated forward/backward passes.\n\nOptimizers (Adam, SGD)\n  You know how optimizers use gradients to update weights. Adam adjusts step sizes per-parameter based on first/second moments of gradients.\n\n**Why It Matters**\n- Determines final model accuracy, generalization, and convergence speed.  \n- Choices in training (batch size, learning rate schedule, regularization) critically affect performance and stability.\n\n**How It Powers Downstream**\n- **Hyperparameter Tuning**: learning rate, batch size, dropout rate searches refine model behavior.  \n- **Transfer Learning**: pretrained models are fine-tuned on new tasks by continuing training on smaller datasets.",
       "difficulty": 2,
       "domain": "tech"
     },
@@ -226,7 +226,7 @@
       "id": 26,
       "label": "GPU",
       "type": "concept",
-      "description": "Graphics Processing Unit optimized for parallel computations, essential for training large models.",
+      "description": "A Graphics Processing Unit specialized for highly parallel numerical computation. In deep learning, <node id=\"26\">GPUs</node> accelerate matrix operations (convolutions, <node id=\"4\">attention</node>, linear layers).\n\n**Example**\n<node id=\"10\">Transformer</node> training:\n- Each forward/backward step involves billions of FLOPs (matrix multiplies).  \n- 8 NVIDIA P100 <node id=\"26\">GPUs</node> training base model for 12 hours achieves state-of-the-art BLEU scores.\n\n**Backward Prerequisites**\n<node id=\"24\">Parallelization</node>\n  You know how parallel workloads map to <node id=\"26\">GPU</node> cores. <node id=\"1\">Neural network</node> operations like batched matrix multiplies fully utilize <node id=\"26\">GPU</node> SIMD architecture.\n\nCUDA & Frameworks\n  You know frameworks (TensorFlow/PyTorch) dispatch operations to <node id=\"26\">GPUs</node> via CUDA kernels, handling memory transfers and synchronization.\n\n**Why It Matters**\n- Enables training of large models (hundreds of millions to billions of parameters) in feasible time.  \n- Democratizes deep learning research by providing accessible hardware acceleration.\n\n**How It Powers Downstream**\n- **Multi-<node id=\"26\">GPU</node> & Distributed Training**: scale out to dozens or hundreds of <node id=\"26\">GPUs</node> for massive pretraining (e.g., GPT-3).  \n- **Inference Acceleration**: <node id=\"26\">GPUs</node> power real-time applications like translation and dialogue systems.",
       "difficulty": 2,
       "domain": "tech"
     },
@@ -234,7 +234,7 @@
       "id": 27,
       "label": "Batching",
       "type": "concept",
-      "description": "Processing multiple examples simultaneously to improve computational efficiency.",
+      "description": "Grouping multiple input examples into a single tensor to be processed in parallel during training or inference. A batch of size B with sequence length N forms a tensor of shape (B, N, d_model).\n\n**Example**\nTraining with batch size 32 and sequence length 128:\n- Input tensor shape: (32, 128, 512)\n- <node id=\"9\">Self-attention</node> computes QK<sup>T</sup> and V for all 32×128 positions in one large matrix multiply, improving throughput.\n\n**Backward Prerequisites**\n<node id=\"24\">Parallelization</node>\n  You know how <node id=\"26\">GPUs</node> execute large matrix operations efficiently. Batching increases tensor dimensions so more examples run simultaneously, maximizing hardware utilization.\n\n<node id=\"19\">Sequence Modeling</node>\n  You know models handle variable-length sequences. Batching requires padding shorter sequences to N and using masks to ignore padded positions.\n\n**Why It Matters**\n- Dramatically increases training speed by amortizing per-call overhead across many examples.  \n- Stabilizes gradient estimates, improving convergence.\n\n**How It Powers Downstream**\n- **Learning Rate Schedules** often depend on effective batch size.  \n- **Distributed Training** splits batches across multiple <node id=\"26\">GPUs</node> or nodes for scale.",
       "difficulty": 2,
       "domain": "tech"
     },
@@ -242,7 +242,7 @@
       "id": 28,
       "label": "Dependencies",
       "type": "concept",
-      "description": "Relationships between elements in sequences that models need to capture.",
+      "description": "Relationships between sequence elements—how the value at one position depends on others. Dependencies may be local (adjacent tokens) or long-range (distant tokens).\n\n**Example**\nIn \"The cat that chased the mouse sat,\" the verb \"sat\" depends on the subject \"cat\" across five tokens.\n\n**Backward Prerequisites**\n<node id=\"19\">Sequence Modeling</node>\n  You know why order matters: models must capture that \"dog bites man\" ≠ \"man bites dog.\" Dependencies define which positions influence each other.\n\n<node id=\"4\">Attention Mechanisms</node>\n  You know <node id=\"4\">attention</node> computes weighted sums over all positions, directly modeling dependencies of arbitrary distance.\n\n**Why It Matters**\n- Accurate modeling of dependencies is critical for understanding syntax and semantics in language.  \n- Poor dependency modeling leads to errors in translation, summarization, and other sequence tasks.\n\n**How It Powers Downstream**\n- **<node id=\"9\">Self-Attention</node>** explicitly represents dependencies via attention weights.  \n- **<node id=\"11\">Positional Encoding</node>** provides necessary order information to resolve dependencies.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -250,7 +250,7 @@
       "id": 29,
       "label": "ConvS2S",
       "type": "concept",
-      "description": "Convolutional sequence-to-sequence model, predecessor to Transformer architecture.",
+      "description": "Convolutional Sequence-to-Sequence model that replaces recurrent layers with stacked 1D convolutions for both <node id=\"6\">encoder</node> and <node id=\"7\">decoder</node>, combined with <node id=\"4\">attention</node> for alignment.\n\n**Example**\nIn ConvS2S (Gehring et al. 2017):\n- <node id=\"6\">Encoder</node>: 15 convolutional layers with kernel size 3 capture increasingly wide context.\n- <node id=\"7\">Decoder</node>: similar stack with <node id=\"4\">attention</node> over <node id=\"6\">encoder</node> outputs at each step.\n\n**Backward Prerequisites**\n<node id=\"15\">Convolutional Neural Networks</node>\n  You know how 1D convolutions slide filters over sequences to capture local context in parallel.\n\n<node id=\"3\">Sequence Transduction Model</node>\n  You know <node id=\"6\">encoder</node>–<node id=\"7\">decoder</node> frameworks; ConvS2S implements that with conv layers instead of <node id=\"5\">RNNs</node>.\n\n**Why It Matters**\n- Achieves competitive translation quality faster than RNN-based models.  \n- Demonstrates that convolution + <node id=\"4\">attention</node> can replace recurrence for sequence modeling.\n\n**How It Powers Downstream**\n- Inspired **Dilated Convolutions** and further **non-recurrent architectures**.  \n- Highlights trade-offs between local and global context modeling.",
       "difficulty": 4,
       "domain": "tech"
     },
@@ -258,7 +258,7 @@
       "id": 30,
       "label": "ByteNet",
       "type": "concept",
-      "description": "Convolutional neural network for sequence modeling with dilated convolutions.",
+      "description": "An end-to-end convolutional sequence-to-sequence model with dilated convolutions that achieve exponentially large receptive fields without pooling or recurrence.\n\n**Example**\nByteNet's <node id=\"6\">encoder</node> uses dilations doubling each layer (rates 1,2,4,8,…), so after L layers the model's receptive field covers entire input. <node id=\"7\">Decoder</node> similarly uses masked dilated convs.\n\n**Backward Prerequisites**\n<node id=\"16\">Convolution</node>\n  You know how dilated convs insert gaps between filter taps, expanding the receptive field to capture long-range dependencies.\n\n<node id=\"3\">Sequence Transduction Model</node>\n  You know <node id=\"6\">encoder</node>–<node id=\"7\">decoder</node> mapping; ByteNet implements it with dilated convolutions and masked decoding convs.\n\n**Why It Matters**\n- Achieves linear-time translation with strong performance.  \n- Provides an alternative to <node id=\"5\">RNNs</node> and <node id=\"4\">attention</node> for dependency modeling.\n\n**How It Powers Downstream**\n- Influenced **<node id=\"10\">Transformer</node>**'s desire to reduce path length for dependencies.  \n- Combined with <node id=\"4\">attention</node> in hybrid architectures.",
       "difficulty": 4,
       "domain": "tech"
     },
@@ -266,7 +266,7 @@
       "id": 31,
       "label": "Matrix Multiplication",
       "type": "concept",
-      "description": "Mathematical operation for combining two matrices, fundamental to neural network computations.",
+      "description": "A fundamental linear algebra operation: given A∈ℝ<sup>(m×k)</sup> and B∈ℝ<sup>(k×n)</sup>, computes C=AB∈ℝ<sup>(m×n)</sup> where C<sub>ij</sub>=∑<sub>ℓ=1</sub><sup>k</sup> A<sub>iℓ</sub>B<sub>ℓj</sub>.\n\n**Example**\nIn an <node id=\"12\">FFN</node> layer: if X∈ℝ<sup>(B×d_model)</sup> and W∈ℝ<sup>(d_model×d_ff)</sup>, computing XW yields the hidden activations for all B examples at once.\n\n**Backward Prerequisites**\n<node id=\"33\">Vector Operations</node>\n  You know dot products of vectors. Matrix multiplication generalizes dot products to batches of many dot products.\n\n<node id=\"26\">GPU</node> <node id=\"24\">Parallelization</node>\n  You know <node id=\"26\">GPUs</node> excel at large matrix multiplies; deep learning frameworks dispatch these ops for <node id=\"4\">attention</node>, <node id=\"12\">FFNs</node>, and <node id=\"14\">embeddings</node>.\n\n**Why It Matters**\n- Core building block for linear transforms in <node id=\"1\">neural networks</node>.  \n- Performance of matrix multiplication underlies overall training and inference speed.\n\n**How It Powers Downstream**\n- **<node id=\"4\">Attention</node>**: QK<sup>T</sup> and (QK<sup>T</sup>)V are matrix multiplies.  \n- **<node id=\"16\">Convolutions</node>**: im2col transformations reduce to matrix multiplications under the hood.  \n- **<node id=\"14\">Embedding</node> Lookups**: implemented as sparse/dense matrix ops for efficiency.",
       "difficulty": 2,
       "domain": "math"
     },
@@ -274,7 +274,7 @@
       "id": 32,
       "label": "Dot Product",
       "type": "concept",
-      "description": "Mathematical operation that multiplies corresponding elements of vectors and sums them, used in attention scoring.",
+      "description": "A basic vector operation that computes the similarity between two vectors u, v ∈ ℝ<sup>d</sup>:\n  u · v = ∑<sub>i=1</sub><sup>d</sup> u<sub>i</sub> * v<sub>i</sub>.\n\n**Example**\nFor u=[1, 2, 3], v=[4, 5, 6]:\n  u·v = 1*4 + 2*5 + 3*6 = 4 + 10 + 18 = 32.\n\n**Backward Prerequisites**\n<node id=\"33\">Vector Operations</node>\n  You know how to multiply and sum scalars. Dot product is repeated scalar products and summation across dimensions.\n\nLinear Algebra Basics\n  You know vectors represent points in space; dot product measures projection and similarity between them.\n\n**Why It Matters**\n- Fundamental to <node id=\"4\">attention</node> scores: queries · keys produce raw compatibility.  \n- Underlies similarity measures in retrieval, recommendation, and kernel methods.\n\n**How It Powers Downstream**\n- **<node id=\"4\">Attention Mechanisms</node>**: uses dot products inside <node id=\"34\">softmax</node> to weight values.  \n- **Cosine Similarity**: normalized dot product for <node id=\"14\">embedding</node> comparisons.",
       "difficulty": 2,
       "domain": "math"
     },
@@ -282,7 +282,7 @@
       "id": 33,
       "label": "Vector Operations",
       "type": "concept",
-      "description": "Basic mathematical operations on vectors like addition, subtraction, and scalar multiplication.",
+      "description": "Basic mathematical operations on vectors, including addition, subtraction, scalar multiply, <node id=\"32\">dot product</node>, and element-wise functions.\n\n**Example**\nGiven x=[2,−1,3], y=[1,1,1]:\n  x + y = [3, 0, 4],\n  2*x = [4, −2, 6],\n  x · y = 2*1 + (−1)*1 + 3*1 = 4.\n\n**Backward Prerequisites**\nArithmetic\n  You know addition, subtraction, multiplication, and division on numbers. Vector ops apply those element-wise or via <node id=\"32\">dot product</node>.\n\nBroadcasting Rules\n  You know how shapes align in operations, e.g., adding a bias vector to each row of a matrix.\n\n**Why It Matters**\n- All <node id=\"1\">neural</node> computations—<node id=\"14\">embeddings</node>, linear transforms, activations—use vector operations at their core.  \n- Enables efficient batch and parallel processing on hardware.\n\n**How It Powers Downstream**\n- **<node id=\"43\">Weighted Sum</node>**: aggregator for neurons is a vector operation.  \n- **<node id=\"34\">Softmax</node> & <node id=\"4\">Attention</node>**: rely on element-wise exp and sum.",
       "difficulty": 2,
       "domain": "math"
     },
@@ -290,7 +290,7 @@
       "id": 34,
       "label": "Softmax Function",
       "type": "concept",
-      "description": "Activation function that converts a vector of real numbers into a probability distribution.",
+      "description": "A normalization function converting a vector z∈ℝ<sup>d</sup> into a probability distribution:\n  softmax(z)<sub>i</sub> = exp(z<sub>i</sub>) / ∑<sub>j=1</sub><sup>d</sup> exp(z<sub>j</sub>).\n\n**Example**\nFor z=[2,1,0]:\n  exp(z)=[7.39,2.72,1],\n  sum≈11.11,\n  softmax(z) ≈ [0.665,0.245,0.090].\n\n**Backward Prerequisites**\nExponentials & Division\n  You know exp and division operations on scalars. <node id=\"34\">Softmax</node> applies them element-wise and normalizes by sum.\n\n<node id=\"33\">Vector Operations</node>\n  You know how to compute sums across vector elements.\n\n**Why It Matters**\n- Converts unbounded scores (logits) into probabilities summing to 1.  \n- Used in <node id=\"4\">attention</node> weight computation and final output classification layers.\n\n**How It Powers Downstream**\n- **<node id=\"4\">Attention</node>**: softmax(QK<sup>T</sup> / √d<sub>k</sub>) yields attention weights.  \n- **Cross-Entropy Loss**: applies <node id=\"34\">softmax</node> before computing log-loss for classification.",
       "difficulty": 2,
       "domain": "math"
     },
@@ -298,7 +298,7 @@
       "id": 35,
       "label": "Gradient",
       "type": "concept",
-      "description": "Vector of partial derivatives indicating the direction and rate of steepest increase of a function.",
+      "description": "The vector of <node id=\"38\">partial derivatives</node> of a scalar function f with respect to its input vector x∈ℝ<sup>d</sup>:\n  ∇f(x) = [∂f/∂x₁, ∂f/∂x₂, …, ∂f/∂x<sub>d</sub>].\n\n**Example**\nFor f(x,y) = x² + 3y:\n  ∇f = [2x, 3].\n\n**Backward Prerequisites**\n<node id=\"36\">Derivative</node>\n  You know how to compute df/dx for a single-variable function. Gradients generalize this to multivariate functions.\n\n<node id=\"38\">Partial Derivative</node>\n  You know ∂f/∂x<sub>i</sub> measures the rate of change of f when x<sub>i</sub> changes, holding other inputs constant.\n\n**Why It Matters**\n- Guides weight updates in gradient-based optimization.  \n- Indicates the steepest direction for loss reduction.\n\n**How It Powers Downstream**\n- **<node id=\"2\">Backpropagation</node>**: chains gradients to compute ∂L/∂w for each weight.  \n- **Optimizers**: use gradients to adjust parameters (SGD, Adam).",
       "difficulty": 3,
       "domain": "math"
     },
@@ -306,7 +306,7 @@
       "id": 36,
       "label": "Derivative",
       "type": "concept",
-      "description": "Mathematical concept measuring how a function changes as its input changes.",
+      "description": "The rate of change of a function f with respect to a scalar input x:\n  f'(x) = lim<sub>h→0</sub> (f(x+h) – f(x)) / h.\n\n**Example**\nFor f(x) = x³:\n  f'(x) = 3x².\n\n**Backward Prerequisites**\nLimits & Continuity\n  You know limit definitions for instantaneous rate of change. Derivatives require understanding of limits.  \n\nBasic Algebra\n  You know how to apply power and product rules to compute derivatives formulaically.\n\n**Why It Matters**\n- Building block for <node id=\"35\">gradients</node> and <node id=\"2\">backpropagation</node>.  \n- Enables analytical computation of sensitivities in <node id=\"1\">neural networks</node>.\n\n**How It Powers Downstream**\n- **<node id=\"37\">Chain Rule</node>**: uses derivatives of inner and outer functions.  \n- **Activation Functions**: require derivatives for gradient signals (e.g., ReLU', tanh').",
       "difficulty": 2,
       "domain": "math"
     },
@@ -314,7 +314,7 @@
       "id": 37,
       "label": "Chain Rule",
       "type": "concept",
-      "description": "Mathematical rule for computing the derivative of composite functions, essential for backpropagation.",
+      "description": "A rule for computing the <node id=\"36\">derivative</node> of a composite function f(g(x)):\n  d/dx [f(g(x))] = f'(g(x)) * g'(x).\n\n**Example**\nIf f(u) = u² and g(x) = sin(x):\n  d/dx [sin(x)²] = 2 sin(x) * cos(x).\n\n**Backward Prerequisites**\n<node id=\"36\">Derivative</node>\n  You know how to compute f' and g' individually.  \n\nFunction Composition\n  You know how one function's output becomes another's input.\n\n**Why It Matters**\n- Core of <node id=\"2\">backpropagation</node>: propagates <node id=\"35\">gradients</node> through nested network layers.  \n- Ensures correct gradient flow for parameter updates.\n\n**How It Powers Downstream**\n- **<node id=\"2\">Backpropagation</node>**: applies <node id=\"37\">chain rule</node> across every operation in the computation graph.  \n- **Complex Architectures**: supports gradient calculation through <node id=\"4\">attention</node>, normalization, and gating mechanisms.",
       "difficulty": 3,
       "domain": "math"
     },
@@ -322,7 +322,7 @@
       "id": 38,
       "label": "Partial Derivatives",
       "type": "concept",
-      "description": "Derivatives of functions with multiple variables, taken with respect to one variable while holding others constant.",
+      "description": "The <node id=\"36\">derivative</node> of a multivariable function f(x₁,…,x<sub>n</sub>) with respect to one variable x<sub>i</sub>, holding others constant:\n  ∂f/∂x<sub>i</sub>.\n\n**Example**\nFor f(x,y) = x² y + 3y,  \n  ∂f/∂x = 2xy,  \n  ∂f/∂y = x² + 3.\n\n**Backward Prerequisites**\n<node id=\"36\">Derivative</node>\n  You know single-variable derivatives. Partial derivatives extend that concept by isolating one input's effect.  \n\nMultivariable Functions\n  You know functions can take multiple inputs; understanding each input's contribution is key.\n\n**Why It Matters**\n- Forms the components of the <node id=\"35\">gradient</node> vector.  \n- Allows decomposition of complex functions into per-variable sensitivity measures.\n\n**How It Powers Downstream**\n- **<node id=\"35\">Gradient</node> Computation**: <node id=\"2\">backprop</node> constructs ∇f by collecting partial derivatives for each parameter.  \n- **Optimization**: informs parameter-wise update magnitudes.",
       "difficulty": 3,
       "domain": "math"
     },
@@ -330,7 +330,7 @@
       "id": 39,
       "label": "Trigonometric Functions",
       "type": "concept",
-      "description": "Mathematical functions like sine and cosine used in positional encoding for sequence position.",
+      "description": "Functions like sine and cosine that map real inputs to periodic outputs:\n  sin(θ), cos(θ) with period 2π.\n\n**Example**\nPE formulas:\n  PE(pos,2i)   = sin(pos / 10000<sup>(2i/d)</sup>),\n  PE(pos,2i+1) = cos(pos / 10000<sup>(2i/d)</sup>).\n\n**Backward Prerequisites**\nExponential & Division\n  You know how to compute pos / 10000<sup>(2i/d)</sup>.  \n\nFunction Evaluation\n  You know how to evaluate sin/cos for real arguments.\n\n**Why It Matters**\n- Used to create unique, smoothly varying <node id=\"11\">positional encodings</node> that the model can extrapolate.  \n- Periodicity ensures relative position differences map to linear transformations.\n\n**How It Powers Downstream**\n- **<node id=\"11\">Positional Encoding</node>**: foundation for injecting order into attention-only models.  \n- **Fourier Features**: extended uses in other continuous signal representations.",
       "difficulty": 2,
       "domain": "math"
     },
@@ -338,7 +338,7 @@
       "id": 40,
       "label": "Mean",
       "type": "concept",
-      "description": "Average value of a set of numbers, used in normalization techniques.",
+      "description": "The average of vector elements x∈ℝ<sup>d</sup>:\n  μ = (1/d) ∑<sub>i=1</sub><sup>d</sup> x<sub>i</sub>.\n\n**Example**\nFor x=[2,4,6]:\n  μ=(2+4+6)/3=4.\n\n**Backward Prerequisites**\nAddition & Division\n  You know how to sum numbers and divide by a count. <node id=\"40\">Mean</node> is a simple statistical measure.\n\n**Why It Matters**\n- Central to <node id=\"13\">LayerNorm</node> and other normalization techniques (centers data).  \n- Baseline statistic for data distribution understanding.\n\n**How It Powers Downstream**\n- **<node id=\"13\">LayerNorm</node>**: subtracts μ from each element before scaling.  \n- **BatchNorm**: uses <node id=\"40\">mean</node> across batch for normalization.",
       "difficulty": 1,
       "domain": "math"
     },
@@ -346,7 +346,7 @@
       "id": 41,
       "label": "Variance",
       "type": "concept",
-      "description": "Measure of how spread out numbers are from their mean, used in layer normalization.",
+      "description": "The average squared deviation from the <node id=\"40\">mean</node> for vector x:\n  σ² = (1/d) ∑<sub>i=1</sub><sup>d</sup> (x<sub>i</sub> - μ)².\n\n**Example**\nFor x=[2,4,6], μ=4:\n  σ² = [(2−4)² + (4−4)² + (6−4)²]/3 = (4+0+4)/3 ≈ 2.667.\n\n**Backward Prerequisites**\n<node id=\"40\">Mean</node>\n  You know how to compute μ. <node id=\"41\">Variance</node> builds on the <node id=\"40\">mean</node> by quantifying spread around it.  \n\nSquaring & Summation\n  You know how to square deviations and sum them.\n\n**Why It Matters**\n- Scales data for normalization: ensures unit variance.  \n- Measures feature dispersion, key for stable learning.\n\n**How It Powers Downstream**\n- **<node id=\"13\">LayerNorm</node>**: divides by √(σ²+ε) for standardization.  \n- **BatchNorm**: uses <node id=\"41\">variance</node> across batches to normalize activations.",
       "difficulty": 2,
       "domain": "math"
     },
@@ -354,7 +354,7 @@
       "id": 42,
       "label": "Linear Transformation",
       "type": "concept",
-      "description": "Mathematical mapping between vector spaces that preserves vector addition and scalar multiplication.",
+      "description": "A <node id=\"31\">matrix multiplication</node> plus bias: y = xW + b, mapping input vector x∈ℝ<sup>m</sup> to output y∈ℝ<sup>n</sup> linearly.\n\n**Example**\nFor x∈ℝ³, W∈ℝ<sup>(3×5)</sup>, b∈ℝ⁵:\n  y = xW + b produces a 5-dimensional output vector.\n\n**Backward Prerequisites**\n<node id=\"31\">Matrix Multiplication</node> & <node id=\"33\">Vector</node> Addition\n  You know <node id=\"32\">dot products</node> and addition. A linear transform is the combination of these operations.\n\nBias Terms\n  You know adding b shifts the output space, enabling affine (non-zero origin) mappings.\n\n**Why It Matters**\n- Core building block for all <node id=\"1\">neural network</node> layers (<node id=\"4\">attention</node> projections, <node id=\"12\">FFN</node>, output heads).  \n- Easily optimized on hardware via BLAS libraries.\n\n**How It Powers Downstream**\n- **<node id=\"4\">Attention</node> Projections**: project Q, K, V via linear transforms.  \n- **Output Layers**: map <node id=\"7\">decoder</node> hidden states to vocabulary logits.",
       "difficulty": 3,
       "domain": "math"
     },
@@ -362,7 +362,7 @@
       "id": 43,
       "label": "Weighted Sum",
       "type": "concept",
-      "description": "Sum of values each multiplied by a corresponding weight, fundamental to neural network operations.",
+      "description": "A summation of inputs x<sub>i</sub> multiplied by corresponding weights w<sub>i</sub>:\n  y = ∑<sub>i</sub> w<sub>i</sub> x<sub>i</sub>.\n\n**Example**\nIn a neuron: y = w₁x₁ + w₂x₂ + w₃x₃ + b.\n\n**Backward Prerequisites**\nScalar Multiplication & Addition\n  You know how to multiply two numbers and add results. <node id=\"43\">Weighted sum</node> is the foundation of linear combinations in neurons.\n\n**Why It Matters**\n- Fundamental aggregation operation in <node id=\"1\">neural networks</node>—forms the basis of neuron outputs, <node id=\"4\">attention</node> score application, and convolutional filtering.  \n- Intuitive interpretation: computes a weighted average or projection of inputs.\n\n**How It Powers Downstream**\n- **<node id=\"4\">Attention</node> Output**: attention weights applied in ∑ α<sub>i</sub> v<sub>i</sub>.  \n- **<node id=\"16\">Convolution</node>**: each output is a <node id=\"43\">weighted sum</node> over a local window of inputs.",
       "difficulty": 2,
       "domain": "math"
     }
