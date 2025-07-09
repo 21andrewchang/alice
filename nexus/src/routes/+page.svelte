@@ -48,6 +48,24 @@
 
 	let activeSectionId = null;
 
+
+
+	function getBackwardNodes(node) {
+		if (!graphData) return [];
+		return graphData.links
+			.filter(l => l.target === node.id && l.relation === 'prerequisite')
+			.map(l => graphData.nodes.find(n => n.id === (l.source.id ?? l.source)))
+			.filter(Boolean);
+	}
+
+	function getForwardNodes(node) {
+		if (!graphData) return [];
+		return graphData.links
+			.filter(l => l.source === node.id && l.relation === 'prerequisite')
+			.map(l => graphData.nodes.find(n => n.id === (l.target.id ?? l.target)))
+			.filter(Boolean);
+	}
+
 	function getDomainColor(domain) {
 		const domainColors = {
 			'math': '#5B8DF2',          // Electric Pulse
@@ -599,6 +617,8 @@
 		return headers;
 	}
 
+
+
 	// Function to parse node links and markdown in content
 	function parseNodeLinks(content) {
 		// First, parse markdown
@@ -638,10 +658,10 @@
 				const color = node.type === 'paper' ? '#BFCAF3' : getDomainColor(node.domain || 'tech');
 				if (learnedNodes.has(nodeId)) {
 					// Visited: just colored text, no box
-					return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200" style="color: ${color}; font-weight: 500;" onclick="selectNodeById(${nodeId})">${text}</span>`;
+					return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="color: ${color}; font-weight: 500;">${text}</span>`;
 				} else {
 					// Not visited: box style
-					return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200" style="display: inline-flex; align-items: center; background: ${color}18; border: 1px solid ${color}4D; border-radius: 5px; padding: 0px 3px; margin: 2px 0; color: ${color}; font-weight: 500;" onclick="selectNodeById(${nodeId})">${text}</span>`;
+					return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="display: inline-flex; align-items: center; background: ${color}18; border: 1px solid ${color}4D; border-radius: 5px; padding: 0px 3px; margin: 2px 0; color: ${color}; font-weight: 500;">${text}</span>`;
 				}
 			}
 			return text;
@@ -770,6 +790,25 @@
 		const data = await loadData();
 		element.innerHTML = '';
 		element.appendChild(chart(data));
+		
+		// Ensure global function is available after mount
+		window.selectNodeById = selectNodeById;
+		
+		// Add click listener for node links
+		const handleNodeLinkClick = (event) => {
+			const target = event.target.closest('.node-link');
+			if (target && target.dataset.nodeId) {
+				const nodeId = parseInt(target.dataset.nodeId);
+				selectNodeById(nodeId);
+			}
+		};
+		
+		document.addEventListener('click', handleNodeLinkClick);
+		
+		// Cleanup function
+		return () => {
+			document.removeEventListener('click', handleNodeLinkClick);
+		};
 	});
 </script>
 
@@ -1004,8 +1043,9 @@
 										</div>
 
 										<div class="mb-6">
-											<h3 class="text-lg font-semibold mb-2" style="color: #B3B3B3;">Description</h3>
-											<p class="leading-relaxed" style="color: #B3B3B3;">{node.description}</p>
+											<div class="leading-relaxed" style="color: #B3B3B3;">
+												{@html parseNodeLinks(node.description)}
+											</div>
 										</div>
 									</div>
 								{/if}
