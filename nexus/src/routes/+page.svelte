@@ -1,5 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
+	import { fly } from 'svelte/transition';
+	import { cubicOut, cubicIn } from 'svelte/easing';
 	import * as d3 from 'd3';
 
 	let element;
@@ -45,6 +47,7 @@
 	let connectedNodes = new Set(); // Set of nodes connected to focused node
 	let graphData = null; // Store graph data for connection analysis
 	let nodeStack = []; // Stack of open nodes for layered interface
+	let navigationHistory = []; // Chronological order of node clicks (for breadcrumb)
 
 	let activeSectionId = null;
 
@@ -134,7 +137,7 @@
 				});
 		}
 		
-		// Update link opacity based on focus
+		// Update link opacity and glow effects based on focus and visited status
 		if (linkSel) {
 			linkSel
 				.transition()
@@ -149,6 +152,40 @@
 						return 1; // Full opacity for connected links
 					}
 					return 0.05; // Very dim for other links
+				})
+				.style('filter', (d) => {
+					// Add glow effect for links between visited nodes
+					const sourceVisited = learnedNodes.has(d.source.id || d.source);
+					const targetVisited = learnedNodes.has(d.target.id || d.target);
+					
+					if (sourceVisited && targetVisited) {
+						// Both nodes are visited - add glow effect
+						const sourceNode = graphData?.nodes?.find(n => n.id === (d.source.id || d.source));
+						const targetNode = graphData?.nodes?.find(n => n.id === (d.target.id || d.target));
+						
+						// Use the color of the source node for the glow
+						let glowColor;
+						if (sourceNode?.type === 'paper') {
+							glowColor = '#BFCAF3'; // Papyrus color for papers
+						} else {
+							glowColor = getDomainColor(sourceNode?.domain || 'tech');
+						}
+						
+						return `drop-shadow(0 0 8px ${glowColor}) drop-shadow(0 0 4px ${glowColor})`;
+					}
+					
+					return null; // No glow for unvisited connections
+				})
+				.attr('stroke-width', (d) => {
+					// Make visited connections slightly thicker
+					const sourceVisited = learnedNodes.has(d.source.id || d.source);
+					const targetVisited = learnedNodes.has(d.target.id || d.target);
+					
+					if (sourceVisited && targetVisited) {
+						return Math.sqrt(d.value || 1) * 1.5; // 50% thicker for visited connections
+					}
+					
+					return Math.sqrt(d.value || 1); // Normal thickness
 				});
 		}
 		
@@ -166,13 +203,13 @@
 				})
 				.attr('fill', (d) => {
 					if (!focusedNode) {
-						return '#333333'; // Default gray text when no focus
+						return '#CCCCCC'; // Lighter default text when no focus
 					}
 					
 					if (connectedNodes.has(d.id)) {
-						return '#CCCCCC'; // Light gray text for connected nodes
+						return '#F0F0F0'; // Very bright text for connected nodes
 					} else {
-						return '#444444'; // Dimmed but still visible text for unconnected nodes
+						return '#444444'; // Light gray text for unconnected nodes
 					}
 				});
 		}
@@ -304,12 +341,41 @@
 			.on('zoom', (event) => {
 				g.attr('transform', event.transform);
 				
-				// Show/hide text labels based on zoom level
+				// Smooth fade-in text labels based on zoom level
 				const scale = event.transform.k;
-				const showLabels = scale >= 1.5; // Show labels when zoomed to 1.5x or more
+				const fadeStartZoom = 0.8; // Start fading in at 0.8x zoom
+				const fadeEndZoom = 1.5;   // Full brightness at 1.5x zoom
 				
-				g.selectAll('text')
-					.style('opacity', showLabels ? 1 : 0);
+				let opacity = 0;
+				if (scale >= fadeEndZoom) {
+					opacity = 1; // Full brightness
+				} else if (scale >= fadeStartZoom) {
+					// Smooth transition from 0 to 1
+					opacity = (scale - fadeStartZoom) / (fadeEndZoom - fadeStartZoom);
+				}
+				
+				// Update text opacity and colors, respecting focus state
+				g.selectAll('text').each(function(d) {
+					const textElement = d3.select(this);
+					textElement.style('opacity', opacity);
+					
+					// Only update color if no node is focused, otherwise let updateNodeStyles handle it
+					if (!focusedNode) {
+						// Calculate brightness based on opacity for default state
+						const minBrightness = 0x22; // #222222
+						const maxBrightness = 0xF0; // #F0F0F0
+						const brightness = Math.round(minBrightness + (maxBrightness - minBrightness) * opacity);
+						const textColor = `#${brightness.toString(16).padStart(2, '0').repeat(3)}`;
+						textElement.attr('fill', textColor);
+					} else {
+						// When focused, use the focus-based colors from updateNodeStyles
+						if (connectedNodes.has(d.id)) {
+							textElement.attr('fill', '#F0F0F0'); // Very bright text for connected nodes
+						} else {
+							textElement.attr('fill', '#444444'); // Dim text for unconnected nodes
+						}
+					}
+				});
 				
 				// Store zoom level for tooltip logic
 				window.currentZoomScale = scale;
@@ -467,7 +533,7 @@
 			.attr('dy', '0.35em')
 			.attr('font-size', '6px')
 			.attr('font-family', 'Arial, sans-serif')
-			.attr('fill', '#333333')
+			.attr('fill', '#CCCCCC') // Updated to match the new default color
 			.attr('pointer-events', 'none')
 			.style('opacity', 0) // Start hidden
 			.text(d => d.label);
@@ -739,6 +805,16 @@
 		// Mark as learned
 		learnedNodes.add(node.id);
 		
+		// Add to navigation history (chronological order)
+		const existingIndex = navigationHistory.findIndex(n => n.id === node.id);
+		if (existingIndex !== -1) {
+			// If node already exists in history, truncate to that point
+			navigationHistory = navigationHistory.slice(0, existingIndex + 1);
+		} else {
+			// Add new node to history
+			navigationHistory = [...navigationHistory, node];
+		}
+		
 		// Add to stack (remove if already exists to avoid duplicates)
 		nodeStack = nodeStack.filter(n => n.id !== node.id);
 		nodeStack = [...nodeStack, node];
@@ -750,6 +826,9 @@
 	// Function to remove a node from the stack
 	function removeFromStack(nodeId) {
 		nodeStack = nodeStack.filter(n => n.id !== nodeId);
+		
+		// Remove from navigation history as well
+		navigationHistory = navigationHistory.filter(n => n.id !== nodeId);
 		
 		// If stack is empty, clear focus
 		if (nodeStack.length === 0) {
@@ -779,6 +858,42 @@
 		}
 		
 		updateNodeStyles();
+	}
+
+	// Function to navigate to a specific index in the navigation history
+	function navigateToStackIndex(index) {
+		if (index >= 0 && index < navigationHistory.length) {
+			// Get the selected node from navigation history
+			const selectedNode = navigationHistory[index];
+			
+			// Don't truncate history - just focus on the selected node
+			// Make sure the selected node is at the top of the stack
+			nodeStack = nodeStack.filter(n => n.id !== selectedNode.id);
+			nodeStack = [...nodeStack, selectedNode];
+			
+			// Focus on the selected node
+			focusedNode = selectedNode;
+			connectedNodes.clear();
+			connectedNodes.add(selectedNode.id);
+			
+			// Find connected nodes for the selected node
+			if (graphData) {
+				graphData.links.forEach(link => {
+					if (link.source.id === selectedNode.id || link.source === selectedNode.id) {
+						connectedNodes.add(link.target.id || link.target);
+					}
+					if (link.target.id === selectedNode.id || link.target === selectedNode.id) {
+						connectedNodes.add(link.source.id || link.source);
+					}
+				});
+			}
+			
+			// Center the graph on the selected node
+			centerGraphOnNode(selectedNode);
+			
+			// Update node styles
+			updateNodeStyles();
+		}
 	}
 
 	// Make function available globally for onclick handlers (client-side only)
@@ -846,6 +961,17 @@
 			-webkit-mask-position: 100% 0;
 		}
 	}
+	
+	/* Node View panel styles for proper positioning */
+	.node-view-panel {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 10;
+		background: #111111;
+	}
 </style>
 
 <!-- Cyberpunk theme main container with side-by-side layout -->
@@ -857,6 +983,26 @@
 		style="background-color: #080808; border: 1px solid #333333;"
 	></div>
 
+	<!-- Navigation Breadcrumb - top left corner -->
+	{#if navigationHistory.length > 0}
+		<div class="absolute top-4 left-4 z-50">
+			<div class="flex items-center gap-2 px-4 py-2 rounded-lg" style="background-color: rgba(17, 17, 17, 0.9); border: 1px solid #333333; backdrop-filter: blur(10px);">
+				{#each navigationHistory as node, index (node.id)}
+					{#if index > 0}
+						<span class="text-sm" style="color: #666666;">→</span>
+					{/if}
+					<button
+						on:click={() => navigateToStackIndex(index)}
+						class="text-sm font-medium hover:underline transition-colors cursor-pointer"
+						style="color: {node.type === 'paper' ? '#BFCAF3' : getDomainColor(node.domain)};"
+					>
+						{node.label}
+					</button>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
 	<!-- Graph container - left side or full width -->
 	<div class="{nodeStack.length > 0 ? 'w-1/2' : 'w-full'} h-full transition-all duration-150">
 		<div bind:this={element} class="h-full w-full"></div>
@@ -867,7 +1013,9 @@
 		<div class="w-1/2 h-full relative" style="background-color: rgba(8, 8, 8, 0.0);">
 			{#each nodeStack as node, index (node.id)}
 				<div 
-					class="absolute inset-0 transition-all duration-300"
+					in:fly={{ x: 300, duration: 250, easing: cubicOut }}
+					out:fly={{ x: 300, duration: 200, easing: cubicIn }}
+					class="absolute inset-0 transition-all duration-300 node-view-panel"
 					style="
 						top: 0;
 						left: 0;
