@@ -50,6 +50,7 @@
 	let navigationHistory = []; // Chronological order of node clicks (for breadcrumb)
 
 	let activeSectionId = null;
+	let useSequentialShootingStars = true; // Toggle for sequential vs parallel shooting stars
 
 
 
@@ -602,7 +603,120 @@
 	}
 
 	function startShootingStarAnimation(prerequisiteLinks) {
+		// Build dependency graph for sequential mode
+		let linkDelays = new Map();
+		
+		if (useSequentialShootingStars) {
+			const nodeDependencies = new Map();
+			const nodeDependents = new Map();
+			
+			// Initialize maps
+			prerequisiteLinks.forEach(link => {
+				const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+				const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+				
+				// Track what each node depends on
+				if (!nodeDependencies.has(targetId)) {
+					nodeDependencies.set(targetId, new Set());
+				}
+				nodeDependencies.get(targetId).add(sourceId);
+				
+				// Track what depends on each node
+				if (!nodeDependents.has(sourceId)) {
+					nodeDependents.set(sourceId, new Set());
+				}
+				nodeDependents.get(sourceId).add(targetId);
+			});
+			
+			// Find nodes with no prerequisites (fundamental nodes)
+			const fundamentalNodes = new Set();
+			prerequisiteLinks.forEach(link => {
+				const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+				const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+				
+				// If source has no dependencies, it's fundamental
+				if (!nodeDependencies.has(sourceId)) {
+					fundamentalNodes.add(sourceId);
+				}
+			});
+			
+			// Create animation sequence: each link gets a delay based on its position in the dependency chain
+			const visitedNodes = new Set();
+			const nodeLevels = new Map();
+			
+			// Calculate levels for each node (0 = fundamental, 1 = depends on level 0, etc.)
+			function calculateLevels() {
+				const queue = [...fundamentalNodes];
+				queue.forEach(nodeId => {
+					nodeLevels.set(nodeId, 0);
+					visitedNodes.add(nodeId);
+				});
+				
+				while (queue.length > 0) {
+					const currentId = queue.shift();
+					const currentLevel = nodeLevels.get(currentId);
+					
+					// Process dependents of current node
+					const dependents = nodeDependents.get(currentId) || new Set();
+					dependents.forEach(dependentId => {
+						// Check if all dependencies of this dependent are processed
+						const dependencies = nodeDependencies.get(dependentId) || new Set();
+						const allDependenciesProcessed = Array.from(dependencies).every(depId => 
+							visitedNodes.has(depId)
+						);
+						
+						if (allDependenciesProcessed && !visitedNodes.has(dependentId)) {
+							nodeLevels.set(dependentId, currentLevel + 1);
+							visitedNodes.add(dependentId);
+							queue.push(dependentId);
+						}
+					});
+				}
+			}
+			
+			calculateLevels();
+			
+					// Calculate delays recursively based on when each node receives ALL its prerequisites
+		function calculateLinkDelay(link) {
+			const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+			const sourcePrerequisites = nodeDependencies.get(sourceId) || new Set();
+			
+			if (sourcePrerequisites.size === 0) {
+				// Source has no prerequisites - start immediately
+				return 0;
+			} else {
+				// Source has prerequisites - wait for ALL of them to complete
+				let maxPrerequisiteCompletionTime = 0;
+				
+				sourcePrerequisites.forEach(prereqId => {
+					// Find the link that goes TO this prerequisite
+					const prereqLink = prerequisiteLinks.find(l => {
+						const lTargetId = typeof l.target === 'object' ? l.target.id : l.target;
+						return lTargetId === prereqId;
+					});
+					
+					if (prereqLink) {
+						// Recursively calculate when this prerequisite link completes
+						const prereqStartDelay = calculateLinkDelay(prereqLink);
+						const prereqCompletionTime = prereqStartDelay + 1.5; // 1.5s animation time (matches the original)
+						maxPrerequisiteCompletionTime = Math.max(maxPrerequisiteCompletionTime, prereqCompletionTime);
+					}
+				});
+				
+				return maxPrerequisiteCompletionTime;
+			}
+		}
+		
+		// Calculate delays for all links
+		prerequisiteLinks.forEach(link => {
+			const delay = calculateLinkDelay(link);
+			linkDelays.set(link, delay);
+		});
+		}
+		
 		function animate() {
+			const currentTime = Date.now() * 0.001; // Current time in seconds
+			
 			prerequisiteLinks.forEach((link, index) => {
 				if (link.gradient) {
 					// Only animate if no node is focused OR this link is directly connected to the focused node
@@ -613,9 +727,35 @@
 						targetId === focusedNode.id;
 					
 					if (shouldAnimate) {
-						// Animate with "zip" easing - slow, fast, slow (with 0.5s pause)
-						const time = (Date.now() * 0.002) % 2; // 2 second cycle (1.5s animation + 0.5s pause)
-						const rawProgress = time < 1.5 ? time / 1.5 : 1; // Animation for first 1.5s, then hold at end
+						let time, rawProgress;
+						
+						if (useSequentialShootingStars) {
+							// Sequential mode: use delays based on dependency chain
+							const delay = linkDelays.get(link) || 0;
+							const cycleTime = 2.0; // 2 second cycle per link (1.5s animation + 0.5s pause)
+							const adjustedTime = (currentTime - delay) % cycleTime;
+							
+							// Only animate if we're past the delay
+							if (adjustedTime >= 0) {
+								rawProgress = adjustedTime < 1.5 ? adjustedTime / 1.5 : 1; // 1.5s animation, 0.5s pause
+							} else {
+								// Before delay, show no shooting star
+								link.gradient.selectAll('stop')
+									.attr('offset', (d, i) => {
+										if (i === 0) return '0%';
+										if (i === 1) return '0%';
+										if (i === 2) return '0%';
+										if (i === 3) return '0%';
+										if (i === 4) return '0%';
+										return '0%';
+									});
+								return;
+							}
+						} else {
+							// Parallel mode: original behavior
+							time = (Date.now() * 0.002) % 2; // 2 second cycle (1.5s animation + 0.5s pause)
+							rawProgress = time < 1.5 ? time / 1.5 : 1; // Animation for first 1.5s, then hold at end
+						}
 						
 						// Apply dramatic easing curve for "zip" effect: very slow -> current speed -> very slow
 						const progress = rawProgress < 0.2 
@@ -623,11 +763,6 @@
 							: rawProgress < 0.8 
 							? 0.05 + (rawProgress - 0.2) / 0.6 * 0.8 // Current speed middle section (covers 90% of distance)
 							: 0.95 + Math.pow((rawProgress - 0.8) / 0.2, 4) * 0.1; // Very slow end (quartic ease - covers 5% of distance)
-						
-						// Move the centered gradient along the line
-						const centerPos = (progress * 120 - 10) + '%'; // Move from -10% to 110%
-						const startPos = (progress * 120 - 15) + '%';  // 5% before center
-						const endPos = (progress * 120 - 5) + '%';     // 5% after center
 						
 						// Update gradient stops with centered positions
 						link.gradient.selectAll('stop')
@@ -896,9 +1031,16 @@
 		}
 	}
 
+	// Function to toggle between sequential and parallel shooting stars
+	function toggleShootingStarMode() {
+		useSequentialShootingStars = !useSequentialShootingStars;
+		console.log(`Switched to ${useSequentialShootingStars ? 'sequential' : 'parallel'} shooting stars`);
+	}
+
 	// Make function available globally for onclick handlers (client-side only)
 	if (typeof window !== 'undefined') {
 		window.selectNodeById = selectNodeById;
+		window.toggleShootingStarMode = toggleShootingStarMode;
 	}
 
 	onMount(async () => {
@@ -920,9 +1062,19 @@
 		
 		document.addEventListener('click', handleNodeLinkClick);
 		
+		// Add keyboard shortcut for toggling shooting star mode
+		const handleKeyPress = (event) => {
+			if (event.key === 's' || event.key === 'S') {
+				toggleShootingStarMode();
+			}
+		};
+		
+		document.addEventListener('keydown', handleKeyPress);
+		
 		// Cleanup function
 		return () => {
 			document.removeEventListener('click', handleNodeLinkClick);
+			document.removeEventListener('keydown', handleKeyPress);
 		};
 	});
 </script>
@@ -976,6 +1128,17 @@
 
 <!-- Cyberpunk theme main container with side-by-side layout -->
 <main class="relative h-screen w-screen flex" style="background-color: #080808; color: #B3B3B3;">
+	<!-- Shooting Star Mode Indicator -->
+	<div class="absolute top-4 right-4 z-50">
+		<div 
+			class="px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all duration-200 hover:opacity-80"
+			style="background-color: {useSequentialShootingStars ? '#73DACA' : '#5B8DF2'}; color: #111111;"
+			on:click={toggleShootingStarMode}
+			title="Press 'S' to toggle shooting star mode"
+		>
+			{useSequentialShootingStars ? 'Sequential' : 'Parallel'} Stars
+		</div>
+	</div>
 	<!-- Tooltip -->
 	<div
 		bind:this={tooltipEl}
