@@ -68,6 +68,30 @@
 	let showRankModal = false;
 	let rankNodesVisited = 0;
 
+// Store last calculated rank for inline display
+let userRank: { tier: string; division: number | null } = { tier: '', division: null };
+
+function getRankForNodesVisited(n: number) {
+    let tier = 'Iron';
+    let division: number | null = 1;
+    if (n === 0) { tier = 'Master'; division = null; }
+    else if (n <= 2) { tier = 'Diamond'; division = n === 1 ? 2 : 1; }
+    else if (n <= 5) { tier = 'Platinum'; division = 5 - n + 1; }
+    else if (n <= 8) { tier = 'Gold'; division = 8 - n + 1; }
+    else if (n <= 11) { tier = 'Silver'; division = 11 - n + 1; }
+    else if (n <= 14) { tier = 'Bronze'; division = 14 - n + 1; }
+    else { tier = 'Iron'; division = Math.max(1, 4 - (n - 15)); }
+    return { tier, division };
+}
+
+// Show the rank modal when the user finishes reading
+function handleFinishReading(count: number) {
+    rankNodesVisited = count;
+    userRank = getRankForNodesVisited(count);
+    console.log('Visited nodes:', count, '=> Rank:', userRank);
+    console.log('calculatedRank', userRank);
+    showRankModal = true;
+}
 
 	function getBackwardNodes(node) {
 		if (!graphData) return [];
@@ -1135,6 +1159,7 @@
 	<RankRevealModal
 		show={showRankModal}
 		nodesVisited={rankNodesVisited}
+		calculatedRank={userRank}
 		onClose={() => { showRankModal = false; }}
 	/>
 	<!-- Tooltip -->
@@ -1199,7 +1224,7 @@
 										{parseNodeLinks}
 										onClose={() => removeFromStack(node.id)}
 										nodesVisited={learnedNodes.size}
-										onFinishReading={(n) => { rankNodesVisited = n; showRankModal = true; }}
+										onFinishReading={handleFinishReading}
 									/>
 									
 								{:else if node.type === 'paper' && node.url}
@@ -1266,3 +1291,4 @@
 		</div>
 	{/if}
 </main>
+

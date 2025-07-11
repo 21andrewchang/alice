@@ -2,6 +2,8 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { elasticOut } from 'svelte/easing';
   export let nodesVisited: number = 0;
+// New: externally-calculated rank can be passed in
+export let calculatedRank: { tier: string; division: number | null } | null = null;
   export let show: boolean = false;
   export let onClose: () => void = () => {};
 
@@ -81,12 +83,21 @@
     { tier: 'Master', division: null }, { tier: 'Grandmaster', division: null }, { tier: 'Challenger', division: null }
   ];
 
-  let userRank = { tier: 'Bronze', division: 4 };
+  let userRank: { tier: string; division: number | null } = { tier: 'Bronze', division: 4 };
   let showRank = false;
+
+// If parent provides a calculatedRank, use it; otherwise derive from nodesVisited
+$: {
+  if (calculatedRank) {
+    userRank = calculatedRank;
+  } else {
+    calculateRank();
+  }
+}
 
   function calculateRank() {
     let tier = 'Iron';
-    let division = 1;
+    let division = 4;
     if (nodesVisited === 0) {
       tier = 'Master';
     } else if (nodesVisited <= 2) {
@@ -103,7 +114,7 @@
       tier = 'Iron';
     }
     userRank.tier = tier;
-    userRank.division = division;
+    userRank.division = ['Master','Grandmaster','Challenger'].includes(tier) ? null : 4;
   }
 
   function getRankGlow(tier: string, division: number | null): string {
@@ -126,7 +137,7 @@
   }
 
   onMount(() => {
-    calculateRank();
+    // show rank after entrance animation delay
     setTimeout(() => showRank = true, 500);
   });
 
