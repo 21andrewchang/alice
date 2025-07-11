@@ -1,15 +1,26 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import * as d3 from 'd3';
 	import PaginatedContent from '../components/PaginatedContent.svelte';
+	import RankRevealModal from '../components/RankRevealModal.svelte';
 
 	let element;
 	let tooltipEl;
 	// selectedNode replaced with nodeStack system
 	// pdfLoading and showPdfFrame removed - handled per node now
-	let learnedNodes = new Set();
+	// Use a persistent store for learnedNodes to prevent reset on re-renders
+	let learnedNodes = (() => {
+		if (typeof window !== 'undefined' && (window as any).persistentLearnedNodes) {
+			return (window as any).persistentLearnedNodes;
+		}
+		const set = new Set();
+		if (typeof window !== 'undefined') {
+			(window as any).persistentLearnedNodes = set;
+		}
+		return set;
+	})();
 	
 	// Idle animation variables
 	let simulation;
@@ -54,6 +65,8 @@
 	// Always use sequential shooting stars
 	const useSequentialShootingStars = true;
 
+	let showRankModal = false;
+	let rankNodesVisited = 0;
 
 
 	function getBackwardNodes(node) {
@@ -1119,6 +1132,11 @@
 
 <!-- Cyberpunk theme main container with side-by-side layout -->
 <main class="relative h-screen w-screen flex" style="background-color: #080808; color: #B3B3B3;">
+	<RankRevealModal
+		show={showRankModal}
+		nodesVisited={rankNodesVisited}
+		onClose={() => { showRankModal = false; }}
+	/>
 	<!-- Tooltip -->
 	<div
 		bind:this={tooltipEl}
@@ -1145,6 +1163,8 @@
 			</div>
 		</div>
 	{/if}
+	
+
 
 	<!-- Graph container - left side or full width -->
 	<div class="{nodeStack.length > 0 ? 'w-1/2' : 'w-full'} h-full transition-all duration-150">
@@ -1178,7 +1198,10 @@
 										{node}
 										{parseNodeLinks}
 										onClose={() => removeFromStack(node.id)}
+										nodesVisited={learnedNodes.size}
+										onFinishReading={(n) => { rankNodesVisited = n; showRankModal = true; }}
 									/>
+									
 								{:else if node.type === 'paper' && node.url}
 									<!-- PDF display for papers without formatted content -->
 									<div class="h-full flex flex-col">

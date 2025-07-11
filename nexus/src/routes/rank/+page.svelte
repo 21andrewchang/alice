@@ -88,38 +88,34 @@
 
 	let showRank = false;
 
+	// Simple V1: Rank purely by number of nodes clicked (proxy for not understanding)
+	// 0 clicks = Master, 1 = Diamond, 2 = Platinum, 3 = Gold, 4 = Silver, 5 = Bronze, 6+ = Iron
+	let nodesVisited = 0;
+	if (typeof window !== 'undefined') {
+		const urlParams = new URLSearchParams(window.location.search);
+		nodesVisited = parseInt(urlParams.get('nodesVisited') || '0', 10);
+	}
+
 	function calculateRank() {
-		// Simulate performance metrics
-		const baseMMR = 1000;
-		const timeBonus = Math.random() * 200; // 0-200 bonus for speed
-		const scoreBonus = Math.random() * 300; // 0-300 bonus for accuracy
-		const engagementBonus = Math.random() * 100; // 0-100 bonus for engagement
-
-		userRank.mmr = Math.round(baseMMR + timeBonus + scoreBonus + engagementBonus);
-
-		// Determine tier and division based on MMR
-		if (userRank.mmr >= 2000) {
-			userRank.tier = 'Challenger';
-			userRank.division = 1;
-		} else if (userRank.mmr >= 1800) {
-			userRank.tier = 'Diamond';
-			userRank.division = Math.max(1, 4 - Math.floor((userRank.mmr - 1800) / 50));
-		} else if (userRank.mmr >= 1600) {
-			userRank.tier = 'Platinum';
-			userRank.division = Math.max(1, 4 - Math.floor((userRank.mmr - 1600) / 50));
-		} else if (userRank.mmr >= 1400) {
-			userRank.tier = 'Gold';
-			userRank.division = Math.max(1, 4 - Math.floor((userRank.mmr - 1400) / 50));
-		} else if (userRank.mmr >= 1200) {
-			userRank.tier = 'Silver';
-			userRank.division = Math.max(1, 4 - Math.floor((userRank.mmr - 1200) / 50));
+		let tier = 'Iron';
+		let division = 1;
+		if (nodesVisited === 0) {
+			tier = 'Master';
+		} else if (nodesVisited <= 2) {
+			tier = 'Diamond';
+		} else if (nodesVisited <= 5) {
+			tier = 'Platinum';
+		} else if (nodesVisited <= 8) {
+			tier = 'Gold';
+		} else if (nodesVisited <= 11) {
+			tier = 'Silver';
+		} else if (nodesVisited <= 14) {
+			tier = 'Bronze';
 		} else {
-			userRank.tier = 'Bronze';
-			userRank.division = Math.max(1, 4 - Math.floor((userRank.mmr - 1000) / 50));
+			tier = 'Iron';
 		}
-
-		// Calculate LP (League Points)
-		userRank.lp = Math.min(100, Math.max(0, (userRank.mmr - 1200) / 8));
+		userRank.tier = tier;
+		userRank.division = division;
 	}
 
 	function createAccount() {
@@ -152,6 +148,32 @@
 		return '';
 	}
 
+
+
+	function getRankForNodesVisited(n: number) {
+		let tier = 'Iron';
+		let division = 1;
+		if (n === 0) {
+			tier = 'Master';
+		} else if (n <= 2) {
+			tier = 'Diamond';
+		} else if (n <= 5) {
+			tier = 'Platinum';
+		} else if (n <= 8) {
+			tier = 'Gold';
+		} else if (n <= 11) {
+			tier = 'Silver';
+		} else if (n <= 14) {
+			tier = 'Bronze';
+		} else {
+			tier = 'Iron';
+		}
+		return { tier, division };
+	}
+
+	// Developer mode: toggle to show all ranks grid
+	let showAllRanks = false; // Set to true to display all ranks at the top
+
 	onMount(() => {
 		calculateRank();
 		setTimeout(() => showRank = true, 500);
@@ -159,7 +181,7 @@
 </script>
 
 <div class="min-h-screen flex flex-col items-center justify-center" style="background: linear-gradient(135deg, #0A0A0A 0%, #1a1a1a 100%);">
-	<!-- Display all possible ranks for reference -->
+	{#if showAllRanks}
 	<div class="flex flex-col items-center mb-8">
 		<div class="text-2xl font-semibold mb-4" style="color: #CCCCCC;">All Ranks</div>
 		<div class="grid grid-cols-4 gap-4 max-w-4xl">
@@ -178,12 +200,13 @@
 			{/each}
 		</div>
 	</div>
+	{/if}
 
 	{#if showRank}
 		<div class="text-center mb-12" in:scale={{ duration: 1000, easing: elasticOut }}>
 			<div class="text-4xl font-bold mb-4" style="color: #CCCCCC;">Placements Complete!</div>
 			<div 
-				class="text-8xl font-extrabold px-16 py-10 rounded-2xl inline-block transition-all duration-300 hover:scale-110"
+				class="text-6xl font-extrabold px-16 py-10 rounded-2xl inline-block transition-all duration-300 hover:scale-110"
 				style="
 					background: {rankStyles[userRank.tier].background};
 					color: {rankStyles[userRank.tier].textColor};
@@ -191,7 +214,7 @@
 					box-shadow: {getRankGlow(userRank.tier, userRank.division)};
 				"
 			>
-				{userRank.tier} {userRank.division}
+				{userRank.tier}{['Master','Grandmaster','Challenger'].includes(userRank.tier) ? '' : ` ${userRank.division}`}
 			</div>
 		</div>
 

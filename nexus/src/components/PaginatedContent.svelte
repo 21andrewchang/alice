@@ -6,9 +6,13 @@
   export let node: any;
   export let parseNodeLinks: (content: string) => string;
   export let onClose: () => void;
+  export let nodesVisited: number = 0;
+  export let onFinishReading: (nodesVisited: number) => void = () => {};
 
   // For now, we'll have 2 pages: abstract and everything else
   const totalPages = 2;
+  
+
   
   // Subscribe to the current page store for this node
   let currentPage: number;
@@ -82,20 +86,11 @@
   }
 
   function finishReading() {
-    // For now, use mock data - in the future this will come from actual tracking
-    const readingTime = 1800; // 30 minutes in seconds
-    const checkpointScore = 85; // Mock checkpoint score
-    const activeTime = 1600; // Mock active time
-    
-    const params = new URLSearchParams({
-      paperId: node.id.toString(),
-      paperTitle: node.label,
-      readingTime: readingTime.toString(),
-      checkpointScore: checkpointScore.toString(),
-      activeTime: activeTime.toString()
-    });
-    
-    window.location.href = `/rank?${params.toString()}`;
+    // Count the actual glowing nodes (learned nodes) from the global set
+    // Subtract 1 because the paper node itself shouldn't count as a visited prerequisite
+    const learnedNodesCount = (window as any).persistentLearnedNodes ? (window as any).persistentLearnedNodes.size : 0;
+    const adjustedCount = Math.max(0, learnedNodesCount - 1); // Ensure we don't go below 0
+    onFinishReading(adjustedCount);
   }
 
   onMount(() => {
@@ -218,6 +213,7 @@
 
         <!-- Finish Reading Button -->
         <div class="text-center mt-8 mb-6">
+
           <button
             on:click={finishReading}
             class="px-8 py-4 rounded-lg font-semibold transition-all duration-200"
