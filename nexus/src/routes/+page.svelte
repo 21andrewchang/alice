@@ -3,6 +3,7 @@
 	import { fly } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import * as d3 from 'd3';
+	import PaginatedContent from '../components/PaginatedContent.svelte';
 
 	let element;
 	let tooltipEl;
@@ -50,7 +51,8 @@
 	let navigationHistory = []; // Chronological order of node clicks (for breadcrumb)
 
 	let activeSectionId = null;
-	let useSequentialShootingStars = true; // Toggle for sequential vs parallel shooting stars
+	// Always use sequential shooting stars
+	const useSequentialShootingStars = true;
 
 
 
@@ -1033,14 +1035,13 @@
 
 	// Function to toggle between sequential and parallel shooting stars
 	function toggleShootingStarMode() {
-		useSequentialShootingStars = !useSequentialShootingStars;
-		console.log(`Switched to ${useSequentialShootingStars ? 'sequential' : 'parallel'} shooting stars`);
+		// This function is no longer needed as shooting stars are always sequential
+		console.log('Shooting star mode is always sequential.');
 	}
 
 	// Make function available globally for onclick handlers (client-side only)
 	if (typeof window !== 'undefined') {
 		window.selectNodeById = selectNodeById;
-		window.toggleShootingStarMode = toggleShootingStarMode;
 	}
 
 	onMount(async () => {
@@ -1062,19 +1063,9 @@
 		
 		document.addEventListener('click', handleNodeLinkClick);
 		
-		// Add keyboard shortcut for toggling shooting star mode
-		const handleKeyPress = (event) => {
-			if (event.key === 's' || event.key === 'S') {
-				toggleShootingStarMode();
-			}
-		};
-		
-		document.addEventListener('keydown', handleKeyPress);
-		
 		// Cleanup function
 		return () => {
 			document.removeEventListener('click', handleNodeLinkClick);
-			document.removeEventListener('keydown', handleKeyPress);
 		};
 	});
 </script>
@@ -1122,23 +1113,12 @@
 		width: 100%;
 		height: 100%;
 		z-index: 10;
-		background: #111111;
+		background: #0A0A0A;
 	}
 </style>
 
 <!-- Cyberpunk theme main container with side-by-side layout -->
 <main class="relative h-screen w-screen flex" style="background-color: #080808; color: #B3B3B3;">
-	<!-- Shooting Star Mode Indicator -->
-	<div class="absolute top-4 right-4 z-50">
-		<div 
-			class="px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all duration-200 hover:opacity-80"
-			style="background-color: {useSequentialShootingStars ? '#73DACA' : '#5B8DF2'}; color: #111111;"
-			on:click={toggleShootingStarMode}
-			title="Press 'S' to toggle shooting star mode"
-		>
-			{useSequentialShootingStars ? 'Sequential' : 'Parallel'} Stars
-		</div>
-	</div>
 	<!-- Tooltip -->
 	<div
 		bind:this={tooltipEl}
@@ -1190,120 +1170,15 @@
 					<div class="h-full p-6">
 						<div 
 							class="h-full rounded-2xl overflow-hidden shadow-lg"
-							style="background-color: #111111; border: 1px solid #333333;"
+							style="background-color: #0A0A0A; border: 1px solid #333333;"
 						>
 							<div class="h-full overflow-hidden">
 								{#if node.type === 'paper' && node.content}
-									<!-- Custom formatted content for papers -->
-									<div class="h-full flex flex-col">
-										<div class="flex items-center justify-between p-6">
-											<h2 class="text-2xl font-bold" style="color: #BFCAF3;">{node.label}</h2>
-											<button
-												on:click={() => removeFromStack(node.id)}
-												class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
-												aria-label="Close"
-											>
-												✕
-											</button>
-										</div>
-										
-										<div class="flex-1 overflow-y-auto">
-											<div class="px-6 pb-6">
-												<!-- Link to original paper -->
-												{#if node.content.original_paper_url}
-													<div class="mb-6 p-4 rounded-lg" style="background-color: #1a1a1a; border: 1px solid #333333;">
-														<div class="flex items-center gap-3">
-															<div class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: #BFCAF3; color: #111111;">
-																📄
-															</div>
-															<div>
-																<div class="font-medium" style="color: #BFCAF3;">Original Paper</div>
-																<a 
-																	href="{node.content.original_paper_url}" 
-																	target="_blank" 
-																	rel="noopener noreferrer"
-																	class="text-sm hover:underline"
-																	style="color: #888888;"
-																>
-																	View on arXiv →
-																</a>
-															</div>
-														</div>
-													</div>
-												{/if}
-
-												<!-- Abstract -->
-												{#if node.content.abstract}
-													<div class="mb-6">
-														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Abstract</h3>
-														<div class="leading-relaxed" style="color: #B3B3B3;">
-															{@html parseNodeLinks(node.content.abstract)}
-														</div>
-													</div>
-												{/if}
-
-												<!-- Introduction -->
-												{#if node.content.introduction}
-													<div class="mb-6">
-														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Introduction</h3>
-														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-															{@html parseNodeLinks(node.content.introduction)}
-														</div>
-													</div>
-												{/if}
-
-												<!-- Model Architecture -->
-												{#if node.content.model_architecture}
-													<div class="mb-6">
-														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Model Architecture</h3>
-														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-															{@html parseNodeLinks(node.content.model_architecture)}
-														</div>
-													</div>
-												{/if}
-
-												<!-- Why Self-Attention -->
-												{#if node.content.why_self_attention}
-													<div class="mb-6">
-														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Why Self-Attention</h3>
-														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-															{@html parseNodeLinks(node.content.why_self_attention)}
-														</div>
-													</div>
-												{/if}
-
-												<!-- Training -->
-												{#if node.content.training}
-													<div class="mb-6">
-														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Training</h3>
-														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-															{@html parseNodeLinks(node.content.training)}
-														</div>
-													</div>
-												{/if}
-
-												<!-- Results -->
-												{#if node.content.results}
-													<div class="mb-6">
-														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Results</h3>
-														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-															{@html parseNodeLinks(node.content.results)}
-														</div>
-													</div>
-												{/if}
-
-												<!-- Conclusion -->
-												{#if node.content.conclusion}
-													<div class="mb-6">
-														<h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Conclusion</h3>
-														<div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-															{@html parseNodeLinks(node.content.conclusion)}
-														</div>
-													</div>
-												{/if}
-											</div>
-										</div>
-									</div>
+									<PaginatedContent 
+										{node}
+										{parseNodeLinks}
+										onClose={() => removeFromStack(node.id)}
+									/>
 								{:else if node.type === 'paper' && node.url}
 									<!-- PDF display for papers without formatted content -->
 									<div class="h-full flex flex-col">
@@ -1331,7 +1206,7 @@
 									<div class="p-6 h-full overflow-y-auto">
 										<div class="mb-4">
 											<div class="flex items-center justify-between mb-4">
-												<h2 class="text-2xl font-bold" style="color: {getDomainColor(node.domain)};">{node.label}</h2>
+												<h2 class="text-2xl font-bold" style="color: {getDomainColor(node.domain || 'tech')};">{node.label}</h2>
 												<button
 													on:click={() => removeFromStack(node.id)}
 													class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
@@ -1341,12 +1216,12 @@
 												</button>
 											</div>
 											<div class="flex items-center gap-2 mb-4">
-												<span class="text-sm" style="color: #B3B3B3;">Difficulty: {node.difficulty}/5</span>
+												<span class="text-sm" style="color: #B3B3B3;">Difficulty: {node.difficulty || 1}/5</span>
 												<div class="flex">
-													{#each Array(node.difficulty) as _}
-														<div class="w-2 h-2 rounded-full mr-1" style="background-color: {getDomainColor(node.domain)};"></div>
+													{#each Array(node.difficulty || 1) as _}
+														<div class="w-2 h-2 rounded-full mr-1" style="background-color: {getDomainColor(node.domain || 'tech')};"></div>
 													{/each}
-													{#each Array(5 - node.difficulty) as _}
+													{#each Array(5 - (node.difficulty || 1)) as _}
 														<div class="w-2 h-2 rounded-full mr-1" style="background-color: #3A3F59;"></div>
 													{/each}
 												</div>
@@ -1355,7 +1230,7 @@
 
 										<div class="mb-6">
 											<div class="leading-relaxed" style="color: #B3B3B3;">
-												{@html parseNodeLinks(node.description)}
+												{@html parseNodeLinks(node.description || '')}
 											</div>
 										</div>
 									</div>
