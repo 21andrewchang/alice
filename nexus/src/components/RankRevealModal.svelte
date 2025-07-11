@@ -84,7 +84,7 @@ export let calculatedRank: { tier: string; division: number | null } | null = nu
   ];
 
   let userRank: { tier: string; division: number | null } = { tier: 'Bronze', division: 4 };
-  let showRank = false;
+  let showRank = false; // controls showing of rank badge
 
 // If parent provides a calculatedRank, use it; otherwise derive from nodesVisited
 $: {
@@ -139,8 +139,8 @@ $: {
   // When component mounts or when `show` prop toggles true, start reveal timer
 $: if (show) {
   showRank = false;
-  // reveal text after short delay for entry animation
-  setTimeout(() => showRank = true, 500);
+  // delay rank reveal until after blur + title fade (0.4s overlay + slight buffer)
+  setTimeout(() => showRank = true, 300);
 }
 
 onMount(() => {
@@ -160,11 +160,9 @@ onMount(() => {
 {#if show}
   <div class="modal-overlay">
     <div class="modal-content">
-      {#if showRank}
-        <div class="text-center mb-12">
-          <div class="text-4xl font-bold mb-4" style="color: #CCCCCC;">Placements Complete!</div>
-          <div 
-            class="text-6xl font-extrabold px-16 py-10 rounded-2xl inline-block transition-all duration-300 hover:scale-110"
+      <div class="placement-title title-fade">Placements Complete!</div>
+        {#if showRank}
+                <div class="rank-badge rank-reveal text-6xl font-extrabold px-16 py-10 rounded-2xl inline-block transition-transform hover:scale-110"
             style="
               background: {rankStyles[userRank.tier].background};
               color: {rankStyles[userRank.tier].textColor};
@@ -173,16 +171,13 @@ onMount(() => {
           >
             {userRank.tier}{['Master','Grandmaster','Challenger'].includes(userRank.tier) ? '' : ` ${userRank.division}`}
           </div>
-        </div>
-        <div class="flex gap-4 justify-center">
-          <button
-            on:click={handleClose}
-            class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors duration-200"
-          >
-            Back to Nexus
-          </button>
-        </div>
-      {/if}
+        {/if}
+      <button
+          on:click={handleClose}
+          class="back-button px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors duration-200"
+        >
+          Back to Nexus
+        </button>
       <slot />
     </div>
   </div>
@@ -215,6 +210,42 @@ onMount(() => {
     align-items: center;
     justify-content: center;
   }
+  .placement-title{
+    position: fixed;
+    top: 7vh;
+    left:0;
+    right:0;
+    text-align:center;
+    font-size: 2.5rem;
+    font-weight:700;
+    color:#cccccc;
+  }
+  .back-button{
+    position: fixed;
+    bottom: 7vh;
+    left:50%;
+    transform: translateX(-50%);
+  }
+  .title-fade {
+    opacity: 0;
+    animation: title-fade-in 0.4s ease-out forwards;
+  }
+  .rank-reveal {
+    opacity: 0;
+    transform: scale(0.8);
+    animation: rank-pop-in 0.35s 0.0s ease-out forwards; /* will begin once element rendered */
+  }
+
+  @keyframes title-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rank-pop-in {
+    0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+    60% { opacity: 1; transform: scale(1.05) translateY(0); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
   @keyframes modal-dim-in {
     from {
       background: rgba(0,0,0,0.0);
