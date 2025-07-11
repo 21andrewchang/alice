@@ -136,18 +136,25 @@ $: {
     return '';
   }
 
-  onMount(() => {
-    // show rank after entrance animation delay
-    setTimeout(() => showRank = true, 500);
-  });
+  // When component mounts or when `show` prop toggles true, start reveal timer
+$: if (show) {
+  showRank = false;
+  // reveal text after short delay for entry animation
+  setTimeout(() => showRank = true, 500);
+}
+
+onMount(() => {
+  // ensure first open works
+  if (show) {
+    setTimeout(() => showRank = true, 0);
+  }
+});
 
   function handleClose() {
-    showRank = false;
-    setTimeout(() => {
-      onClose();
-      dispatch('close');
-    }, 300);
-  }
+     showRank = false;
+     onClose();
+     dispatch('close');
+   }
 </script>
 
 {#if show}
