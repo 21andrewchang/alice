@@ -162,7 +162,7 @@ onMount(() => {
     <div class="modal-content">
       <div class="placement-title title-fade">Placements Complete!</div>
         {#if showRank}
-                <div class="rank-badge rank-reveal text-6xl font-extrabold px-16 py-10 rounded-2xl inline-block transition-transform hover:scale-110"
+                <div class="rank-badge rank-reveal text-6xl font-bold px-16 py-10 rounded-2xl inline-block transition-transform hover:scale-110"
             style="
               background: {rankStyles[userRank.tier].background};
               color: {rankStyles[userRank.tier].textColor};
