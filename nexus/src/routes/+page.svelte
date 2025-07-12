@@ -72,15 +72,30 @@
 let userRank: { tier: string; division: number | null } = { tier: '', division: null };
 
 function getRankForNodesVisited(n: number) {
+    /*
+     * Placement logic capped at Platinum IV.
+     * TODO: incorporate hidden MMR so that 0-3 clicks still grant higher unseen rating.
+     */
     let tier = 'Iron';
-    let division: number | null = 1;
-    if (n === 0) { tier = 'Master'; division = null; }
-    else if (n <= 2) { tier = 'Diamond'; division = n === 1 ? 2 : 1; }
-    else if (n <= 5) { tier = 'Platinum'; division = 5 - n + 1; }
-    else if (n <= 8) { tier = 'Gold'; division = 8 - n + 1; }
-    else if (n <= 11) { tier = 'Silver'; division = 11 - n + 1; }
-    else if (n <= 14) { tier = 'Bronze'; division = 14 - n + 1; }
-    else { tier = 'Iron'; division = Math.max(1, 4 - (n - 15)); }
+    let division: number | null = 4;
+
+    if (n <= 3) {
+        tier = 'Platinum';
+        division = 4;
+    } else if (n <= 6) {          // 7‒10 → Gold IV-I
+        tier = 'Gold';
+        division = 4;         // 7→4 … 10→1
+    } else if (n <= 8) {          // 11‒14 → Silver IV-I
+        tier = 'Silver';
+        division = 4;         // 11→4 … 14→1
+    } else if (n <= 12) {          // 15‒18 → Bronze IV-I
+        tier = 'Bronze';
+        division = 4;         // 15→4 … 18→1
+    } else {
+        tier = 'Iron';
+        division = 4; // 19→4, 20→3, 21→2, 22+→1
+    }
+
     return { tier, division };
 }
 
