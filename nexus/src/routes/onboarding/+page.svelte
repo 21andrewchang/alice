@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
-	import * as d3 from 'd3';
+	let d3;
 	import PaginatedContent from '../components/PaginatedContent.svelte';
 	import RankRevealModal from '../components/RankRevealModal.svelte';
 
@@ -11,7 +11,9 @@
 	// selectedNode replaced with nodeStack system
 	// pdfLoading and showPdfFrame removed - handled per node now
 	// Use a persistent store for learnedNodes to prevent reset on re-renders
-	let learnedNodes = (() => {
+		onMount(async () => {
+		d3 = await import('d3');
+		learnedNodes = (() => {
 		if (typeof window !== 'undefined' && (window as any).persistentLearnedNodes) {
 			return (window as any).persistentLearnedNodes;
 		}
@@ -30,7 +32,7 @@
 
 
 	async function loadData() {
-		return fetch('/merged_graph.json').then((r) => r.json());
+		return fetch('/onboarding_graph.json').then((r) => r.json());
 	}
 
 	function selectNode(node) {
@@ -377,7 +379,7 @@ function handleFinishReading(count: number) {
 
 		// Add zoom behavior
 		const zoom = d3.zoom()
-			.scaleExtent([0.1, 10])
+			.scaleExtent([0.05, 10])
 			.on('zoom', (event) => {
 				g.attr('transform', event.transform);
 				
@@ -477,12 +479,12 @@ function handleFinishReading(count: number) {
 				.attr('offset', '10%')
 				.attr('stop-color', '#ffffff')
 				.attr('stop-opacity', 0.5);
-				
+					
 			gradient.append('stop')
 				.attr('offset', '50%')
 				.attr('stop-color', '#ffffff')
 				.attr('stop-opacity', 0.9);
-				
+					
 			gradient.append('stop')
 				.attr('offset', '90%')
 				.attr('stop-color', '#ffffff')
@@ -716,41 +718,41 @@ function handleFinishReading(count: number) {
 			calculateLevels();
 			
 					// Calculate delays recursively based on when each node receives ALL its prerequisites
-		function calculateLinkDelay(link) {
-			const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-			const sourcePrerequisites = nodeDependencies.get(sourceId) || new Set();
-			
-			if (sourcePrerequisites.size === 0) {
-				// Source has no prerequisites - start immediately
-				return 0;
-			} else {
-				// Source has prerequisites - wait for ALL of them to complete
-				let maxPrerequisiteCompletionTime = 0;
-				
-				sourcePrerequisites.forEach(prereqId => {
-					// Find the link that goes TO this prerequisite
-					const prereqLink = prerequisiteLinks.find(l => {
-						const lTargetId = typeof l.target === 'object' ? l.target.id : l.target;
-						return lTargetId === prereqId;
-					});
-					
-					if (prereqLink) {
-						// Recursively calculate when this prerequisite link completes
-						const prereqStartDelay = calculateLinkDelay(prereqLink);
-						const prereqCompletionTime = prereqStartDelay + 1.5; // 1.5s animation time (matches the original)
-						maxPrerequisiteCompletionTime = Math.max(maxPrerequisiteCompletionTime, prereqCompletionTime);
+					function calculateLinkDelay(link) {
+						const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+						const sourcePrerequisites = nodeDependencies.get(sourceId) || new Set();
+						
+						if (sourcePrerequisites.size === 0) {
+							// Source has no prerequisites - start immediately
+							return 0;
+						} else {
+							// Source has prerequisites - wait for ALL of them to complete
+							let maxPrerequisiteCompletionTime = 0;
+							
+							sourcePrerequisites.forEach(prereqId => {
+								// Find the link that goes TO this prerequisite
+								const prereqLink = prerequisiteLinks.find(l => {
+									const lTargetId = typeof l.target === 'object' ? l.target.id : l.target;
+									return lTargetId === prereqId;
+								});
+								
+								if (prereqLink) {
+									// Recursively calculate when this prerequisite link completes
+									const prereqStartDelay = calculateLinkDelay(prereqLink);
+									const prereqCompletionTime = prereqStartDelay + 1.5; // 1.5s animation time (matches the original)
+									maxPrerequisiteCompletionTime = Math.max(maxPrerequisiteCompletionTime, prereqCompletionTime);
+								}
+							});
+							
+							return maxPrerequisiteCompletionTime;
+						}
 					}
-				});
-				
-				return maxPrerequisiteCompletionTime;
-			}
-		}
-		
-		// Calculate delays for all links
-		prerequisiteLinks.forEach(link => {
-			const delay = calculateLinkDelay(link);
-			linkDelays.set(link, delay);
-		});
+					
+					// Calculate delays for all links
+					prerequisiteLinks.forEach(link => {
+						const delay = calculateLinkDelay(link);
+						linkDelays.set(link, delay);
+					});
 		}
 		
 		function animate() {
@@ -841,7 +843,7 @@ function handleFinishReading(count: number) {
 	}
 
 	// Function to extract all section headers and their IDs from content
-	export function extractSectionHeaders(content) {
+	function extractSectionHeaders(content) {
 		const headers = [];
 		const headerRegex = /^(####|###|##|#) (.+)$/gm;
 		let match;
@@ -873,9 +875,9 @@ function handleFinishReading(count: number) {
 			// Convert italic text (*text* to <em>)
 			.replace(/\*(.+?)\*/g, '<em style="color: #CCCCCC;">$1</em>')
 			// Convert LaTeX math blocks ($$...$$ to <div> with math styling)
-			.replace(/\$\$([\s\S]*?)\$\$/g, '<div class="bg-gray-900 p-4 rounded mb-4 overflow-x-auto text-center" style="border: 1px solid #333333;"><span style="color: #E0E0E0; font-family: \'Times New Roman\', serif; font-size: 1.1em;">$$1</span></div>')
+			.replace(/\$\$([\s\S]*?)\$\$/g, '<div class="bg-gray-900 p-4 rounded mb-4 overflow-x-auto text-center" style="border: 1px solid #333333;"><span style="color: #E0E0E0; font-family: 'Times New Roman', serif; font-size: 1.1em;">$$1</span></div>')
 			// Convert inline LaTeX math ($...$ to <span> with math styling)
-			.replace(/\$([^$\n]+?)\$/g, '<span style="color: #E0E0E0; font-family: \'Times New Roman\', serif; font-style: italic;">$$1</span>')
+			.replace(/\$([^$\n]+?)\$/g, '<span style="color: #E0E0E0; font-family: 'Times New Roman', serif; font-style: italic;">$$1</span>')
 			// Convert code blocks (```math to <pre><code>)
 			.replace(/```math\n([\s\S]*?)\n```/g, '<pre class="bg-gray-900 p-3 rounded mb-3 overflow-x-auto"><code style="color: #E0E0E0; font-family: monospace;">$1</code></pre>')
 			// Convert inline code (`code` to <code>)
@@ -1081,7 +1083,8 @@ function handleFinishReading(count: number) {
 		window.selectNodeById = selectNodeById;
 	}
 
-	onMount(async () => {
+		onMount(async () => {
+		d3 = await import('d3');
 		const data = await loadData();
 		element.innerHTML = '';
 		element.appendChild(chart(data));
@@ -1176,7 +1179,7 @@ function handleFinishReading(count: number) {
 				{#each navigationHistory as node, index (node.id)}
 					{#if index > 0}
 						<span class="text-sm" style="color: #666666;">→</span>
-					{/if}
+					{#/if}
 					<button
 						on:click={() => navigateToStackIndex(index)}
 						class="text-sm font-medium hover:underline transition-colors cursor-pointer"
@@ -1227,7 +1230,7 @@ function handleFinishReading(count: number) {
 										onFinishReading={handleFinishReading}
 									/>
 									
-								{:else if node.type === 'paper' && node.url}
+							{:else if node.type === 'paper' && node.url}
 									<!-- PDF display for papers without formatted content -->
 									<div class="h-full flex flex-col">
 										<div class="flex items-center justify-between p-6">
@@ -1249,7 +1252,7 @@ function handleFinishReading(count: number) {
 											></iframe>
 										</div>
 									</div>
-								{:else}
+							{:else}
 									<!-- Regular node display -->
 									<div class="p-6 h-full overflow-y-auto">
 										<div class="mb-4">
@@ -1282,8 +1285,7 @@ function handleFinishReading(count: number) {
 											</div>
 										</div>
 									</div>
-								{/if}
-							</div>
+							{/if}
 						</div>
 					</div>
 				</div>
@@ -1291,4 +1293,3 @@ function handleFinishReading(count: number) {
 		</div>
 	{/if}
 </main>
-

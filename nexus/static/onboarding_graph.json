@@ -1,0 +1,63 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "Welcome to Nexus!",
+      "type": "paper",
+      "description": "This is a tutorial to help you get started with Nexus. The goal is to learn how to explore concepts and get your rank.",
+      "difficulty": 1,
+      "domain": "research-papers",
+      "isPaper": true,
+      "url": "",
+      "content": {
+        "abstract": "Welcome! This tutorial will guide you through the core features of Nexus. You'll learn how to navigate the knowledge graph and understand your rank. Let's start by exploring a foundational concept. Try clicking on the <node id=\"1\">Concept Node</node>.",
+        "introduction": "In Nexus, knowledge is represented as a graph of interconnected ideas. Papers, like this one, are starting points. From here, you can dive into related concepts. Each concept you explore is a 'node' in the graph. The more nodes you need to visit to understand a paper, the more you've learned! When you're done, you'll get a rank based on your exploration. Ready to learn about another key feature? Click on the <node id=\"2\">Ranking System</node> node.",
+        "conclusion": "You've learned the basics! You can now explore the graph on your own. When you feel you've understood the paper, click the 'Finish Reading' button to see your rank. Try exploring the <node id=\"3\">Finishing Up</node> node for a final tip."
+      }
+    },
+    {
+      "id": 1,
+      "label": "Concept Node",
+      "type": "concept",
+      "description": "This is a Concept Node. It represents a specific topic or idea. Clicking on a node like this will open a panel with a detailed explanation. The graph on the left will also center on this node, showing you its connections. This is how you learn!",
+      "difficulty": 1,
+      "domain": "tech"
+    },
+    {
+      "id": 2,
+      "label": "Ranking System",
+      "type": "concept",
+      "description": "Your rank is determined by the number of concept nodes you visit while reading a paper. The fewer nodes you need to click, the higher your initial rank, suggesting you have a strong foundational knowledge. Don't worry, your rank will change as you continue to learn and explore.",
+      "difficulty": 1,
+      "domain": "tech"
+    },
+    {
+      "id": 3,
+      "label": "Finishing Up",
+      "type": "concept",
+      "description": "When you've finished reading and exploring the concepts, click the 'Finish Reading' button at the bottom of the paper. This will calculate your rank for this paper and show you where you stand. Good luck!",
+      "difficulty": 1,
+      "domain": "tech"
+    }
+  ],
+  "links": [
+    {
+      "source": 0,
+      "target": 1,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 0,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 0,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+}
