@@ -144,4 +144,16 @@ I:   Upper third of tier range
    - Minimum time thresholds
    - Pattern detection for superficial reading
    - Randomized verification questions
-   - Cross-reference checks 
+   - Cross-reference checks
+
+### Confidence-Based LP Gain & Milestone Reminders
+- Each user’s hidden **MMR** also stores a _confidence score_ \(0–1) that grows with the number and recency of assessed items.
+- **LP (League Points)** earned/lost per session is scaled by `confidence` so early games move rank faster while mature accounts stabilize.
+- **Experience (XP)** only influences _user level_ (progression & feature unlocks) and is **decoupled** from visible rank.
+- Rank reveal is **gated until Level 30**; once the XP threshold is met, Alice shows a progress bar on every screen so users know how close they are.
+- After unlock, progress toward next rank division/tier continues to be surfaced via an always-visible LP meter.
+
+### Next Steps
+- Define formula: `LP_delta = Base * Performance * confidence` with min/max caps.
+- Simulate various confidence curves to ensure fair LP gains.
+- UX: add subtle header banner showing “Level 27 → 30” progress percentage during onboarding and regular lessons. 
