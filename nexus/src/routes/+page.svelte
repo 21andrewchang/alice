@@ -617,18 +617,6 @@ body, html, #svelte {
   transform: translateX(var(--aberration, 0px));
   mix-blend-mode: lighten;
 }
-.aberration-green {
-  position: absolute;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: -2;
-  color: #00ff88;
-  opacity: var(--aberration-alpha, 0);
-  transition: opacity 0.18s;
-  mix-blend-mode: lighten;
-  /* transform set inline for up/down */
-}
 .aberration-char-wrapper { position: relative; display: inline-block; }
 </style>
 
@@ -659,7 +647,6 @@ body, html, #svelte {
           bind:this={headingSpanRefs[i]}
           style="--aberration:0px; --aberration-alpha:0;"
         >{char === ' ' ? '\u00a0' : char}</span>
-        <span class="aberration-green" aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:-2;opacity:var(--aberration-alpha,0);color:#00ff88;transform:translateY(calc(var(--aberration,0px)));transition:opacity 0.18s;">{char === ' ' ? '\u00a0' : char}</span>
       </span>
     {/each}
   </div>
