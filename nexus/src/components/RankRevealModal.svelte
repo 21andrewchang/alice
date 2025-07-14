@@ -256,4 +256,7 @@ onMount(() => {
       backdrop-filter: blur(8px);
     }
   }
+  :global(.modal-content), :global(.modal-content *) {
+    color: #fff !important;
+  }
 </style> 

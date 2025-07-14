@@ -5,6 +5,7 @@
 	import * as d3 from 'd3';
 	import PaginatedContent from '../../components/PaginatedContent.svelte';
 	import RankRevealModal from '../../components/RankRevealModal.svelte';
+	import { supabase } from '$lib/supabaseClient';
 
 	let element;
 	let tooltipEl;
@@ -107,6 +108,32 @@ function handleFinishReading(count: number) {
     console.log('calculatedRank', userRank);
     showRankModal = true;
 }
+
+	let userEmail = '';
+	let sessionObj = null;
+
+	if (typeof window !== 'undefined') {
+		try {
+			// Supabase v2 stores the session as a JSON string under this key
+			const sessionStr = window.localStorage.getItem('supabase.auth.token');
+			if (sessionStr) {
+				sessionObj = JSON.parse(sessionStr);
+				// The structure is { currentSession: { user: { email: ... } } }
+				userEmail = sessionObj?.currentSession?.user?.email || '';
+			}
+		} catch (e) {
+			userEmail = '';
+		}
+	}
+	if (!userEmail) userEmail = 'user@email.com'; // fallback placeholder
+
+	console.log('Supabase sessionObj:', sessionObj);
+	console.log('userEmail:', userEmail);
+
+	async function handleLogout() {
+		await supabase.auth.signOut();
+		window.location.href = '/';
+	}
 
 	function getBackwardNodes(node) {
 		if (!graphData) return [];
@@ -1168,6 +1195,21 @@ function handleFinishReading(count: number) {
 		background: #0A0A0A;
 	}
 </style>
+
+<!-- Debug overlay: show session object -->
+{#if sessionObj}
+  <div class="fixed top-4 left-4 z-50 bg-black bg-opacity-80 text-xs p-2 rounded shadow" style="max-width: 400px; max-height: 200px; overflow: auto; color: #BFCAF3;">
+    <strong>Supabase session:</strong>
+    <pre>{JSON.stringify(sessionObj, null, 2)}</pre>
+  </div>
+{/if}
+
+<!-- Logout button bottom left -->
+<div class="fixed bottom-4 left-4 z-50">
+  <button class="px-4 py-2 rounded-lg font-semibold" style="background-color: #22242C; color: #fff; border: 1px solid #333333;" on:click={handleLogout}>
+    Log out
+  </button>
+</div>
 
 <!-- Cyberpunk theme main container with side-by-side layout -->
 <main class="relative h-screen w-screen flex" style="background-color: #080808; color: #B3B3B3;">
