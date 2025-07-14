@@ -583,7 +583,7 @@ body, html, #svelte {
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  font-size: 2.5rem;
+  font-size: clamp(3rem, 8vw, 6rem);
   font-weight: bold;
   position: relative;
   z-index: 3;
@@ -650,9 +650,6 @@ body, html, #svelte {
       </span>
     {/each}
   </div>
-  <p class="text-lg mb-8 max-w-2xl text-center opacity-80" style="color: #fff">
-    Maximize Your Intellectual Potential
-  </p>
   <button
     class="glow-btn mb-3"
     data-hover={btnHover}
@@ -663,12 +660,6 @@ body, html, #svelte {
     on:click={() => goto('/app')}
   >
     Start learning
-  </button>
-  <button
-    class="boxy-btn"
-    on:click={() => showLoginModal = true}
-  >
-    Log in
   </button>
 </div>
 
@@ -699,3 +690,4 @@ body, html, #svelte {
     </div>
   </div>
 {/if}
+
