@@ -1,5 +1,6 @@
 <script lang="ts">
-import { onMount, onDestroy } from 'svelte';
+import { onMount, onDestroy, tick } from 'svelte';
+import { cubicOut } from 'svelte/easing';
 import { goto } from '$app/navigation';
 import { supabase } from '$lib/supabaseClient';
 
@@ -53,6 +54,76 @@ let cursorCanvasEl: HTMLCanvasElement;
 let cursorCtx: CanvasRenderingContext2D | null = null;
 let cursorAberrationAnimId: number;
 let prevCursor = { x: 0, y: 0, time: Date.now() };
+
+// --- Chromatic Aberration Animated Heading ---
+const headingText = 'Unleash Your Intellectual Potential';
+let headingSpanRefs: HTMLSpanElement[] = new Array(headingText.length);
+let headingSpans: HTMLSpanElement[] = headingSpanRefs;
+let headingRef: HTMLDivElement;
+let headingRect = { left: 0, top: 0, width: 0, height: 0 };
+let headingMouse = { x: -1000, y: -1000 };
+let animId: number;
+
+function updateHeadingRect() {
+  if (headingRef) {
+    const rect = headingRef.getBoundingClientRect();
+    headingRect = {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height
+    };
+  }
+}
+
+function handleHeadingMouseMove(e: MouseEvent) {
+  headingMouse.x = e.clientX;
+  headingMouse.y = e.clientY;
+}
+function handleHeadingMouseLeave() {
+  headingMouse.x = -1000;
+  headingMouse.y = -1000;
+}
+
+// Optimize heading animation: only update visible spans and throttle frame rate
+let lastAberrationUpdate = 0;
+function animateHeadingAberration() {
+  const now = performance.now();
+  if (now - lastAberrationUpdate < 32) { // ~30fps
+    animId = requestAnimationFrame(animateHeadingAberration);
+    return;
+  }
+  lastAberrationUpdate = now;
+  for (let i = 0; i < headingSpans.length; i++) {
+    const span = headingSpans[i];
+    if (!span || span.offsetParent === null) continue;
+    const rect = span.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    // If mouse is off-screen, treat as far left
+    let mouseX = headingMouse.x;
+    if (mouseX < 0) mouseX = 0;
+    if (mouseX > window.innerWidth) mouseX = window.innerWidth;
+    const dx = Math.abs(mouseX - cx);
+    const maxDist = window.innerWidth;
+    let proximity = Math.max(0, 1 - dx / maxDist);
+    // Use linear fade for now to guarantee effect is visible
+    const t = now / 1000 + i * 0.13;
+    const vibrate = Math.sin(t * (48 + 64 * proximity) + i) * (0.5 + 1.2 * proximity);
+    const split = proximity > 0.01 ? (0.5 + proximity * 2 + vibrate * proximity * 1.2) : 0;
+    const alpha = proximity > 0.01 ? (0.5 * proximity + 0.5 * proximity) : 0;
+    span.style.setProperty('--aberration', `${split}px`);
+    span.style.setProperty('--aberration-alpha', `${alpha}`);
+    // Update green layer (vertical split)
+    const greenSpan = span.parentElement?.querySelector('.aberration-green') as HTMLElement | null;
+    if (greenSpan) {
+      greenSpan.style.setProperty('--aberration', `${split}px`);
+      greenSpan.style.setProperty('--aberration-alpha', `${alpha}`);
+      // Alternate up/down for green for visual interest
+      greenSpan.style.transform = `translateY(${i % 2 === 0 ? '-' : ''}${split}px)`;
+    }
+  }
+  animId = requestAnimationFrame(animateHeadingAberration);
+}
 
 function setupGrid() {
   width = window.innerWidth;
@@ -185,18 +256,24 @@ function handleResize() {
 }
 
 onMount(() => {
-  ctx = canvasEl.getContext('2d');
-  glowCtx = glowCanvasEl.getContext('2d');
-  cursorCtx = cursorCanvasEl.getContext('2d');
-  handleResize();
-  animate();
-  updateLagCursor();
-  resizeCursorCanvas();
-  drawCursorAberration();
+  (async () => {
+    ctx = canvasEl.getContext('2d');
+    glowCtx = glowCanvasEl.getContext('2d');
+    cursorCtx = cursorCanvasEl.getContext('2d');
+    handleResize();
+    animate();
+    updateLagCursor();
+    resizeCursorCanvas();
+    drawCursorAberration();
+    await tick();
+    updateHeadingRect();
+    animateHeadingAberration();
+  })();
   window.addEventListener('resize', handleResize);
   window.addEventListener('resize', resizeCursorCanvas);
   window.addEventListener('mousemove', handleMouseMove);
   window.addEventListener('touchmove', handleTouchMove, { passive: false });
+  window.addEventListener('resize', updateHeadingRect);
   return () => {
     window.removeEventListener('resize', handleResize);
     window.removeEventListener('resize', resizeCursorCanvas);
@@ -204,6 +281,8 @@ onMount(() => {
     window.removeEventListener('touchmove', handleTouchMove);
     window.cancelAnimationFrame(animationId);
     cancelAnimationFrame(cursorAberrationAnimId);
+    window.removeEventListener('resize', updateHeadingRect);
+    cancelAnimationFrame(animId);
   };
 });
 
@@ -358,7 +437,7 @@ body, html, #svelte {
 }
 .landing-content {
   position: relative;
-  z-index: 1;
+  z-index: 3;
 }
 .custom-cursor {
   position: fixed;
@@ -499,6 +578,58 @@ body, html, #svelte {
 .glitch-text:hover::after {
   transform: translate(2px, 1px);
 }
+.aberration-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  position: relative;
+  z-index: 3;
+  /* Remove drop-shadow glow */
+  /* filter: drop-shadow(0 2px 16px #fff) drop-shadow(0 0px 32px #aaf); */
+}
+.aberration-char {
+  position: relative;
+  display: inline-block;
+  color: #fff;
+  transition: color 0.18s;
+}
+.aberration-char::before,
+.aberration-char::after {
+  content: attr(data-char);
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  opacity: var(--aberration-alpha, 0.5);
+  transition: opacity 0.18s;
+}
+.aberration-char::before {
+  color: #00aaff;
+  transform: translateX(calc(-1 * var(--aberration, 0px)));
+  mix-blend-mode: lighten;
+}
+.aberration-char::after {
+  color: #ff003c;
+  transform: translateX(var(--aberration, 0px));
+  mix-blend-mode: lighten;
+}
+.aberration-green {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: -2;
+  color: #00ff88;
+  opacity: var(--aberration-alpha, 0);
+  transition: opacity 0.18s;
+  mix-blend-mode: lighten;
+  /* transform set inline for up/down */
+}
+.aberration-char-wrapper { position: relative; display: inline-block; }
 </style>
 
 <div class="landing-bg">
@@ -514,7 +645,24 @@ body, html, #svelte {
 {/if}
 
 <div class="landing-content min-h-screen flex flex-col items-center justify-center px-4">
-  <h1 class="text-4xl md:text-6xl font-bold mb-6 text-center glitch-text" data-text="Unleash Your Intellectual Potential" style="color: #fff">Unleash Your Intellectual Potential</h1>
+  <div
+    class="aberration-heading"
+    bind:this={headingRef}
+    on:mousemove={handleHeadingMouseMove}
+    on:mouseleave={handleHeadingMouseLeave}
+  >
+    {#each headingText.split('') as char, i (i)}
+      <span class="aberration-char-wrapper" style="position:relative;display:inline-block;">
+        <span
+          class="aberration-char"
+          data-char={char === ' ' ? '\u00a0' : char}
+          bind:this={headingSpanRefs[i]}
+          style="--aberration:0px; --aberration-alpha:0;"
+        >{char === ' ' ? '\u00a0' : char}</span>
+        <span class="aberration-green" aria-hidden="true" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:-2;opacity:var(--aberration-alpha,0);color:#00ff88;transform:translateY(calc(var(--aberration,0px)));transition:opacity 0.18s;">{char === ' ' ? '\u00a0' : char}</span>
+      </span>
+    {/each}
+  </div>
   <p class="text-lg mb-8 max-w-2xl text-center opacity-80" style="color: #fff">
     Maximize Your Intellectual Potential
   </p>
