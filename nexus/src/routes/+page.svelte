@@ -7,20 +7,28 @@ let canvasEl: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D | null = null;
 let animationId: number;
 
-const dotSpacing = 24;
-const dotRadius = 1.5;
-let dots: {x: number, y: number, ox: number, oy: number, vx: number, vy: number}[] = [];
 let width = 0;
 let height = 0;
 let mouse = { x: -1000, y: -1000 };
 let cursorX = 0;
 let cursorY = 0;
 let showCustomCursor = false;
+let cursorSpawned = false;
+let cursorScale = 0;
+let cursorSpawnedOnce = false;
 let cursorTimer: ReturnType<typeof setTimeout>;
-const gravityRadius = 40;
-const gravityStrength = 30;
+let cursorGravityScale = 0;
+
+const dotSpacing = 32; // was 24, fewer dots, more spread out
+const dotRadius = 0.7; // was 1.0, smaller dots
+const minBrightness = 0.24; // was 0.18, brighter dots
+const maxBrightness = 0.48; // was 0.38, brighter dots
+const cursorEffectRadius = 420; // very large radius for global shift
+const cursorAttractStrength = 0.22; // strong enough to move the grid
+// Make the dots more bouncy and smooth
+const cursorDeceleration = 0.90; // was 0.82, higher = more floaty
 const maxDotDisplacement = 32;
-const springK = 0.12;
+const springK = 0.07; // was 0.12, lower = softer spring
 const damping = 0.75;
 
 // Glow dots background
@@ -38,13 +46,22 @@ let btnGlowY = 50;
 let btnHover = false;
 let btnGlowFadeTimer: ReturnType<typeof setTimeout> | null = null;
 
+// Each dot gets a random base brightness
+let dots: {x: number, y: number, ox: number, oy: number, vx: number, vy: number, baseB: number}[] = [];
+
+let cursorCanvasEl: HTMLCanvasElement;
+let cursorCtx: CanvasRenderingContext2D | null = null;
+let cursorAberrationAnimId: number;
+let prevCursor = { x: 0, y: 0, time: Date.now() };
+
 function setupGrid() {
   width = window.innerWidth;
   height = window.innerHeight;
   dots = [];
   for (let y = 0; y <= height; y += dotSpacing) {
     for (let x = 0; x <= width; x += dotSpacing) {
-      dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0 });
+      const baseB = minBrightness + Math.random() * (maxBrightness - minBrightness);
+      dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0, baseB });
     }
   }
 }
@@ -57,7 +74,7 @@ function setupGlowDots() {
     const x = Math.random() * width;
     const y = Math.random() * height;
     const r = 60 + Math.random() * 80;
-    const color = Math.random() > 0.5 ? 'rgba(191,202,243,0.12)' : 'rgba(255,255,255,0.10)';
+    const color = Math.random() > 0.5 ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.10)';
     const a = 0.18 + Math.random() * 0.12;
     glowDots.push({ x, y, r, color, a });
   }
@@ -77,33 +94,37 @@ function drawGlowDots() {
   }
 }
 
+// Custom cursor lag
+let lagCursorX = 0;
+let lagCursorY = 0;
+const cursorLag = 0.12; // 0.1-0.2 is a good range
+
 function animate() {
   if (!ctx) return;
   ctx.clearRect(0, 0, width, height);
   for (const dot of dots) {
     // Spring force toward original position
-    const springFx = (dot.ox - dot.x) * springK;
-    const springFy = (dot.oy - dot.y) * springK;
-    dot.vx += springFx;
-    dot.vy += springFy;
+    let springFx = (dot.ox - dot.x) * springK;
+    let springFy = (dot.oy - dot.y) * springK;
 
-    // Damping
-    dot.vx *= damping;
-    dot.vy *= damping;
-
-    // Calculate distance to mouse
-    const dx = dot.x - mouse.x;
-    const dy = dot.y - mouse.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist < gravityRadius) {
-      // Push dot away from mouse
-      const angle = Math.atan2(dy, dx);
-      const force = (gravityRadius - dist) / gravityRadius * gravityStrength;
-      dot.vx += Math.cos(angle) * force;
-      dot.vy += Math.sin(angle) * force;
+    // Only apply repelling force if cursor has spawned
+    if (cursorSpawnedOnce) {
+      const dx = dot.x - mouse.x;
+      const dy = dot.y - mouse.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const maxDist = Math.max(width, height); // as big as the page
+      if (dist < maxDist) {
+        // Strong repelling force near center, much less farther away
+        const repelStrength = 0.18 * Math.exp(-dist / (maxDist * 0.22)); // exponential falloff
+        springFx += (dx / (dist + 1e-6)) * repelStrength * maxDist * cursorGravityScale;
+        springFy += (dy / (dist + 1e-6)) * repelStrength * maxDist * cursorGravityScale;
+      }
     }
 
-    // Update position
+    // More physically realistic spring-damper (for bounciness)
+    dot.vx = (dot.vx + springFx) * cursorDeceleration;
+    dot.vy = (dot.vy + springFy) * cursorDeceleration;
+
     dot.x += dot.vx;
     dot.y += dot.vy;
 
@@ -115,20 +136,38 @@ function animate() {
       const clampAngle = Math.atan2(ody, odx);
       dot.x = dot.ox + Math.cos(clampAngle) * maxDotDisplacement;
       dot.y = dot.oy + Math.sin(clampAngle) * maxDotDisplacement;
-      dot.vx = 0;
-      dot.vy = 0;
+      // Do NOT reset dot.vx or dot.vy to zero; let them decay naturally
     }
 
-    // All dots: same color and subtle shadow
+    // Draw dot with dynamic brightness (brighter when closer to cursor)
+    // Add twinkle: randomize brightness a bit each frame
+    let brightness = dot.baseB + (Math.random() - 0.5) * 0.12;
+    if (cursorSpawnedOnce) {
+      const dx = dot.x - mouse.x;
+      const dy = dot.y - mouse.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const maxDist = Math.max(width, height);
+      if (dist < maxDist) {
+        brightness += (maxBrightness - dot.baseB) * (1 - dist / maxDist);
+      }
+    }
+    const b = Math.min(1, Math.max(0, brightness));
     ctx.beginPath();
     ctx.arc(dot.x, dot.y, dotRadius, 0, Math.PI * 2);
-    ctx.fillStyle = '#222';
-    ctx.shadowColor = '#222';
+    ctx.fillStyle = `rgba(255,255,255,${b})`;
+    ctx.shadowColor = `rgba(255,255,255,${b*0.7})`;
     ctx.shadowBlur = 2;
     ctx.fill();
     ctx.shadowBlur = 0;
   }
   animationId = requestAnimationFrame(animate);
+}
+
+// Custom cursor lag update
+function updateLagCursor() {
+  lagCursorX += (cursorX - lagCursorX) * cursorLag;
+  lagCursorY += (cursorY - lagCursorY) * cursorLag;
+  requestAnimationFrame(updateLagCursor);
 }
 
 function handleResize() {
@@ -148,30 +187,119 @@ function handleResize() {
 onMount(() => {
   ctx = canvasEl.getContext('2d');
   glowCtx = glowCanvasEl.getContext('2d');
+  cursorCtx = cursorCanvasEl.getContext('2d');
   handleResize();
   animate();
+  updateLagCursor();
+  resizeCursorCanvas();
+  drawCursorAberration();
   window.addEventListener('resize', handleResize);
+  window.addEventListener('resize', resizeCursorCanvas);
   window.addEventListener('mousemove', handleMouseMove);
-  // Delay cursor spawn by 2 seconds
-  cursorTimer = setTimeout(() => {
-    showCustomCursor = true;
-  }, 2000);
+  window.addEventListener('touchmove', handleTouchMove, { passive: false });
   return () => {
     window.removeEventListener('resize', handleResize);
+    window.removeEventListener('resize', resizeCursorCanvas);
     window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('touchmove', handleTouchMove);
     window.cancelAnimationFrame(animationId);
-    clearTimeout(cursorTimer);
+    cancelAnimationFrame(cursorAberrationAnimId);
   };
 });
+
+function resizeCursorCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  cursorCanvasEl.width = window.innerWidth * dpr;
+  cursorCanvasEl.height = window.innerHeight * dpr;
+  cursorCanvasEl.style.width = `${window.innerWidth}px`;
+  cursorCanvasEl.style.height = `${window.innerHeight}px`;
+  cursorCtx?.setTransform(1, 0, 0, 1, 0, 0);
+  cursorCtx?.scale(dpr, dpr);
+}
+
+function drawCursorAberration() {
+  if (!cursorCtx) return;
+  cursorCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+  // Aberration logic
+  const now = Date.now();
+  const dt = now - prevCursor.time;
+  const dx = lagCursorX - prevCursor.x;
+  const dy = lagCursorY - prevCursor.y;
+  const velocity = Math.sqrt(dx * dx + dy * dy) / (dt || 1);
+  prevCursor = { x: lagCursorX, y: lagCursorY, time: now };
+
+  // Use the same radius as the main white cursor (16px at scale 1)
+  const minOffset = 0;
+  const maxOffset = 18;
+  const aberrationOffset = Math.max(minOffset, Math.min(maxOffset, velocity * 1.2));
+  const circleRadius = 16 * cursorScale;
+
+  function drawAberrationCircle(offsetX: number, offsetY: number, color: string, rad: number) {
+    if (!cursorCtx) return;
+    cursorCtx.save();
+    cursorCtx.shadowColor = color;
+    cursorCtx.shadowBlur = 8;
+    cursorCtx.beginPath();
+    cursorCtx.arc(lagCursorX + offsetX, lagCursorY + offsetY, rad, 0, Math.PI * 2);
+    cursorCtx.fillStyle = color;
+    cursorCtx.fill();
+    cursorCtx.restore();
+  }
+
+  // Draw colored circles first (so they hide behind the white core)
+  drawAberrationCircle(aberrationOffset, 0, 'rgba(254, 0, 0, 0.7)', circleRadius);
+  drawAberrationCircle(-aberrationOffset, 0, 'rgba(0, 128, 255, 0.7)', circleRadius);
+  // Draw the white core last, always on top, same size as color circles
+  drawAberrationCircle(0, 0, 'rgba(255,255,255,0.95)', circleRadius);
+
+  cursorAberrationAnimId = requestAnimationFrame(drawCursorAberration);
+}
+
+function animateCursorScale() {
+  if (cursorScale < 1) {
+    cursorScale += (1 - cursorScale) * 0.22 + 0.01;
+    cursorGravityScale += (1 - cursorGravityScale) * 0.22 + 0.01;
+    if (cursorScale > 0.995) cursorScale = 1;
+    if (cursorGravityScale > 0.995) cursorGravityScale = 1;
+    requestAnimationFrame(animateCursorScale);
+  }
+}
 
 function handleMouseMove(e: MouseEvent) {
   mouse.x = e.clientX;
   mouse.y = e.clientY;
   cursorX = e.clientX;
   cursorY = e.clientY;
-  if (!showCustomCursor) {
+  if (!cursorSpawnedOnce) {
+    lagCursorX = cursorX;
+    lagCursorY = cursorY;
     showCustomCursor = true;
-    clearTimeout(cursorTimer);
+    cursorSpawned = true;
+    cursorScale = 0.01;
+    cursorGravityScale = 0; // reset gravity ramp
+    animateCursorScale();
+    cursorSpawnedOnce = true;
+  }
+}
+
+function handleTouchMove(e: TouchEvent) {
+  if (e.touches.length > 0) {
+    const t = e.touches[0];
+    mouse.x = t.clientX;
+    mouse.y = t.clientY;
+    cursorX = t.clientX;
+    cursorY = t.clientY;
+    if (!cursorSpawnedOnce) {
+      lagCursorX = cursorX;
+      lagCursorY = cursorY;
+      showCustomCursor = true;
+      cursorSpawned = true;
+      cursorScale = 0.01;
+      cursorGravityScale = 0; // reset gravity ramp
+      animateCursorScale();
+      cursorSpawnedOnce = true;
+    }
   }
 }
 
@@ -240,12 +368,12 @@ body, html, #svelte {
   height: 32px;
   pointer-events: none;
   z-index: 10000;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0);
   border-radius: 50%;
-  background: radial-gradient(circle, #BFCAF3 60%, rgba(191,202,243,0.5) 100%);
-  box-shadow: 0 0 24px 8px #BFCAF3, 0 0 64px 16px rgba(191,202,243,0.25);
+  background: radial-gradient(circle, #fff 60%, rgba(255,255,255,0.5) 100%);
+  box-shadow: 0 0 14px 4px #fff, 0 0 48px 18px rgba(255,255,255,0.18);
   opacity: 0.95;
-  transition: background 0.15s, box-shadow 0.15s;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .boxy-btn, .glow-btn {
   background: rgba(0,0,0,0.7);
@@ -280,9 +408,9 @@ body, html, #svelte {
   z-index: 2;
   background: radial-gradient(
     circle at var(--glow-x, 50%) var(--glow-y, 50%),
-    rgba(191,202,243,0.85) 0%,
-    rgba(191,202,243,0.45) 30%,
-    rgba(191,202,243,0.12) 60%,
+    rgba(255,255,255,0.85) 0%,
+    rgba(255,255,255,0.45) 30%,
+    rgba(255,255,255,0.12) 60%,
     transparent 100%
   );
   filter: blur(3.5px);
@@ -330,6 +458,13 @@ body, html, #svelte {
 .login-close:hover {
   opacity: 1;
 }
+.cursor-aberration-canvas {
+  position: fixed;
+  left: 0; top: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 10001;
+}
 </style>
 
 <div class="landing-bg">
@@ -338,10 +473,10 @@ body, html, #svelte {
 <div class="landing-glow-bg">
   <canvas bind:this={glowCanvasEl} width={width} height={height} style="display:block;width:100vw;height:100vh;"></canvas>
 </div>
-
+<canvas bind:this={cursorCanvasEl} class="cursor-aberration-canvas"></canvas>
 <!-- Custom cursor -->
 {#if showCustomCursor}
-  <div class="custom-cursor" style="left: {cursorX}px; top: {cursorY}px;"></div>
+  <div class="custom-cursor" style="left: {lagCursorX}px; top: {lagCursorY}px; transform: translate(-50%, -50%) scale({cursorScale});"></div>
 {/if}
 
 <div class="landing-content min-h-screen flex flex-col items-center justify-center px-4">

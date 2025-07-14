@@ -497,7 +497,8 @@ function handleFinishReading(count: number) {
 			.join('line')
 			.attr('class', 'regular-link')
 			.attr('stroke-width', (d) => Math.sqrt(d.value || 1))
-			.attr('stroke', (d) => linkColor(d.relation));
+			.attr('stroke', (d) => linkColor(d.relation))
+			.attr('stroke-opacity', 0.22); // More transparent
 		
 		// Add shooting star effects for prerequisite links
 		const prerequisiteLinks = links.filter(link => link.relation === 'prerequisite');
