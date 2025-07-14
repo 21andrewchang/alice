@@ -465,6 +465,40 @@ body, html, #svelte {
   pointer-events: none;
   z-index: 10001;
 }
+.glitch-text {
+  position: relative;
+  color: #fff;
+  z-index: 1;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  z-index: -1;
+  opacity: 0.7;
+  pointer-events: none;
+  transition: transform 0.2s cubic-bezier(.25,.46,.45,.94);
+}
+.glitch-text::before {
+  color: #00aaff;
+  transform: translate(0, 0);
+  mix-blend-mode: lighten;
+}
+.glitch-text::after {
+  color: #ff003c;
+  transform: translate(0, 0);
+  mix-blend-mode: lighten;
+}
+.glitch-text:hover::before {
+  transform: translate(-2px, -1px);
+}
+.glitch-text:hover::after {
+  transform: translate(2px, 1px);
+}
 </style>
 
 <div class="landing-bg">
@@ -480,9 +514,9 @@ body, html, #svelte {
 {/if}
 
 <div class="landing-content min-h-screen flex flex-col items-center justify-center px-4">
-  <h1 class="text-4xl md:text-6xl font-bold mb-6 text-center" style="color: #fff">Alice — Level-up your ML & Robotics skills</h1>
+  <h1 class="text-4xl md:text-6xl font-bold mb-6 text-center glitch-text" data-text="Unleash Your Intellectual Potential" style="color: #fff">Unleash Your Intellectual Potential</h1>
   <p class="text-lg mb-8 max-w-2xl text-center opacity-80" style="color: #fff">
-    Learn from curated research papers and bite-size lessons. No planning, just play.
+    Maximize Your Intellectual Potential
   </p>
   <button
     class="glow-btn mb-3"
