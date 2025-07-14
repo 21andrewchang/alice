@@ -121,7 +121,7 @@
 <style>
 	:global(:root) {
 		--bg: #1e1e1e;
-		--fg: #f0f0f0;
+		--fg: #fff;
 		--bar: #2d2d2d;
 		--btn-hover: #3a3a3a;
 	}
@@ -130,11 +130,11 @@
 		display: flex;
 		flex-direction: column;
 		background: var(--bg);
-		color: var(--fg);
+		color: #fff;
 	}
 	.toolbar {
 		background: var(--bar);
-		color: var(--fg);
+		color: #fff;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -142,7 +142,7 @@
 		border-bottom: 1px solid #333;
 	}
 	.toolbar input { 
-		color: var(--fg); 
+		color: #fff; 
 		background: var(--bg);
 		border: 1px solid #444;
 		padding: 0.25rem;
@@ -151,7 +151,7 @@
 	.toolbar button {
 		background: none;
 		border: none;
-		color: var(--fg);
+		color: #fff;
 		margin-left: 0.5rem;
 		padding: 0.3rem 0.5rem;
 		cursor: pointer;
@@ -189,7 +189,7 @@
 		gap: 1rem;
 	}
 	.error {
-		color: #ff6b6b;
+		color: #fff;
 	}
 	.spinner {
 		border: 2px solid #333;

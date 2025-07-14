@@ -1,2 +1,47 @@
+:root {
+  /* Backgrounds */
+  --bg-primary: #111111;      /* Void Black - safest dark */
+  --bg-secondary: #0F0F0F;    /* Deep Shadow */
+  --bg-surface: #A9AEED;      /* Quantum Drift */
+  --bg-legacy-slate: #4D5072; /* Circuit Slate - borders only */
+  
+  /* Buttons */
+  --btn-primary: #5B8DF2;     /* Electric Pulse */
+  --btn-primary-hover: #64C5FF; /* Photon Wave */
+  --btn-secondary: #8060D0;   /* Violet Circuit */
+  --btn-secondary-hover: #B585FF; /* Neon Orchid */
+  
+  /* Interactive */
+  --accent-glow: #FF007F;     /* Neon Fuchsia */
+  --link-color: #A1FFE7;      /* Cyan Haze */
+  
+  /* Text */
+  --text-primary: #B3B3B3;    /* Light Gray */
+  --text-secondary: #3A3F59;  /* Neon Grid Gray */
+  
+  /* Status */
+  --error-color: #B3335E;     /* Augment Crimson */
+  --warning-color: #FF8B48;   /* Cyber Ember */
+  --success-color: #C7EC68;   /* Acid Forest */
+  --info-color: #3AA4A8;      /* Neon Cyan */
+  
+  /* Topic Domains */
+  --topic-math: #5B8DF2;      /* Electric Pulse */
+  --topic-tech: #73DACA;      /* Cyber Teal */
+  --topic-sciences: #BA6FFF;  /* Cosmic Violet */
+  --topic-humanities: #F88951; /* Sunset Amber */
+  --topic-art: #F7768E;       /* Rose Bloom */
+  --topic-research-papers: #BFCAF3; /* Papyrus */
+  
+  /* Nodes */
+  --node-base: #3A5A8F;       /* Desaturated Electric Pulse for CNN */
+  --node-learned: #5B8DF2;    /* Electric Pulse full saturation */
+  --node-glow: #5B8DF2;       /* Electric Pulse */
+  --node-paper: #BFCAF3;      /* Papyrus */
+  
+  /* Connections */
+  --link-all: #333333;        /* Dark Gray - ALWAYS use for edges */
+}
+
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';

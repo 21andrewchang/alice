@@ -1,19 +1,25 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
+console.log('SERVER: VITE_SUPABASE_URL:', process.env.VITE_SUPABASE_URL);
+console.log('SERVER: VITE_SUPABASE_ANON_KEY:', process.env.VITE_SUPABASE_ANON_KEY);
+
 import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
 import { dev } from '$app/environment';
 import type { Handle } from '@sveltejs/kit';
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
-
-// Load environment variables manually
-dotenv.config();
-
-
 
 export const handle: Handle = async ({ event, resolve }) => {
+  // Extend event.locals type for custom properties
+  const locals = event.locals as typeof event.locals & {
+    supabase: SupabaseClient;
+    getSession: () => Promise<Session | null>;
+  };
+
   // Create Supabase client per request.
-  event.locals.supabase = createSupabaseServerClient({
-    supabaseUrl: process.env.PUBLIC_SUPABASE_URL!,
-    supabaseKey: process.env.PUBLIC_SUPABASE_ANON_KEY!,
+  locals.supabase = createSupabaseServerClient({
+    supabaseUrl: process.env.VITE_SUPABASE_URL!,
+    supabaseKey: process.env.VITE_SUPABASE_ANON_KEY!,
     event,
     cookieOptions: {
       secure: !dev
@@ -21,8 +27,8 @@ export const handle: Handle = async ({ event, resolve }) => {
   });
 
   // Helper to get the current session on server.
-  event.locals.getSession = async () => {
-    const { data } = await event.locals.supabase.auth.getSession();
+  locals.getSession = async () => {
+    const { data } = await locals.supabase.auth.getSession();
     return data.session;
   };
 

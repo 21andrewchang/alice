@@ -102,6 +102,12 @@
   });
 </script>
 
+<style>
+:global(.onboarding-content), :global(.onboarding-content *) {
+  color: #fff !important;
+}
+</style>
+
 <div class="h-full flex flex-col" style="background-color: #111111;">
   <!-- Header -->
   <div class="flex items-center justify-between p-6">
