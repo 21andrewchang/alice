@@ -44,7 +44,10 @@
 		"vitest": "^3.2.3"
 	},
 	"dependencies": {
+		"@supabase/auth-helpers-sveltekit": "^0.13.0",
+		"@supabase/supabase-js": "^2.43.4",
 		"@types/d3": "^7.4.3",
-		"d3": "^7.9.0"
+		"d3": "^7.9.0",
+		"dotenv": "^17.2.0"
 	}
 }

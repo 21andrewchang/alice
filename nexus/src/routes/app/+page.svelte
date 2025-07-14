@@ -1,7 +1,1309 @@
 <script lang="ts">
-  // Reuse the existing root page component for the authenticated “app” route.
-  import HomePage from '../+page.svelte';
-  export let data;
+	import { onMount } from 'svelte';
+	import { fly } from 'svelte/transition';
+	import { cubicOut, cubicIn } from 'svelte/easing';
+	import * as d3 from 'd3';
+	import PaginatedContent from '../../components/PaginatedContent.svelte';
+	import RankRevealModal from '../../components/RankRevealModal.svelte';
+
+	let element;
+	let tooltipEl;
+	// selectedNode replaced with nodeStack system
+	// pdfLoading and showPdfFrame removed - handled per node now
+	// Use a persistent store for learnedNodes to prevent reset on re-renders
+	let learnedNodes = (() => {
+		if (typeof window !== 'undefined' && (window as any).persistentLearnedNodes) {
+			return (window as any).persistentLearnedNodes;
+		}
+		const set = new Set();
+		if (typeof window !== 'undefined') {
+			(window as any).persistentLearnedNodes = set;
+		}
+		return set;
+	})();
+	
+	// Idle animation variables
+	let simulation;
+	let idleTime = 0;
+	let idleAnimationId;
+	
+
+
+	async function loadData() {
+		return fetch('/merged_graph.json').then((r) => r.json());
+	}
+
+	function selectNode(node) {
+		// Add to stack instead of setting selectedNode
+		addToNodeStack(node);
+		
+		// Center the graph on the selected node
+		centerGraphOnNode(node);
+	}
+
+	function toggleLearned(nodeId) {
+		if (learnedNodes.has(nodeId)) {
+			learnedNodes.delete(nodeId);
+		} else {
+			learnedNodes.add(nodeId);
+		}
+		updateNodeStyles();
+	}
+
+	let nodeSel; // Store node selection for updates
+	let linkSel; // Store link selection for updates
+	let textSel; // Store text selection for updates
+	let zoomBehavior; // Store zoom behavior for programmatic control
+	let svgElement; // Store SVG element reference
+	let focusedNode = null; // Currently focused node for dimming effect
+	let connectedNodes = new Set(); // Set of nodes connected to focused node
+	let graphData = null; // Store graph data for connection analysis
+	let nodeStack = []; // Stack of open nodes for layered interface
+	let navigationHistory = []; // Chronological order of node clicks (for breadcrumb)
+
+	let activeSectionId = null;
+	// Always use sequential shooting stars
+	const useSequentialShootingStars = true;
+
+	let showRankModal = false;
+	let rankNodesVisited = 0;
+
+// Store last calculated rank for inline display
+let userRank: { tier: string; division: number | null } = { tier: '', division: null };
+
+function getRankForNodesVisited(n: number) {
+    /*
+     * Placement logic capped at Platinum IV.
+     * TODO: incorporate hidden MMR so that 0-3 clicks still grant higher unseen rating.
+     */
+    let tier = 'Iron';
+    let division: number | null = 4;
+
+    if (n <= 3) {
+        tier = 'Platinum';
+        division = 4;
+    } else if (n <= 6) {          // 7‒10 → Gold IV-I
+        tier = 'Gold';
+        division = 4;         // 7→4 … 10→1
+    } else if (n <= 8) {          // 11‒14 → Silver IV-I
+        tier = 'Silver';
+        division = 4;         // 11→4 … 14→1
+    } else if (n <= 12) {          // 15‒18 → Bronze IV-I
+        tier = 'Bronze';
+        division = 4;         // 15→4 … 18→1
+    } else {
+        tier = 'Iron';
+        division = 4; // 19→4, 20→3, 21→2, 22+→1
+    }
+
+    return { tier, division };
+}
+
+// Show the rank modal when the user finishes reading
+function handleFinishReading(count: number) {
+    rankNodesVisited = count;
+    userRank = getRankForNodesVisited(count);
+    console.log('Visited nodes:', count, '=> Rank:', userRank);
+    console.log('calculatedRank', userRank);
+    showRankModal = true;
+}
+
+	function getBackwardNodes(node) {
+		if (!graphData) return [];
+		return graphData.links
+			.filter(l => l.target === node.id && l.relation === 'prerequisite')
+			.map(l => graphData.nodes.find(n => n.id === (l.source.id ?? l.source)))
+			.filter(Boolean);
+	}
+
+	function getForwardNodes(node) {
+		if (!graphData) return [];
+		return graphData.links
+			.filter(l => l.source === node.id && l.relation === 'prerequisite')
+			.map(l => graphData.nodes.find(n => n.id === (l.target.id ?? l.target)))
+			.filter(Boolean);
+	}
+
+	function getDomainColor(domain) {
+		const domainColors = {
+			'math': '#5B8DF2',          // Electric Pulse
+			'tech': '#73DACA',          // Cyber Teal  
+			'sciences': '#BA6FFF',      // Cosmic Violet
+			'humanities': '#F88951',    // Sunset Amber
+			'art': '#F7768E',           // Rose Bloom
+			'research-papers': '#BFCAF3' // Papyrus
+		};
+		return domainColors[domain] || '#3A5A8F'; // Default to Desaturated Electric Pulse
+	}
+
+	function updateNodeStyles() {
+		if (nodeSel) {
+			nodeSel
+				.transition()
+				.duration(300)
+				.attr('fill', (d) => {
+					// Determine base color (learned vs unlearned)
+					let baseColor;
+					if (d.type === 'paper') {
+						baseColor = learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8';
+					} else {
+						const domainColor = getDomainColor(d.domain || 'tech');
+						baseColor = learnedNodes.has(d.id) ? domainColor : dimColor(domainColor);
+					}
+					
+					// Apply focus dimming by darkening color much more aggressively
+					if (focusedNode && !connectedNodes.has(d.id)) {
+						return veryDimColor(baseColor); // Very dark for unconnected nodes
+					}
+					return baseColor;
+				})
+				.attr('stroke', (d) => {
+					// Determine base stroke color (learned vs unlearned)
+					let baseColor;
+					if (d.type === 'paper') {
+						baseColor = learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8';
+					} else {
+						const domainColor = getDomainColor(d.domain || 'tech');
+						baseColor = learnedNodes.has(d.id) ? domainColor : dimColor(domainColor);
+					}
+					
+					// Apply focus dimming by darkening color much more aggressively
+					if (focusedNode && !connectedNodes.has(d.id)) {
+						return veryDimColor(baseColor); // Very dark for unconnected nodes
+					}
+					return baseColor;
+				})
+				.attr('stroke-width', (d) => {
+					// Reduce stroke width for focused-out nodes
+					let baseWidth = learnedNodes.has(d.id) ? 3 : 1.5;
+					if (focusedNode && !connectedNodes.has(d.id)) {
+						return Math.max(0.5, baseWidth * 0.5); // Thinner stroke for dimmed nodes
+					}
+					return baseWidth;
+				})
+				.style('filter', (d) => {
+					// Only show glow on learned nodes that aren't dimmed by focus
+					if (focusedNode && !connectedNodes.has(d.id)) {
+						return null; // No glow for focused-out nodes
+					}
+					if (d.type === 'paper') return learnedNodes.has(d.id) ? 'drop-shadow(0 0 6px #BFCAF3)' : null;
+					const domainColor = getDomainColor(d.domain || 'tech');
+					return learnedNodes.has(d.id) ? `drop-shadow(0 0 6px ${domainColor})` : null;
+				});
+		}
+		
+		// Update link opacity and glow effects based on focus and visited status
+		if (linkSel) {
+			linkSel
+				.transition()
+				.duration(300)
+				.style('opacity', (d) => {
+					if (!focusedNode) return 1; // No focus, show all links
+					
+					// Show links that connect to the focused node or between connected nodes
+					const sourceConnected = connectedNodes.has(d.source.id || d.source);
+					const targetConnected = connectedNodes.has(d.target.id || d.target);
+					if (sourceConnected || targetConnected) {
+						return 1; // Full opacity for connected links
+					}
+					return 0.05; // Very dim for other links
+				})
+				.style('filter', (d) => {
+					// Add glow effect for links between visited nodes
+					const sourceVisited = learnedNodes.has(d.source.id || d.source);
+					const targetVisited = learnedNodes.has(d.target.id || d.target);
+					
+					if (sourceVisited && targetVisited) {
+						// Both nodes are visited - add glow effect
+						const sourceNode = graphData?.nodes?.find(n => n.id === (d.source.id || d.source));
+						const targetNode = graphData?.nodes?.find(n => n.id === (d.target.id || d.target));
+						
+						// Use the color of the source node for the glow
+						let glowColor;
+						if (sourceNode?.type === 'paper') {
+							glowColor = '#BFCAF3'; // Papyrus color for papers
+						} else {
+							glowColor = getDomainColor(sourceNode?.domain || 'tech');
+						}
+						
+						return `drop-shadow(0 0 8px ${glowColor}) drop-shadow(0 0 4px ${glowColor})`;
+					}
+					
+					return null; // No glow for unvisited connections
+				})
+				.attr('stroke-width', (d) => {
+					// Make visited connections slightly thicker
+					const sourceVisited = learnedNodes.has(d.source.id || d.source);
+					const targetVisited = learnedNodes.has(d.target.id || d.target);
+					
+					if (sourceVisited && targetVisited) {
+						return Math.sqrt(d.value || 1) * 1.5; // 50% thicker for visited connections
+					}
+					
+					return Math.sqrt(d.value || 1); // Normal thickness
+				});
+		}
+		
+		// Update text styling based on focus
+		if (textSel) {
+			textSel
+				.transition()
+				.duration(300)
+				.attr('font-size', (d) => {
+					// Make text larger for connected nodes when focused
+					if (focusedNode && connectedNodes.has(d.id)) {
+						return '8px'; // Larger font for connected nodes
+					}
+					return '6px'; // Normal font size
+				})
+				.attr('fill', (d) => {
+					if (!focusedNode) {
+						return '#CCCCCC'; // Lighter default text when no focus
+					}
+					
+					if (connectedNodes.has(d.id)) {
+						return '#F0F0F0'; // Very bright text for connected nodes
+					} else {
+						return '#444444'; // Light gray text for unconnected nodes
+					}
+				});
+		}
+	}
+
+	// Helper function to dim colors for unlearned nodes
+	function dimColor(color) {
+		// Convert hex to RGB, reduce brightness, convert back
+		const hex = color.replace('#', '');
+		const r = parseInt(hex.substr(0, 2), 16);
+		const g = parseInt(hex.substr(2, 2), 16);
+		const b = parseInt(hex.substr(4, 2), 16);
+		
+		// Reduce brightness by ~40%
+		const dimR = Math.round(r * 0.6);
+		const dimG = Math.round(g * 0.6);
+		const dimB = Math.round(b * 0.6);
+		
+		return `#${dimR.toString(16).padStart(2, '0')}${dimG.toString(16).padStart(2, '0')}${dimB.toString(16).padStart(2, '0')}`;
+	}
+
+	// Helper function to very aggressively dim colors for focused-out nodes using RGB
+	function veryDimColor(color) {
+		// Convert hex to RGB, reduce brightness aggressively, convert back
+		const hex = color.replace('#', '');
+		const r = parseInt(hex.substr(0, 2), 16);
+		const g = parseInt(hex.substr(2, 2), 16);
+		const b = parseInt(hex.substr(4, 2), 16);
+		
+		// Reduce brightness by ~75% (keep 25% of original)
+		const dimR = Math.round(r * 0.25);
+		const dimG = Math.round(g * 0.25);
+		const dimB = Math.round(b * 0.25);
+		
+		return `#${dimR.toString(16).padStart(2, '0')}${dimG.toString(16).padStart(2, '0')}${dimB.toString(16).padStart(2, '0')}`;
+	}
+
+	function chart(data) {
+		const width = 928;
+		const height = 680;
+
+		// Store graph data for connection analysis
+		graphData = data;
+
+		// Purple color scale for nodes
+		const nodeColor = d3.scaleSequential().domain([1, 5]).interpolator(d3.interpolatePurples);
+
+		// Pure gray connections
+		const linkColor = d3
+			.scaleOrdinal()
+			.domain(['prerequisite', 'advance', 'lateral'])
+			.range(['#333333', '#333333', '#333333']); // All connections pure gray
+
+		// Clone data
+		const nodes = data.nodes.map((d) => ({ ...d }));
+		const links = data.links.map((d) => ({ ...d }));
+
+		// Map central relations
+		const centralId = 0;
+		const relationMap = {};
+		links.forEach((l) => {
+			if (l.source === centralId) relationMap[l.target] = l.relation;
+			else if (l.target === centralId) relationMap[l.source] = l.relation;
+		});
+
+		// Simulation with domain-aware clustering
+		const simulation = d3
+			.forceSimulation(nodes)
+			.force(
+				'link',
+				d3
+					.forceLink(links)
+					.id((d) => d.id)
+					.distance(100)
+			)
+			.force('charge', d3.forceManyBody().strength(-200))
+			.force('center', d3.forceCenter(0, 0))
+			.force(
+				'x',
+				d3
+					.forceX((d) => {
+						// Domain-based positioning with relation override
+						const r = relationMap[d.id];
+						
+						// Math domain gets extra leftward positioning (deeper prerequisites)
+						if (d.domain === 'math') {
+							return -width / 2.5; // Math concepts go further left
+						}
+						
+						// Standard relation-based positioning for other domains
+						if (r === 'prerequisite') return -width / 4;
+						if (r === 'advance') return width / 4;
+						return 0;
+					})
+					.strength((d) => {
+						// Stronger positioning force for math domain to separate from tech
+						return d.domain === 'math' ? 0.15 : 0.1;
+					})
+			)
+			.force(
+				'y',
+				d3
+					.forceY((d) => {
+						const r = relationMap[d.id];
+						
+						// Math domain gets slight downward offset for visual separation
+						if (d.domain === 'math') {
+							return height / 6; // Slight downward positioning
+						}
+						
+						return r === 'lateral' ? height / 4 : 0;
+					})
+					.strength((d) => {
+						return d.domain === 'math' ? 0.12 : 0.1;
+					})
+			);
+
+		// Create SVG with zoom behavior
+		const svg = d3
+			.create('svg')
+			.attr('width', '100%')
+			.attr('height', '100%')
+			.attr('viewBox', [-width / 2, -height / 2, width, height])
+			.attr('preserveAspectRatio', 'xMidYMid meet');
+
+		// Add zoom behavior
+		const zoom = d3.zoom()
+			.scaleExtent([0.1, 10])
+			.on('zoom', (event) => {
+				g.attr('transform', event.transform);
+				
+				// Smooth fade-in text labels based on zoom level
+				const scale = event.transform.k;
+				const fadeStartZoom = 0.8; // Start fading in at 0.8x zoom
+				const fadeEndZoom = 1.5;   // Full brightness at 1.5x zoom
+				
+				let opacity = 0;
+				if (scale >= fadeEndZoom) {
+					opacity = 1; // Full brightness
+				} else if (scale >= fadeStartZoom) {
+					// Smooth transition from 0 to 1
+					opacity = (scale - fadeStartZoom) / (fadeEndZoom - fadeStartZoom);
+				}
+				
+				// Update text opacity and colors, respecting focus state
+				g.selectAll('text').each(function(d) {
+					const textElement = d3.select(this);
+					textElement.style('opacity', opacity);
+					
+					// Only update color if no node is focused, otherwise let updateNodeStyles handle it
+					if (!focusedNode) {
+						// Calculate brightness based on opacity for default state
+						const minBrightness = 0x22; // #222222
+						const maxBrightness = 0xF0; // #F0F0F0
+						const brightness = Math.round(minBrightness + (maxBrightness - minBrightness) * opacity);
+						const textColor = `#${brightness.toString(16).padStart(2, '0').repeat(3)}`;
+						textElement.attr('fill', textColor);
+					} else {
+						// When focused, use the focus-based colors from updateNodeStyles
+						if (connectedNodes.has(d.id)) {
+							textElement.attr('fill', '#F0F0F0'); // Very bright text for connected nodes
+						} else {
+							textElement.attr('fill', '#444444'); // Dim text for unconnected nodes
+						}
+					}
+				});
+				
+				// Store zoom level for tooltip logic
+				window.currentZoomScale = scale;
+			});
+
+		svg.call(zoom);
+		
+		// Store references for programmatic zoom control
+		zoomBehavior = zoom;
+		svgElement = svg.node();
+		
+		// Add click handler to clear focus when clicking on empty space
+		svg.on('click', () => {
+			focusedNode = null;
+			connectedNodes.clear();
+			updateNodeStyles();
+		});
+
+		// Add solid background rectangle to SVG
+		svg.append('rect')
+			.attr('x', -width / 2)
+			.attr('y', -height / 2)
+			.attr('width', width)
+			.attr('height', height)
+			.attr('fill', '#080808');
+
+		// Main group for all graph elements
+		const g = svg.append('g');
+
+		// Draw links
+		const linkGroup = g.append('g').attr('stroke-opacity', 0.6);
+		
+		// Regular links
+		linkSel = linkGroup
+			.selectAll('line.regular-link')
+			.data(links)
+			.join('line')
+			.attr('class', 'regular-link')
+			.attr('stroke-width', (d) => Math.sqrt(d.value || 1))
+			.attr('stroke', (d) => linkColor(d.relation));
+		
+		// Add shooting star effects for prerequisite links
+		const prerequisiteLinks = links.filter(link => link.relation === 'prerequisite');
+		
+		prerequisiteLinks.forEach((link, index) => {
+			// Create gradient for each shooting star
+			const gradientId = `shooting-star-gradient-${index}`;
+			const gradient = svg.append('defs').append('linearGradient')
+				.attr('id', gradientId)
+				.attr('gradientUnits', 'userSpaceOnUse');
+			
+			// Create gradient stops for shooting star effect (much longer trail)
+			gradient.append('stop')
+				.attr('offset', '0%')
+				.attr('stop-color', '#ffffff')
+				.attr('stop-opacity', 0);
+			
+			gradient.append('stop')
+				.attr('offset', '10%')
+				.attr('stop-color', '#ffffff')
+				.attr('stop-opacity', 0.5);
+				
+			gradient.append('stop')
+				.attr('offset', '50%')
+				.attr('stop-color', '#ffffff')
+				.attr('stop-opacity', 0.9);
+				
+			gradient.append('stop')
+				.attr('offset', '90%')
+				.attr('stop-color', '#ffffff')
+				.attr('stop-opacity', 0.5);
+			
+			gradient.append('stop')
+				.attr('offset', '100%')
+				.attr('stop-color', '#ffffff')
+				.attr('stop-opacity', 0);
+			
+			// Create shooting star line (overlay on regular edge)
+			const starLine = linkGroup
+				.append('line')
+				.attr('class', 'star-line')
+				.attr('stroke-width', Math.sqrt(link.value || 1)) // Same thickness as regular edge
+				.attr('stroke', `url(#${gradientId})`)
+				.attr('opacity', 0.5);
+			
+			// Store references
+			link.starLine = starLine;
+			link.gradientId = gradientId;
+			link.gradient = gradient;
+		});
+
+		// Draw nodes & attach events
+		nodeSel = g
+			.append('g')
+			.selectAll('circle')
+			.data(nodes)
+			.join('circle')
+			.attr('r', (d) => d.type === 'paper' ? 12 : 8) // Larger radius for research papers
+			.attr('fill', (d) => {
+				if (d.type === 'paper') {
+					return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Dimmer papyrus for unlearned papers
+				}
+				const baseColor = getDomainColor(d.domain || 'tech');
+				return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Dimmer for unlearned nodes
+			})
+			.attr('stroke', (d) => {
+				if (d.type === 'paper') {
+					return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Matching stroke for papers
+				}
+				const baseColor = getDomainColor(d.domain || 'tech');
+				return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Matching stroke, dimmed for unlearned
+			})
+			.attr('stroke-width', 1.5)
+			.attr('cursor', 'pointer')
+			.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
+			.on('mouseover', (event, d) => {
+				// Only show tooltip if zoom level is below text threshold (labels not visible)
+				if (!window.currentZoomScale || window.currentZoomScale < 1.5) {
+					d3.select(tooltipEl).classed('hidden', false).text(d.label);
+				}
+				
+				// Scale up the hovered node
+				d3.select(event.target)
+					.transition()
+					.duration(150)
+					.attr('r', (d.type === 'paper' ? 12 : 8) * 1.15); // 15% bigger
+			})
+			.on('mousemove', (event) => {
+				d3.select(tooltipEl)
+					.style('left', event.pageX + 10 + 'px')
+					.style('top', event.pageY + 10 + 'px');
+			})
+			.on('mouseout', (event, d) => {
+				// Always hide tooltip on mouseout
+				d3.select(tooltipEl).classed('hidden', true);
+				
+				// Scale back down to original size
+				d3.select(event.target)
+					.transition()
+					.duration(150)
+					.attr('r', d.type === 'paper' ? 12 : 8); // Back to original size
+			})
+			.on('click', (event, d) => {
+				event.stopPropagation();
+				selectNode(d);
+			});
+
+		// Add text labels for nodes (excluding papers)
+		textSel = g
+			.append('g')
+			.selectAll('text')
+			.data(nodes)
+			.join('text')
+			.attr('text-anchor', 'middle')
+			.attr('dy', '0.35em')
+			.attr('font-size', '6px')
+			.attr('font-family', 'Arial, sans-serif')
+			.attr('fill', '#CCCCCC') // Updated to match the new default color
+			.attr('pointer-events', 'none')
+			.style('opacity', 0) // Start hidden
+			.text(d => d.label);
+
+		// Tick update
+		simulation.on('tick', () => {
+			// Update regular links
+			g
+				.selectAll('line.regular-link')
+				.attr('x1', (d) => d.source.x)
+				.attr('y1', (d) => d.source.y)
+				.attr('x2', (d) => d.target.x)
+				.attr('y2', (d) => d.target.y);
+			
+			// Update shooting star links
+			prerequisiteLinks.forEach(link => {
+				if (link.starLine && link.gradient) {
+					// Update gradient coordinates
+					link.gradient
+						.attr('x1', link.source.x)
+						.attr('y1', link.source.y)
+						.attr('x2', link.target.x)
+						.attr('y2', link.target.y);
+					
+					// Update shooting star line
+					link.starLine
+						.attr('x1', link.source.x)
+						.attr('y1', link.source.y)
+						.attr('x2', link.target.x)
+						.attr('y2', link.target.y);
+				}
+			});
+			
+			g
+				.selectAll('circle')
+				.attr('cx', (d) => d.x)
+				.attr('cy', (d) => d.y);
+			g
+				.selectAll('text')
+				.attr('x', (d) => d.x)
+				.attr('y', (d) => d.y + (d.type === 'paper' ? 26 : 20)); // Position labels farther below paper nodes
+		});
+
+		function dragstarted(e) {
+			if (!e.active) simulation.alphaTarget(0.3).restart();
+			e.subject.fx = e.subject.x;
+			e.subject.fy = e.subject.y;
+		}
+		function dragged(e) {
+			e.subject.fx = e.x;
+			e.subject.fy = e.y;
+		}
+		function dragended(e) {
+			if (!e.active) simulation.alphaTarget(0);
+			e.subject.fx = null;
+			e.subject.fy = null;
+		}
+
+		// Store simulation reference
+		window.simulation = simulation;
+
+		// Start shooting star animation
+		startShootingStarAnimation(prerequisiteLinks);
+
+		return svg.node();
+	}
+
+	function startShootingStarAnimation(prerequisiteLinks) {
+		// Build dependency graph for sequential mode
+		let linkDelays = new Map();
+		
+		if (useSequentialShootingStars) {
+			const nodeDependencies = new Map();
+			const nodeDependents = new Map();
+			
+			// Initialize maps
+			prerequisiteLinks.forEach(link => {
+				const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+				const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+				
+				// Track what each node depends on
+				if (!nodeDependencies.has(targetId)) {
+					nodeDependencies.set(targetId, new Set());
+				}
+				nodeDependencies.get(targetId).add(sourceId);
+				
+				// Track what depends on each node
+				if (!nodeDependents.has(sourceId)) {
+					nodeDependents.set(sourceId, new Set());
+				}
+				nodeDependents.get(sourceId).add(targetId);
+			});
+			
+			// Find nodes with no prerequisites (fundamental nodes)
+			const fundamentalNodes = new Set();
+			prerequisiteLinks.forEach(link => {
+				const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+				const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+				
+				// If source has no dependencies, it's fundamental
+				if (!nodeDependencies.has(sourceId)) {
+					fundamentalNodes.add(sourceId);
+				}
+			});
+			
+			// Create animation sequence: each link gets a delay based on its position in the dependency chain
+			const visitedNodes = new Set();
+			const nodeLevels = new Map();
+			
+			// Calculate levels for each node (0 = fundamental, 1 = depends on level 0, etc.)
+			function calculateLevels() {
+				const queue = [...fundamentalNodes];
+				queue.forEach(nodeId => {
+					nodeLevels.set(nodeId, 0);
+					visitedNodes.add(nodeId);
+				});
+				
+				while (queue.length > 0) {
+					const currentId = queue.shift();
+					const currentLevel = nodeLevels.get(currentId);
+					
+					// Process dependents of current node
+					const dependents = nodeDependents.get(currentId) || new Set();
+					dependents.forEach(dependentId => {
+						// Check if all dependencies of this dependent are processed
+						const dependencies = nodeDependencies.get(dependentId) || new Set();
+						const allDependenciesProcessed = Array.from(dependencies).every(depId => 
+							visitedNodes.has(depId)
+						);
+						
+						if (allDependenciesProcessed && !visitedNodes.has(dependentId)) {
+							nodeLevels.set(dependentId, currentLevel + 1);
+							visitedNodes.add(dependentId);
+							queue.push(dependentId);
+						}
+					});
+				}
+			}
+			
+			calculateLevels();
+			
+					// Calculate delays recursively based on when each node receives ALL its prerequisites
+		function calculateLinkDelay(link) {
+			const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+			const sourcePrerequisites = nodeDependencies.get(sourceId) || new Set();
+			
+			if (sourcePrerequisites.size === 0) {
+				// Source has no prerequisites - start immediately
+				return 0;
+			} else {
+				// Source has prerequisites - wait for ALL of them to complete
+				let maxPrerequisiteCompletionTime = 0;
+				
+				sourcePrerequisites.forEach(prereqId => {
+					// Find the link that goes TO this prerequisite
+					const prereqLink = prerequisiteLinks.find(l => {
+						const lTargetId = typeof l.target === 'object' ? l.target.id : l.target;
+						return lTargetId === prereqId;
+					});
+					
+					if (prereqLink) {
+						// Recursively calculate when this prerequisite link completes
+						const prereqStartDelay = calculateLinkDelay(prereqLink);
+						const prereqCompletionTime = prereqStartDelay + 1.5; // 1.5s animation time (matches the original)
+						maxPrerequisiteCompletionTime = Math.max(maxPrerequisiteCompletionTime, prereqCompletionTime);
+					}
+				});
+				
+				return maxPrerequisiteCompletionTime;
+			}
+		}
+		
+		// Calculate delays for all links
+		prerequisiteLinks.forEach(link => {
+			const delay = calculateLinkDelay(link);
+			linkDelays.set(link, delay);
+		});
+		}
+		
+		function animate() {
+			const currentTime = Date.now() * 0.001; // Current time in seconds
+			
+			prerequisiteLinks.forEach((link, index) => {
+				if (link.gradient) {
+					// Only animate if no node is focused OR this link is directly connected to the focused node
+					const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+					const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+					const shouldAnimate = !focusedNode || 
+						sourceId === focusedNode.id || 
+						targetId === focusedNode.id;
+					
+					if (shouldAnimate) {
+						let time, rawProgress;
+						
+						if (useSequentialShootingStars) {
+							// Sequential mode: use delays based on dependency chain
+							const delay = linkDelays.get(link) || 0;
+							const cycleTime = 2.0; // 2 second cycle per link (1.5s animation + 0.5s pause)
+							const adjustedTime = (currentTime - delay) % cycleTime;
+							
+							// Only animate if we're past the delay
+							if (adjustedTime >= 0) {
+								rawProgress = adjustedTime < 1.5 ? adjustedTime / 1.5 : 1; // 1.5s animation, 0.5s pause
+							} else {
+								// Before delay, show no shooting star
+								link.gradient.selectAll('stop')
+									.attr('offset', (d, i) => {
+										if (i === 0) return '0%';
+										if (i === 1) return '0%';
+										if (i === 2) return '0%';
+										if (i === 3) return '0%';
+										if (i === 4) return '0%';
+										return '0%';
+									});
+								return;
+							}
+						} else {
+							// Parallel mode: original behavior
+							time = (Date.now() * 0.002) % 2; // 2 second cycle (1.5s animation + 0.5s pause)
+							rawProgress = time < 1.5 ? time / 1.5 : 1; // Animation for first 1.5s, then hold at end
+						}
+						
+						// Apply dramatic easing curve for "zip" effect: very slow -> current speed -> very slow
+						const progress = rawProgress < 0.2 
+							? Math.pow(rawProgress / 0.2, 4) * 0.10 // Very slow start (quartic ease - covers 5% of distance)
+							: rawProgress < 0.8 
+							? 0.05 + (rawProgress - 0.2) / 0.6 * 0.8 // Current speed middle section (covers 90% of distance)
+							: 0.95 + Math.pow((rawProgress - 0.8) / 0.2, 4) * 0.1; // Very slow end (quartic ease - covers 5% of distance)
+						
+						// Update gradient stops with centered positions
+						link.gradient.selectAll('stop')
+							.attr('offset', (d, i) => {
+								if (i === 0) return Math.max(0, progress * 120 - 20) + '%';
+								if (i === 1) return Math.max(0, progress * 120 - 7.5) + '%'; // 45% before center
+								if (i === 2) return Math.max(0, Math.min(100, progress * 120 - 5)) + '%'; // Center
+								if (i === 3) return Math.min(100, progress * 120 - 2.5) + '%'; // 55% after center  
+								if (i === 4) return Math.min(100, progress * 120) + '%';
+								return '0%';
+							});
+					} else {
+						// Stop animation by setting a static state (no shooting star visible)
+						link.gradient.selectAll('stop')
+							.attr('offset', (d, i) => {
+								if (i === 0) return '0%';
+								if (i === 1) return '0%';
+								if (i === 2) return '0%';
+								if (i === 3) return '0%';
+								if (i === 4) return '0%';
+								return '0%';
+							});
+					}
+				}
+			});
+			
+			requestAnimationFrame(animate);
+		}
+		animate();
+	}
+
+
+
+	// Helper to slugify header text for IDs
+	function slugify(text) {
+		return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+	}
+
+	// Function to extract all section headers and their IDs from content
+	export function extractSectionHeaders(content) {
+		const headers = [];
+		const headerRegex = /^(####|###|##|#) (.+)$/gm;
+		let match;
+		while ((match = headerRegex.exec(content)) !== null) {
+			const level = match[1].length;
+			const text = match[2];
+			headers.push({
+				level,
+				text,
+				id: slugify(text)
+			});
+		}
+		return headers;
+	}
+
+
+
+	// Function to parse node links and markdown in content
+	function parseNodeLinks(content) {
+		// First, parse markdown
+		let processedContent = content
+			// Convert headers (#### to h4, ### to h3, ## to h2, # to h1) with IDs
+			.replace(/^#### (.+)$/gm, (m, t) => `<h4 id="${slugify(t)}" class="text-base font-semibold mb-2 mt-3" style="color: #D0D0D0;">${t}</h4>`)
+			.replace(/^### (.+)$/gm, (m, t) => `<h3 id="${slugify(t)}" class="text-lg font-semibold mb-2 mt-4" style="color: #E0E0E0;">${t}</h3>`)
+			.replace(/^## (.+)$/gm, (m, t) => `<h2 id="${slugify(t)}" class="text-xl font-bold mb-3 mt-6" style="color: #F0F0F0;">${t}</h2>`)
+			.replace(/^# (.+)$/gm, (m, t) => `<h1 id="${slugify(t)}" class="text-2xl font-bold mb-4 mt-8" style="color: #FFFFFF;">${t}</h1>`)
+			// Convert bold text (**text** to <strong>)
+			.replace(/\*\*(.+?)\*\*/g, '<strong style="color: #FFFFFF;">$1</strong>')
+			// Convert italic text (*text* to <em>)
+			.replace(/\*(.+?)\*/g, '<em style="color: #CCCCCC;">$1</em>')
+			// Convert LaTeX math blocks ($$...$$ to <div> with math styling)
+			.replace(/\$\$([\s\S]*?)\$\$/g, '<div class="bg-gray-900 p-4 rounded mb-4 overflow-x-auto text-center" style="border: 1px solid #333333;"><span style="color: #E0E0E0; font-family: \'Times New Roman\', serif; font-size: 1.1em;">$$1</span></div>')
+			// Convert inline LaTeX math ($...$ to <span> with math styling)
+			.replace(/\$([^$\n]+?)\$/g, '<span style="color: #E0E0E0; font-family: \'Times New Roman\', serif; font-style: italic;">$$1</span>')
+			// Convert code blocks (```math to <pre><code>)
+			.replace(/```math\n([\s\S]*?)\n```/g, '<pre class="bg-gray-900 p-3 rounded mb-3 overflow-x-auto"><code style="color: #E0E0E0; font-family: monospace;">$1</code></pre>')
+			// Convert inline code (`code` to <code>)
+			.replace(/`([^`]+)`/g, '<code class="bg-gray-800 px-1 rounded" style="color: #E0E0E0; font-family: monospace;">$1</code>')
+			// Convert lists (- item to <li>)
+			.replace(/^- (.+)$/gm, '<li class="ml-4 mb-1">$1</li>')
+			// Wrap consecutive <li> elements in <ul>
+			.replace(/(<li[^>]*>.*<\/li>)/gs, '<ul class="mb-3">$1</ul>')
+			// Convert numbered lists (1. item to <li>)
+			.replace(/^\d+\. (.+)$/gm, '<li class="ml-4 mb-1">$1</li>')
+			// Convert line breaks to <br>
+			.replace(/\n\n/g, '<br><br>')
+			.replace(/\n/g, '<br>');
+
+		// Then, parse node links
+		return processedContent.replace(/<node id="(\d+)">([^<]+)<\/node>/g, (match, id, text) => {
+			const nodeId = parseInt(id);
+			const node = graphData?.nodes?.find(n => n.id === nodeId);
+			if (node) {
+				const color = node.type === 'paper' ? '#BFCAF3' : getDomainColor(node.domain || 'tech');
+				if (learnedNodes.has(nodeId)) {
+					// Visited: just colored text, no box
+					return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="color: ${color}; font-weight: 500;">${text}</span>`;
+				} else {
+					// Not visited: box style
+					return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="display: inline-flex; align-items: center; background: ${color}18; border: 1px solid ${color}4D; border-radius: 5px; padding: 0px 3px; margin: 2px 0; color: ${color}; font-weight: 500;">${text}</span>`;
+				}
+			}
+			return text;
+		});
+	}
+
+	// Function to select a node by ID (for node links)
+	function selectNodeById(nodeId) {
+		// Get the live node from the simulation with current x,y coordinates
+		if (typeof window !== 'undefined' && window.simulation) {
+			const liveNodes = window.simulation.nodes();
+			const liveNode = liveNodes.find(n => n.id === nodeId);
+			
+			if (liveNode) {
+				// Add to the stack first (same order as selectNode)
+				addToNodeStack(liveNode);
+				
+				// Then center the graph on the selected node
+				centerGraphOnNode(liveNode);
+			}
+		}
+	}
+
+	// Function to center the graph on a specific node (restored original logic)
+	function centerGraphOnNode(node) {
+		if (zoomBehavior && svgElement) {
+			const scale = 2; // Zoom scale factor
+			const [x, y] = [node.x || 0, node.y || 0]; // Node position
+			
+			// Get the current container dimensions
+			const containerWidth = 928;
+			const containerHeight = 680;
+			
+			// SVG viewBox is centered at (0,0), so we need to account for that
+			// When side panel is open, we want to center in the left half
+			const visibleWidth = containerWidth / 2; // Left half for graph
+			
+			// Calculate target position in SVG coordinates (viewBox is centered)
+			// We want the node to appear at 1/4 from left edge and 1/3 from top
+			const targetX = -containerWidth / 4 + visibleWidth / 2; // Center of left half
+			const targetY = -containerHeight / 2 + containerHeight / 3; // 1/3 from top
+			
+			// Create transform to move the node to the target position
+			const transform = d3.zoomIdentity
+				.translate(targetX - x * scale, targetY - y * scale)
+				.scale(scale);
+			
+			// Apply zoom transform with smooth transition
+			d3.select(svgElement)
+				.transition()
+				.duration(750)
+				.call(zoomBehavior.transform, transform);
+		}
+	}
+
+	// Function to add a node to the stack
+	function addToNodeStack(node) {
+		// Focus on the node for graph effects
+		focusedNode = node;
+		connectedNodes.clear();
+		connectedNodes.add(node.id);
+		
+		// Find all directly connected nodes
+		if (graphData) {
+			graphData.links.forEach(link => {
+				if (link.source.id === node.id || link.source === node.id) {
+					connectedNodes.add(link.target.id || link.target);
+				}
+				if (link.target.id === node.id || link.target === node.id) {
+					connectedNodes.add(link.source.id || link.source);
+				}
+			});
+		}
+		
+		// Mark as learned
+		learnedNodes.add(node.id);
+		
+		// Add to navigation history (chronological order)
+		const existingIndex = navigationHistory.findIndex(n => n.id === node.id);
+		if (existingIndex !== -1) {
+			// If node already exists in history, truncate to that point
+			navigationHistory = navigationHistory.slice(0, existingIndex + 1);
+		} else {
+			// Add new node to history
+			navigationHistory = [...navigationHistory, node];
+		}
+		
+		// Add to stack (remove if already exists to avoid duplicates)
+		nodeStack = nodeStack.filter(n => n.id !== node.id);
+		nodeStack = [...nodeStack, node];
+		
+		// Update node styles
+		updateNodeStyles();
+	}
+
+	// Function to remove a node from the stack
+	function removeFromStack(nodeId) {
+		nodeStack = nodeStack.filter(n => n.id !== nodeId);
+		
+		// Remove from navigation history as well
+		navigationHistory = navigationHistory.filter(n => n.id !== nodeId);
+		
+		// If stack is empty, clear focus
+		if (nodeStack.length === 0) {
+			focusedNode = null;
+			connectedNodes.clear();
+		} else {
+			// Focus on the top node in the stack
+			const topNode = nodeStack[nodeStack.length - 1];
+			focusedNode = topNode;
+			connectedNodes.clear();
+			connectedNodes.add(topNode.id);
+			
+			// Find connected nodes for the top node
+			if (graphData) {
+				graphData.links.forEach(link => {
+					if (link.source.id === topNode.id || link.source === topNode.id) {
+						connectedNodes.add(link.target.id || link.target);
+					}
+					if (link.target.id === topNode.id || link.target === topNode.id) {
+						connectedNodes.add(link.source.id || link.source);
+					}
+				});
+			}
+			
+			// Center the graph on the new top node
+			centerGraphOnNode(topNode);
+		}
+		
+		updateNodeStyles();
+	}
+
+	// Function to navigate to a specific index in the navigation history
+	function navigateToStackIndex(index) {
+		if (index >= 0 && index < navigationHistory.length) {
+			// Get the selected node from navigation history
+			const selectedNode = navigationHistory[index];
+			
+			// Don't truncate history - just focus on the selected node
+			// Make sure the selected node is at the top of the stack
+			nodeStack = nodeStack.filter(n => n.id !== selectedNode.id);
+			nodeStack = [...nodeStack, selectedNode];
+			
+			// Focus on the selected node
+			focusedNode = selectedNode;
+			connectedNodes.clear();
+			connectedNodes.add(selectedNode.id);
+			
+			// Find connected nodes for the selected node
+			if (graphData) {
+				graphData.links.forEach(link => {
+					if (link.source.id === selectedNode.id || link.source === selectedNode.id) {
+						connectedNodes.add(link.target.id || link.target);
+					}
+					if (link.target.id === selectedNode.id || link.target === selectedNode.id) {
+						connectedNodes.add(link.source.id || link.source);
+					}
+				});
+			}
+			
+			// Center the graph on the selected node
+			centerGraphOnNode(selectedNode);
+			
+			// Update node styles
+			updateNodeStyles();
+		}
+	}
+
+	// Function to toggle between sequential and parallel shooting stars
+	function toggleShootingStarMode() {
+		// This function is no longer needed as shooting stars are always sequential
+		console.log('Shooting star mode is always sequential.');
+	}
+
+	// Make function available globally for onclick handlers (client-side only)
+	if (typeof window !== 'undefined') {
+		window.selectNodeById = selectNodeById;
+	}
+
+	onMount(async () => {
+		const data = await loadData();
+		element.innerHTML = '';
+		element.appendChild(chart(data));
+		
+		// Ensure global function is available after mount
+		window.selectNodeById = selectNodeById;
+		
+		// Add click listener for node links
+		const handleNodeLinkClick = (event) => {
+			const target = event.target.closest('.node-link');
+			if (target && target.dataset.nodeId) {
+				const nodeId = parseInt(target.dataset.nodeId);
+				selectNodeById(nodeId);
+			}
+		};
+		
+		document.addEventListener('click', handleNodeLinkClick);
+		
+		// Cleanup function
+		return () => {
+			document.removeEventListener('click', handleNodeLinkClick);
+		};
+	});
 </script>
 
-<HomePage {...data} />
+<!-- CSS Animations for shooting stars -->
+<style>
+	@keyframes shooting-star-0 {
+		0% { 
+			mask-position: -100% 0;
+			-webkit-mask-position: -100% 0;
+		}
+		100% { 
+			mask-position: 100% 0;
+			-webkit-mask-position: 100% 0;
+		}
+	}
+	
+	@keyframes shooting-star-1 {
+		0% { 
+			mask-position: -100% 0;
+			-webkit-mask-position: -100% 0;
+		}
+		100% { 
+			mask-position: 100% 0;
+			-webkit-mask-position: 100% 0;
+		}
+	}
+	
+	@keyframes shooting-star-2 {
+		0% { 
+			mask-position: -100% 0;
+			-webkit-mask-position: -100% 0;
+		}
+		100% { 
+			mask-position: 100% 0;
+			-webkit-mask-position: 100% 0;
+		}
+	}
+	
+	/* Node View panel styles for proper positioning */
+	.node-view-panel {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 10;
+		background: #0A0A0A;
+	}
+</style>
+
+<!-- Cyberpunk theme main container with side-by-side layout -->
+<main class="relative h-screen w-screen flex" style="background-color: #080808; color: #B3B3B3;">
+	<RankRevealModal
+		show={showRankModal}
+		nodesVisited={rankNodesVisited}
+		calculatedRank={userRank}
+		onClose={() => { showRankModal = false; }}
+	/>
+	<!-- Tooltip -->
+	<div
+		bind:this={tooltipEl}
+		class="pointer-events-none absolute hidden rounded p-2 text-sm shadow-lg z-50"
+		style="background-color: #080808; border: 1px solid #333333;"
+	></div>
+
+	<!-- Navigation Breadcrumb - top left corner -->
+	{#if navigationHistory.length > 0}
+		<div class="absolute top-4 left-4 z-50">
+			<div class="flex items-center gap-2 px-4 py-2 rounded-lg" style="background-color: rgba(17, 17, 17, 0.9); border: 1px solid #333333; backdrop-filter: blur(10px);">
+				{#each navigationHistory as node, index (node.id)}
+					{#if index > 0}
+						<span class="text-sm" style="color: #666666;">→</span>
+					{/if}
+					<button
+						on:click={() => navigateToStackIndex(index)}
+						class="text-sm font-medium hover:underline transition-colors cursor-pointer"
+						style="color: {node.type === 'paper' ? '#BFCAF3' : getDomainColor(node.domain)};"
+					>
+						{node.label}
+					</button>
+				{/each}
+			</div>
+		</div>
+	{/if}
+	
+
+
+	<!-- Graph container - left side or full width -->
+	<div class="{nodeStack.length > 0 ? 'w-1/2' : 'w-full'} h-full transition-all duration-150">
+		<div bind:this={element} class="h-full w-full"></div>
+	</div>
+
+	<!-- Stacked Node Preview panels - right side -->
+	{#if nodeStack.length > 0}
+		<div class="w-1/2 h-full relative" style="background-color: rgba(8, 8, 8, 0.0);">
+			{#each nodeStack as node, index (node.id)}
+				<div 
+					in:fly={{ x: 300, duration: 250, easing: cubicOut }}
+					out:fly={{ x: 300, duration: 200, easing: cubicIn }}
+					class="absolute inset-0 transition-all duration-300 node-view-panel"
+					style="
+						top: 0;
+						left: 0;
+						right: {index * 18}px;
+						bottom: 0;
+						z-index: {10 + index};
+					"
+				>
+					<div class="h-full p-6">
+						<div 
+							class="h-full rounded-2xl overflow-hidden shadow-lg"
+							style="background-color: #111; border: 1px solid #333333;"
+						>
+							<div class="h-full overflow-hidden">
+								{#if node.type === 'paper' && node.content}
+									<PaginatedContent 
+										{node}
+										{parseNodeLinks}
+										onClose={() => removeFromStack(node.id)}
+										nodesVisited={learnedNodes.size}
+										onFinishReading={handleFinishReading}
+									/>
+									
+								{:else if node.type === 'paper' && node.url}
+									<!-- PDF display for papers without formatted content -->
+									<div class="h-full flex flex-col">
+										<div class="flex items-center justify-between p-6">
+											<h2 class="text-2xl font-bold" style="color: #BFCAF3;">{node.label}</h2>
+											<button
+												on:click={() => removeFromStack(node.id)}
+												class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
+												aria-label="Close"
+											>
+												✕
+											</button>
+										</div>
+										
+										<div class="flex-1">
+											<iframe 
+												src="{node.url}#navpanes=0&scrollbar=0"
+												class="w-full h-full border-0"
+												title="PDF Viewer"
+											></iframe>
+										</div>
+									</div>
+								{:else}
+									<!-- Regular node display -->
+									<div class="p-6 h-full overflow-y-auto">
+										<div class="mb-4">
+											<div class="flex items-center justify-between mb-4">
+												<h2 class="text-2xl font-bold" style="color: {getDomainColor(node.domain || 'tech')};">{node.label}</h2>
+												<button
+													on:click={() => removeFromStack(node.id)}
+													class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
+													aria-label="Close"
+												>
+													✕
+												</button>
+											</div>
+											<div class="flex items-center gap-2 mb-4">
+												<span class="text-sm" style="color: #B3B3B3;">Difficulty: {node.difficulty || 1}/5</span>
+												<div class="flex">
+													{#each Array(node.difficulty || 1) as _}
+														<div class="w-2 h-2 rounded-full mr-1" style="background-color: {getDomainColor(node.domain || 'tech')};"></div>
+													{/each}
+													{#each Array(5 - (node.difficulty || 1)) as _}
+														<div class="w-2 h-2 rounded-full mr-1" style="background-color: #3A3F59;"></div>
+													{/each}
+												</div>
+											</div>
+										</div>
+
+										<div class="mb-6">
+											<div class="leading-relaxed" style="color: #B3B3B3;">
+												{@html parseNodeLinks(node.description || '')}
+											</div>
+										</div>
+									</div>
+								{/if}
+							</div>
+						</div>
+					</div>
+				</div>
+			{/each}
+		</div>
+	{/if}
+</main>
+
