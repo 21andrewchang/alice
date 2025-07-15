@@ -1,0 +1,106 @@
+[
+  {
+    "id": 1,
+    "question": "What is the result of multiplying a 2x3 matrix by a 3x1 vector?",
+    "choices": [
+      "A 2x1 vector",
+      "A 3x2 matrix",
+      "A 1x3 vector",
+      "A 2x3 matrix"
+    ],
+    "answerIndex": 0,
+    "elo": 800,
+    "nodeId": "matrix_multiplication"
+  },
+  {
+    "id": 2,
+    "question": "Which operation computes the dot product of two vectors?",
+    "choices": [
+      "Element-wise multiplication",
+      "Sum of element-wise products",
+      "Matrix inversion",
+      "Outer product"
+    ],
+    "answerIndex": 1,
+    "elo": 850,
+    "nodeId": "dot_product"
+  },
+  {
+    "id": 3,
+    "question": "What does the softmax function output?",
+    "choices": [
+      "A set of binary values",
+      "A probability distribution",
+      "A normalized vector with negative values",
+      "A one-hot vector"
+    ],
+    "answerIndex": 1,
+    "elo": 1000,
+    "nodeId": "softmax"
+  },
+  {
+    "id": 4,
+    "question": "In the Transformer architecture, what is the main purpose of the attention mechanism?",
+    "choices": [
+      "To reduce the number of parameters",
+      "To focus on relevant parts of the input sequence",
+      "To perform convolution",
+      "To encode positional information"
+    ],
+    "answerIndex": 1,
+    "elo": 1100,
+    "nodeId": "attention"
+  },
+  {
+    "id": 5,
+    "question": "Which of the following is NOT a component of the Transformer encoder layer?",
+    "choices": [
+      "Multi-head self-attention",
+      "Feed-forward network",
+      "Recurrent neural network",
+      "Layer normalization"
+    ],
+    "answerIndex": 2,
+    "elo": 1200,
+    "nodeId": "transformer_encoder"
+  },
+  {
+    "id": 6,
+    "question": "What is the role of positional encoding in Transformers?",
+    "choices": [
+      "To add non-linearity",
+      "To provide sequence order information",
+      "To reduce overfitting",
+      "To increase model depth"
+    ],
+    "answerIndex": 1,
+    "elo": 1150,
+    "nodeId": "positional_encoding"
+  },
+  {
+    "id": 7,
+    "question": "Which activation function is commonly used in the feed-forward layers of Transformers?",
+    "choices": [
+      "ReLU",
+      "Sigmoid",
+      "Tanh",
+      "Softmax"
+    ],
+    "answerIndex": 0,
+    "elo": 1050,
+    "nodeId": "feedforward"
+  },
+  {
+    "id": 8,
+    "question": "What is the main advantage of multi-head attention over single-head attention?",
+    "choices": [
+      "It reduces computation time",
+      "It allows the model to jointly attend to information from different representation subspaces",
+      "It increases the number of parameters",
+      "It eliminates the need for positional encoding"
+    ],
+    "answerIndex": 1,
+    "elo": 1300,
+    "nodeId": "multihead_attention"
+  }
+] 
