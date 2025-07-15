@@ -40,9 +40,26 @@ $: {
   else if (step === 'complete') progressBarWidth = 100;
 }
 
-function handleGoalSubmit() {
-  if (goalInput.trim()) {
-    setGoal(goalInput.trim());
+let interests = [
+  {
+    title: 'Transformers & Sequence Modeling',
+    description: 'Learn how modern AI models understand and generate sequences, from language to time series.'
+  },
+  {
+    title: 'Monocular SLAM & Autonomous Navigation',
+    description: 'Explore how robots and drones map and navigate the world using a single camera.'
+  },
+  {
+    title: 'Deep Reinforcement Learning',
+    description: 'Master the algorithms that let agents learn to solve complex tasks through trial and error.'
+  }
+];
+let selectedInterest: { title: string; description: string } | null = null;
+let selectedSeedPaper = '';
+
+function handleGoalContinue() {
+  if (selectedInterest) {
+    setGoal(selectedInterest.title);
     step = 'paper';
   }
 }
@@ -101,71 +118,83 @@ function launchConfetti() {
 </script>
 
 <!-- Progress Bar (hidden during success animation) -->
-{#if !showSuccess}
-  <div class="w-full bg-gray-800 rounded-full h-2 mb-6">
-    <div 
-      class="bg-indigo-500 h-2 rounded-full transition-all duration-500"
-      style="width: {progressBarWidth}%"
-    ></div>
-  </div>
-{/if}
+<div class="w-full bg-gray-800 rounded-full h-2 mb-6">
+  <div 
+    class="bg-indigo-500 h-2 rounded-full transition-all duration-500"
+    style="width: {progressBarWidth}%"
+  ></div>
+</div>
 
 <div class="relative" style="min-height: 420px;">
   {#key step}
     {#if step === 'goal'}
-      <div class="text-center space-y-6 w-full" in:fade={{ duration: 300 }} out:fade={{ duration: 150 }}>
-        <div>
-          <h2 class="text-3xl font-bold mb-4">Welcome to Alice! 🎉</h2>
-          <p class="text-lg opacity-80">
-            Tell us what you want to master so we can curate your perfect first lesson.
-          </p>
-        </div>
-        <div class="space-y-4">
-          <label class="block">
-            <span class="block text-left mb-2 opacity-75">What's your primary goal?</span>
-            <input 
-              bind:value={goalInput}
-              class="w-full rounded-lg bg-gray-800 px-4 py-3 text-lg border border-gray-700 focus:border-indigo-500 focus:outline-none"
-              placeholder="e.g. Build a self-driving car, understand transformers, master reinforcement learning..."
-              on:keydown={(e) => e.key === 'Enter' && handleGoalSubmit()}
-            />
-          </label>
-          <div class="text-sm opacity-60">
-            Popular goals: "Understand transformers", "Master RL", "Build computer vision apps"
+      <div class="w-full">
+        <div class="flex flex-col min-h-[480px] justify-between w-full">
+          <div>
+            <h2 class="text-3xl font-bold mb-2 mt-2">Welcome to Alice! 🎉</h2>
+            <p class="text-lg opacity-80 mb-8">
+              What are you most interested in mastering?
+            </p>
+            <div class="grid grid-cols-2 gap-6 mb-8">
+              {#each interests as interest, i}
+                <button
+                  class="w-full h-full py-6 px-4 border text-left font-semibold transition shadow-md focus:outline-none"
+                  class:bg-black={true}
+                  class:border-white={selectedInterest === interest}
+                  class:border-[#333]={selectedInterest !== interest}
+                  class:text-white={true}
+                  class:shadow-lg={selectedInterest === interest}
+                  style="min-height: 120px; border-width: 1px; border-radius: 0;"
+                  on:click={() => selectedInterest = interest}
+                  type="button"
+                >
+                  <div class="text-lg font-bold mb-2">{interest.title}</div>
+                  <div class="text-sm opacity-80">{interest.description}</div>
+                </button>
+              {/each}
+              {#if interests.length % 2 !== 0}
+                <div></div> <!-- Empty cell for 2x2 grid if only 3 options -->
+              {/if}
+            </div>
           </div>
-          <button 
-            class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-lg font-semibold transition disabled:opacity-50"
-            disabled={!goalInput.trim()}
-            on:click={handleGoalSubmit}
-          >
-            Continue
-          </button>
+          <div class="mt-8">
+            <button
+              class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-lg font-semibold transition disabled:opacity-50"
+              disabled={!selectedInterest}
+              on:click={handleGoalContinue}
+              style="margin-top: 32px;"
+            >
+              Continue
+            </button>
+          </div>
         </div>
       </div>
     {:else if step === 'paper'}
-      <div class="space-y-6 w-full" in:fade={{ duration: 300 }} out:fade={{ duration: 150 }}>
-        <div class="text-center">
-          <h2 class="text-2xl font-bold mb-2">Perfect! Here's your first paper:</h2>
-          <p class="opacity-80">Based on your goal: <span class="text-indigo-400">{$guestProgress.goal}</span></p>
-        </div>
-        <div class="space-y-4">
-          {#each samplePapers as paper}
-            <button
-              class="w-full p-4 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 hover:border-indigo-500 transition text-left"
-              on:click={() => handlePaperSelect(paper.id)}
-            >
-              <div class="flex justify-between items-start">
-                <div>
-                  <h3 class="font-semibold text-lg">{paper.title}</h3>
-                  <p class="text-sm opacity-60 mt-1">Difficulty: {paper.difficulty}</p>
+      <div class="w-full">
+        <div class="text-center space-y-6 w-full" in:fade={{ duration: 300 }} out:fade={{ duration: 150 }}>
+          <div>
+            <h2 class="text-2xl font-bold mb-2">Perfect! Here's your first paper:</h2>
+            <p class="opacity-80">Based on your goal: <span class="text-indigo-400">{$guestProgress.goal}</span></p>
+          </div>
+          <div class="space-y-4">
+            {#each samplePapers as paper}
+              <button
+                class="w-full p-4 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 hover:border-indigo-500 transition text-left"
+                on:click={() => handlePaperSelect(paper.id)}
+              >
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h3 class="font-semibold text-lg">{paper.title}</h3>
+                    <p class="text-sm opacity-60 mt-1">Difficulty: {paper.difficulty}</p>
+                  </div>
+                  <span class="text-indigo-400">→</span>
                 </div>
-                <span class="text-indigo-400">→</span>
-              </div>
-            </button>
-          {/each}
-        </div>
-        <div class="text-center text-sm opacity-60">
-          We'll guide you through this paper with interactive lessons and explanations.
+              </button>
+            {/each}
+          </div>
+          <div class="text-center text-sm opacity-60">
+            We'll guide you through this paper with interactive lessons and explanations.
+          </div>
         </div>
       </div>
     {:else if step === 'lesson'}
