@@ -2,7 +2,10 @@
 import { guestProgress, currentLevel, setGoal, setCurrentPaper, completeLesson, onboardingComplete } from '$lib/onboarding';
 import { fade, scale } from 'svelte/transition';
 import { onMount } from 'svelte';
+import { tweened } from 'svelte/motion';
+import { cubicOut } from 'svelte/easing';
 import placementQuestions from '../data/placement_questions.json';
+import { writable, derived } from 'svelte/store';
 
 let step: 'goal' | 'quiz' | 'complete' = 'goal';
 let goalInput = '';
@@ -33,11 +36,40 @@ let quizDone = false;
 let quizRank = '';
 
 
-let progressBarWidth = 25;
+// --- Progress Bar State ---
+const progress = tweened(0, { duration: 400, easing: cubicOut });
+
+// Create writable stores for step, currentQuizIndex, and quizQuestionsLength
+const stepStore = writable<'goal' | 'quiz' | 'complete'>(step);
+const quizIndexStore = writable(currentQuizIndex);
+const quizLenStore = writable(quizQuestions.length);
+
+// Keep stores in sync with local variables
+$: stepStore.set(step);
+$: quizIndexStore.set(currentQuizIndex);
+$: quizLenStore.set(quizQuestions.length);
+
+// Derived store for current slide index
+const currentSlideIndex = derived([
+  stepStore,
+  quizIndexStore,
+  quizLenStore
+], ([$step, $currentQuizIndex, $quizLen]) => {
+  if ($step === 'goal') return 0;
+  if ($step === 'quiz') return 1 + $currentQuizIndex;
+  if ($step === 'complete') return 1 + ($quizLen || 6);
+  return 0;
+});
+
+function getTotalSlides() {
+  // 1 for interest, quizQuestions.length for quiz, 1 for complete
+  return 1 + (quizQuestions.length || 6) + 1;
+}
+
+// Update progress bar whenever currentSlideIndex or quizQuestions.length changes
 $: {
-  if (step === 'goal') progressBarWidth = 25;
-  else if (step === 'quiz') progressBarWidth = 75;
-  else if (step === 'complete') progressBarWidth = 100;
+  const percent = (($currentSlideIndex + 1) / getTotalSlides()) * 100;
+  progress.set(percent);
 }
 
 let interests = [
@@ -176,23 +208,13 @@ function launchConfetti() {
     });
   }
 }
-
-function getOverallProgress() {
-  // 1 for interest selection, quizQuestions.length for quiz, 1 for complete
-  let total = 1 + (quizQuestions.length || 6) + 1;
-  let current = 0;
-  if (step === 'goal') current = 1;
-  else if (step === 'quiz') current = 1 + currentQuizIndex + (quizInFeedback ? 1 : 0);
-  else if (step === 'complete') current = total;
-  return (current / total) * 100;
-}
 </script>
 
-<!-- Progress Bar (hidden during success animation) -->
+<!-- Progress Bar (tweened, always visible at top) -->
 <div class="w-full bg-gray-800 rounded-full h-2 mb-8">
   <div
-    class="bg-indigo-500 h-2 rounded-full transition-all duration-500"
-    style="width: {getOverallProgress()}%"
+    class="bg-indigo-500 h-2 rounded-full"
+    style="width: {$progress}%"
   ></div>
 </div>
 
