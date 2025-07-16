@@ -9,49 +9,75 @@
   export let nodesVisited: number = 0;
   export let onFinishReading: (nodesVisited: number) => void = () => {};
 
-  // For now, we'll have 2 pages: abstract and everything else
-  const totalPages = 2;
-  
+  // Add getDomainColor utility (copy from app page)
+  function getDomainColor(domain: string) {
+    const domainColors = {
+      'math': '#5B8DF2',
+      'tech': '#73DACA',
+      'sciences': '#BA6FFF',
+      'humanities': '#F88951',
+      'art': '#F7768E',
+      'research-papers': '#BFCAF3'
+    };
+    return domainColors[domain as keyof typeof domainColors] || '#3A5A8F';
+  }
 
-  
+  // Dynamically build pages based on available content sections
+  let pages: Array<{ title: string; content: string | null; type: 'section' | 'quiz' } > = [];
+
+  // Add abstract/description as first page
+  if (node.content?.abstract) {
+    pages.push({ title: 'Abstract', content: node.content.abstract, type: 'section' });
+  } else if (node.description) {
+    pages.push({ title: 'Description', content: node.description, type: 'section' });
+  }
+
+  // Add other content sections if available
+  if (node.content) {
+    for (const key in node.content) {
+      if (key !== 'abstract' && key !== 'description' && key !== 'original_paper_url') {
+        pages.push({ title: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), content: node.content[key], type: 'section' });
+      }
+    }
+  }
+
+  // Add quiz page if quiz exists
+  if (node.quiz && Array.isArray(node.quiz) && node.quiz.length > 0) {
+    pages.push({ title: 'Checkpoint Quiz', content: null, type: 'quiz' });
+  }
+
+  const totalPages = pages.length;
+
   // Subscribe to the current page store for this node
   let currentPage: number;
-  currentPageStore.subscribe(pages => {
-    currentPage = pages[node.id] || 0;
+  currentPageStore.subscribe(pagesStore => {
+    currentPage = pagesStore[node.id] || 0;
   });
 
   function setPage(pageNum: number) {
     if (pageNum >= 0 && pageNum < totalPages) {
-      currentPageStore.update(pages => ({
-        ...pages,
+      currentPageStore.update(pagesStore => ({
+        ...pagesStore,
         [node.id]: pageNum
       }));
     }
   }
 
-  function nextPage() {
-    setPage(currentPage + 1);
-  }
-
-  function prevPage() {
-    setPage(currentPage - 1);
-  }
+  function nextPage() { setPage(currentPage + 1); }
+  function prevPage() { setPage(currentPage - 1); }
 
   function handleMouseEnter(e: MouseEvent) {
     const target = e.target as HTMLButtonElement;
     target.style.color = '#222222';
   }
-
   function handleMouseLeave(e: MouseEvent) {
     const target = e.target as HTMLButtonElement;
     target.style.color = '#777777';
   }
-
   function handleFinishButtonHover(e: MouseEvent) {
     const target = e.target as HTMLButtonElement;
     target.style.backgroundColor = '#8A9BB8';
   }
-
   function handleFinishButtonLeave(e: MouseEvent) {
     const target = e.target as HTMLButtonElement;
     target.style.backgroundColor = '#BFCAF3';
@@ -60,43 +86,38 @@
   // Keyboard navigation
   function handleKeydown(event: KeyboardEvent) {
     switch (event.key) {
-      case 'ArrowLeft':
-      case 'h':
-      case 'H':
-        event.preventDefault();
-        prevPage();
-        break;
-      case 'ArrowRight':
-      case 'l':
-      case 'L':
-        event.preventDefault();
-        nextPage();
-        break;
-      case 'Home':
-      case 'g':
-      case 'G':
-        event.preventDefault();
-        setPage(0);
-        break;
-      case 'End':
-        event.preventDefault();
-        setPage(totalPages - 1);
-        break;
+      case 'ArrowLeft': case 'h': case 'H': event.preventDefault(); prevPage(); break;
+      case 'ArrowRight': case 'l': case 'L': event.preventDefault(); nextPage(); break;
+      case 'Home': case 'g': case 'G': event.preventDefault(); setPage(0); break;
+      case 'End': event.preventDefault(); setPage(totalPages - 1); break;
     }
   }
 
   function finishReading() {
-    // Count the actual glowing nodes (learned nodes) from the global set
-    // Subtract 1 because the paper node itself shouldn't count as a visited prerequisite
     const learnedNodesCount = (window as any).persistentLearnedNodes ? (window as any).persistentLearnedNodes.size : 0;
-    const adjustedCount = Math.max(0, learnedNodesCount - 1); // Ensure we don't go below 0
+    const adjustedCount = Math.max(0, learnedNodesCount - 1);
     onFinishReading(adjustedCount);
+  }
+
+  // Quiz state
+  let quizAnswers: number[] = [];
+  let quizSubmitted = false;
+  let quizScore = 0;
+  function handleQuizSelect(qIdx: number, optIdx: number) {
+    if (quizSubmitted) return;
+    quizAnswers[qIdx] = optIdx;
+  }
+  function handleQuizSubmit() {
+    quizSubmitted = true;
+    quizScore = node.quiz.reduce((score: number, q: any, i: number) => (quizAnswers[i] === q.answerIndex ? score + 1 : score), 0);
   }
 
   onMount(() => {
     document.addEventListener('keydown', handleKeydown);
+    quizAnswers = node.quiz ? Array(node.quiz.length).fill(-1) : [];
+    quizSubmitted = false;
+    quizScore = 0;
   });
-
   onDestroy(() => {
     document.removeEventListener('keydown', handleKeydown);
   });
@@ -111,7 +132,7 @@
 <div class="h-full flex flex-col" style="background-color: #111111;">
   <!-- Header -->
   <div class="flex items-center justify-between p-6">
-    <h2 class="text-2xl font-bold" style="color: #BFCAF3;">{node.label}</h2>
+    <h2 class="text-2xl font-bold" style="color: {node.type === 'paper' ? '#BFCAF3' : getDomainColor(node.domain || 'tech')};">{node.label}</h2>
     <button
       on:click={onClose}
       class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
@@ -128,7 +149,7 @@
   <div class="flex-1 overflow-y-auto relative">
     <div class="px-6 pb-6">
       <!-- Link to original paper -->
-      {#if node.content.original_paper_url}
+      {#if node.content?.original_paper_url}
         <div class="mb-6 p-4 rounded-lg" style="background-color: #1a1a1a; border: 1px solid #333333;">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: #BFCAF3; color: #111111;">
@@ -137,7 +158,7 @@
             <div>
               <div class="font-medium" style="color: #BFCAF3;">Original Paper</div>
               <a 
-                href="{node.content.original_paper_url}" 
+                href={node.content.original_paper_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 class="text-sm hover:underline"
@@ -151,84 +172,68 @@
       {/if}
 
       <!-- Page content -->
-      {#if currentPage === 0}
-        <!-- Abstract -->
-        {#if node.content.abstract}
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Abstract</h3>
-            <div class="leading-relaxed" style="color: #B3B3B3;">
-              {@html parseNodeLinks(node.content.abstract)}
-            </div>
+      {#if pages[currentPage].type === 'section'}
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">{pages[currentPage].title}</h3>
+          <div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
+            {@html parseNodeLinks(pages[currentPage].content || '')}
+          </div>
+        </div>
+        {#if currentPage === totalPages - 1 && !node.quiz}
+          <div class="text-center mt-8 mb-6">
+            <button
+              on:click={finishReading}
+              class="px-8 py-4 rounded-lg font-semibold transition-all duration-200"
+              style="background-color: #BFCAF3; color: #111111;"
+              on:mouseenter={handleFinishButtonHover}
+              on:mouseleave={handleFinishButtonLeave}
+            >
+              🏆 Finish Reading & Get Rank
+            </button>
           </div>
         {/if}
-      {:else}
-        <!-- Rest of the content -->
-        {#if node.content.introduction}
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Introduction</h3>
-            <div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-              {@html parseNodeLinks(node.content.introduction)}
+      {:else if pages[currentPage].type === 'quiz'}
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Checkpoint Quiz</h3>
+          {#each node.quiz as q, i}
+            <div class="mb-4">
+              <div class="font-medium mb-2">{i + 1}. {q.question}</div>
+              <div class="flex flex-col gap-2">
+                {#each q.options as opt, j}
+                  <label class="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name={`quiz-q${i}`}
+                      value={j}
+                      checked={quizAnswers[i] === j}
+                      disabled={quizSubmitted}
+                      on:change={() => handleQuizSelect(i, j)}
+                    />
+                    <span>{opt}</span>
+                  </label>
+                {/each}
+              </div>
+              {#if quizSubmitted}
+                <div class="mt-1 text-sm" style="color: {quizAnswers[i] === q.answerIndex ? '#73DACA' : '#F7768E'};">
+                  {quizAnswers[i] === q.answerIndex ? 'Correct!' : 'Incorrect.'}
+                </div>
+              {/if}
             </div>
-          </div>
-        {/if}
-
-        {#if node.content.model_architecture}
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Model Architecture</h3>
-            <div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-              {@html parseNodeLinks(node.content.model_architecture)}
+          {/each}
+          {#if !quizSubmitted}
+            <button
+              class="mt-4 px-6 py-2 rounded-lg font-semibold transition-all duration-200"
+              style="background-color: #BFCAF3; color: #111111;"
+              on:click={handleQuizSubmit}
+              disabled={quizAnswers.some(a => a === -1)}
+            >
+              Submit Quiz
+            </button>
+          {:else}
+            <div class="mt-4 text-center font-semibold" style="color: #BFCAF3;">
+              You scored {quizScore} / {node.quiz.length}
             </div>
-          </div>
-        {/if}
-
-        {#if node.content.why_self_attention}
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Why Self-Attention</h3>
-            <div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-              {@html parseNodeLinks(node.content.why_self_attention)}
-            </div>
-          </div>
-        {/if}
-
-        {#if node.content.training}
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Training</h3>
-            <div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-              {@html parseNodeLinks(node.content.training)}
-            </div>
-          </div>
-        {/if}
-
-        {#if node.content.results}
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Results</h3>
-            <div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-              {@html parseNodeLinks(node.content.results)}
-            </div>
-          </div>
-        {/if}
-
-        {#if node.content.conclusion}
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">Conclusion</h3>
-            <div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-              {@html parseNodeLinks(node.content.conclusion)}
-            </div>
-          </div>
-        {/if}
-
-        <!-- Finish Reading Button -->
-        <div class="text-center mt-8 mb-6">
-
-          <button
-            on:click={finishReading}
-            class="px-8 py-4 rounded-lg font-semibold transition-all duration-200"
-            style="background-color: #BFCAF3; color: #111111;"
-            on:mouseenter={handleFinishButtonHover}
-            on:mouseleave={handleFinishButtonLeave}
-          >
-            🏆 Finish Reading & Get Rank
-          </button>
+          {/if}
         </div>
       {/if}
     </div>
@@ -240,7 +245,6 @@
     <div class="text-sm" style="color: #888888;">
       Page {currentPage + 1} of {totalPages}
     </div>
-    
     <!-- Navigation dots -->
     <div class="flex justify-center items-center gap-2">
       {#each Array(totalPages) as _, i}
@@ -248,11 +252,11 @@
           class="w-2 h-2 rounded-full transition-all duration-200"
           style="background-color: {currentPage === i ? '#BFCAF3' : '#333333'};"
           on:click={() => setPage(i)}
-          title="Go to page {i + 1}"
-        />
+          title={`Go to page ${i + 1}`}
+          aria-label={`Go to page ${i + 1}`}
+        ></button>
       {/each}
     </div>
-
     <!-- Keyboard shortcuts hint -->
     <div class="text-xs" style="color: #666666;">
       Use ← → or h l to navigate
