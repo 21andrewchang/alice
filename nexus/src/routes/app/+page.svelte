@@ -1311,16 +1311,7 @@ function handleFinishReading(count: number) {
 							style="background-color: #111; border: 1px solid #333333;"
 						>
 							<div class="h-full overflow-hidden">
-								{#if node.type === 'paper' && node.content}
-									<PaginatedContent 
-										{node}
-										{parseNodeLinks}
-										onClose={() => removeFromStack(node.id)}
-										nodesVisited={learnedNodes.size}
-										onFinishReading={handleFinishReading}
-									/>
-									
-								{:else if node.type === 'paper' && node.url}
+								{#if node.type === 'paper' && node.url && !node.content}
 									<!-- PDF display for papers without formatted content -->
 									<div class="h-full flex flex-col">
 										<div class="flex items-center justify-between p-6">
@@ -1343,38 +1334,14 @@ function handleFinishReading(count: number) {
 										</div>
 									</div>
 								{:else}
-									<!-- Regular node display -->
-									<div class="p-6 h-full overflow-y-auto">
-										<div class="mb-4">
-											<div class="flex items-center justify-between mb-4">
-												<h2 class="text-2xl font-bold" style="color: {getDomainColor(node.domain || 'tech')};">{node.label}</h2>
-												<button
-													on:click={() => removeFromStack(node.id)}
-													class="w-8 h-8 rounded-full flex items-center justify-center text-[#333333] hover:text-white hover:text-[#3F3F3F] transition-colors"
-													aria-label="Close"
-												>
-													✕
-												</button>
-											</div>
-											<div class="flex items-center gap-2 mb-4">
-												<span class="text-sm" style="color: #B3B3B3;">Difficulty: {node.difficulty || 1}/5</span>
-												<div class="flex">
-													{#each Array(node.difficulty || 1) as _}
-														<div class="w-2 h-2 rounded-full mr-1" style="background-color: {getDomainColor(node.domain || 'tech')};"></div>
-													{/each}
-													{#each Array(5 - (node.difficulty || 1)) as _}
-														<div class="w-2 h-2 rounded-full mr-1" style="background-color: #3A3F59;"></div>
-													{/each}
-												</div>
-											</div>
-										</div>
-
-										<div class="mb-6">
-											<div class="leading-relaxed" style="color: #B3B3B3;">
-												{@html parseNodeLinks(node.description || '')}
-											</div>
-										</div>
-									</div>
+									<!-- Use PaginatedContent for all other nodes -->
+									<PaginatedContent 
+										{node}
+										{parseNodeLinks}
+										onClose={() => removeFromStack(node.id)}
+										nodesVisited={learnedNodes.size}
+										onFinishReading={handleFinishReading}
+									/>
 								{/if}
 							</div>
 						</div>
