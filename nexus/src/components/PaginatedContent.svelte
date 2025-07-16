@@ -41,6 +41,7 @@
     }
   }
 
+  console.log(node);
   // Add quiz page if quiz exists
   if (node.quiz && Array.isArray(node.quiz) && node.quiz.length > 0) {
     pages.push({ title: 'Checkpoint Quiz', content: null, type: 'quiz' });
