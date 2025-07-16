@@ -7,6 +7,9 @@ import { cubicOut } from 'svelte/easing';
 import placementQuestions from '../data/placement_questions.json';
 const placementQuestionsTyped: PlacementQuestion[] = (placementQuestions as any[]).map((q: any) => ({ ...q, bracket: q.bracket as Bracket }));
 import { writable, derived } from 'svelte/store';
+import mergedGraph from '../merged_graph.json';
+
+export let onSetRecommendation;
 
 let step: 'goal' | 'quiz' | 'complete' = 'goal';
 let goalInput = '';
@@ -109,34 +112,29 @@ $: {
 
 // --- Static Recommendations by Placement Level ---
 const staticRecommendations = {
-  beginner: {
-    nodeId: 1,
-    label: 'Neural Networks',
-    description: 'Start here to build a strong foundation in neural networks, the building blocks of all modern AI.'
-  },
-  intermediate: {
-    nodeId: 3,
-    label: 'Sequence Transduction Model',
-    description: 'You have the basics down! Next, learn how models map input sequences to outputs—core to translation, summarization, and more.'
-  },
-  advanced: {
-    nodeId: 0,
-    label: 'Attention Is All You Need',
-    description: 'You’re ready for the cutting edge! Dive straight into the Transformer paper that revolutionized deep learning.'
-  },
-  expert: {
-    nodeId: 0,
-    label: 'Attention Is All You Need',
-    description: 'You’re ready for the cutting edge! Dive straight into the Transformer paper that revolutionized deep learning.'
-  }
+  beginner: 1, // nodeId
+  intermediate: 3,
+  advanced: 0,
+  expert: 0
 };
 
 type StaticRecommendation = { nodeId: number; label: string; description: string } | null;
 
-let staticRecommendation: StaticRecommendation = null;
+let staticRecommendation: any = null;
+let staticRecommendationExplanation: string = '';
+
+const staticRecommendationExplanations = {
+  beginner: 'Start here to build a strong foundation in neural networks, the building blocks of all modern AI.',
+  intermediate: 'You have the basics down! Next, learn how models map input sequences to outputs—core to translation, summarization, and more.',
+  advanced: 'You’re ready for the cutting edge! Dive straight into the Transformer paper that revolutionized deep learning.',
+  expert: 'You’re ready for the cutting edge! Dive straight into the Transformer paper that revolutionized deep learning.'
+};
 
 $: if (step === 'complete') {
-  staticRecommendation = staticRecommendations[finalBracket] || staticRecommendations['beginner'];
+  const nodeId = staticRecommendations[finalBracket] ?? staticRecommendations['beginner'];
+  const node = mergedGraph.nodes.find((n: any) => n.id === nodeId);
+  staticRecommendation = node;
+  staticRecommendationExplanation = staticRecommendationExplanations[finalBracket] ?? staticRecommendationExplanations['beginner'];
   if (typeof localStorage !== 'undefined' && staticRecommendation) {
     localStorage.setItem('onboardingRecommendedNode', JSON.stringify(staticRecommendation));
   }
@@ -503,7 +501,7 @@ function launchConfetti() {
           <div class="bg-indigo-900 bg-opacity-80 p-6 rounded-lg mt-6 text-left max-w-xl mx-auto">
             <div class="text-lg font-bold mb-2">Recommended Next Step</div>
             <div class="text-sm opacity-90 mb-4">
-              {staticRecommendation.description}
+              {staticRecommendationExplanation}
             </div>
             <div class="text-xl text-indigo-300 mb-1">{staticRecommendation.label}</div>
           </div>
