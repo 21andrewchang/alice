@@ -24,6 +24,7 @@ type QuizAnswer = {
   questionId: number;
   selected: number | null;
   correct: boolean | null;
+  bracket: Bracket;
   skipped?: boolean;
 };
 
@@ -38,8 +39,6 @@ let quizDone = false;
 let quizRank = '';
 
 let lastSkipped = false;
-
-let DEV_MODE = true; // Set to true to show Elo debug info
 
 // Quiz config
 const QUIZ_LENGTH = 10;
@@ -56,6 +55,7 @@ let lastQuestionElo: number | null = null;
 const BRACKETS = ['beginner', 'intermediate', 'advanced', 'expert'] as const;
 type Bracket = typeof BRACKETS[number];
 let currentBracket: Bracket = 'intermediate';
+let finalBracket: Bracket = 'beginner';
 
 function getBracketIndex(bracket: Bracket) {
   return BRACKETS.indexOf(bracket);
@@ -142,14 +142,17 @@ function handleGoalContinue() {
     difficultyTrend = null;
     lastElo = 1000;
     lastQuestionElo = null;
-    currentBracket = 'intermediate';
-    // Select first question randomly from intermediate bracket, fallback to any if none
-    let available = placementQuestionsTyped.filter(q => q.bracket === currentBracket);
-    if (available.length === 0) {
-      available = placementQuestionsTyped;
+    currentBracket = 'beginner'; // Start with beginner questions
+    // --- Randomize first question from starting bracket (beginner) ---
+    const bracketQuestions = placementQuestionsTyped.filter(q => q.bracket === currentBracket);
+    if (bracketQuestions.length > 0) {
+      const firstQ = bracketQuestions[Math.floor(Math.random() * bracketQuestions.length)];
+      quizQuestions.push(firstQ);
+    } else if (placementQuestionsTyped.length > 0) {
+      // fallback: pick any question if none in bracket
+      const firstQ = placementQuestionsTyped[Math.floor(Math.random() * placementQuestionsTyped.length)];
+      quizQuestions.push(firstQ);
     }
-    const firstQ = available[Math.floor(Math.random() * available.length)];
-    if (firstQ) quizQuestions.push(firstQ);
     lastQuestionElo = null;
     step = 'quiz';
   }
@@ -177,8 +180,10 @@ function handleQuizSkip() {
     questionId: q.id,
     selected: null,
     correct: null,
+    bracket: q.bracket,
     skipped: true
   });
+  finalBracket = currentBracket;
   // Skipping slightly decreases streak, but not as much as a wrong answer
   streak = (streak || 0) - 1;
   lastCorrect = false;
@@ -203,7 +208,7 @@ function handleQuizSkip() {
       currentQuizIndex++;
     } else {
       quizDone = true;
-      quizRank = getQuizRank(userElo);
+      finalBracket = currentBracket;
       step = 'complete';
     }
   }, 500);
@@ -237,8 +242,10 @@ function handleQuizContinue() {
   userQuizAnswers.push({
     questionId: q.id,
     selected: selectedQuizChoice,
-    correct
+    correct,
+    bracket: q.bracket
   });
+  finalBracket = currentBracket;
   // Streak logic
   if (lastCorrect === null || lastCorrect === correct) {
     streak = (streak || 0) + (correct ? 1 : -1);
@@ -266,7 +273,7 @@ function handleQuizContinue() {
       currentQuizIndex++;
     } else {
       quizDone = true;
-      quizRank = getQuizRank(userElo);
+      finalBracket = currentBracket;
       step = 'complete';
     }
   }, 1000);
@@ -316,13 +323,6 @@ function launchConfetti() {
     style="width: {$progress}%"
   ></div>
 </div>
-{#if DEV_MODE}
-  <div class="bg-gray-900 text-white text-xs p-4 mb-4 rounded shadow max-w-xl mx-auto">
-    <div><b>Dev Mode:</b> Elo={userElo}, K={kFactor}, Streak={streak}, Last Correct={String(lastCorrect)}, Bracket={currentBracket}, Trend={difficultyTrend}, Last Skipped={String(lastSkipped)}</div>
-    <div>Answered: {userQuizAnswers.length} / {QUIZ_LENGTH}</div>
-    <div>Last Elo: {lastElo}</div>
-  </div>
-{/if}
 
 <div class="relative" style="min-height: 420px;">
   {#key step}
@@ -372,6 +372,27 @@ function launchConfetti() {
       </div>
     {:else if step === 'quiz'}
       <div class="w-full">
+        <!-- DEV/DEBUG VIEW: Show current and next question difficulty, streak, bracket, etc. -->
+        <div class="fixed top-4 right-4 z-50 bg-black bg-opacity-80 text-xs p-3 rounded shadow border border-gray-700" style="min-width: 220px; max-width: 320px; color: #BFCAF3;">
+          <div><strong>DEV VIEW</strong></div>
+          <div>Current Q ID: {quizQuestions[currentQuizIndex]?.id}</div>
+          <div>Current Topic: {quizQuestions[currentQuizIndex]?.nodeId}</div>
+          <div>Current Difficulty: {quizQuestions[currentQuizIndex]?.bracket}</div>
+          <div>Current Bracket: {currentBracket}</div>
+          <div>Streak: {streak}</div>
+          <div>Last Correct: {lastCorrect === null ? 'N/A' : lastCorrect ? '✔️' : '❌'}</div>
+          <div>Questions Answered: {userQuizAnswers.length}</div>
+          <div>Most Likely Next Difficulty: {
+            (() => {
+              // Predict next bracket based on streak and lastCorrect
+              let predBracket = currentBracket;
+              if (streak >= 2 && lastCorrect === true) predBracket = promoteBracket(currentBracket);
+              else if (streak <= -2 && lastCorrect === false) predBracket = demoteBracket(currentBracket);
+              return predBracket;
+            })()
+          }</div>
+        </div>
+        <!-- END DEV/DEBUG VIEW -->
         <div class="text-center mb-4 text-lg font-semibold">
           Question {currentQuizIndex + 1} of {quizQuestions.length}
         </div>
@@ -418,8 +439,15 @@ function launchConfetti() {
         {/if}
         {#if quizDone}
           <div class="text-center mt-8">
-            <div class="text-2xl mb-2">Your estimated skill: {quizRank}</div>
-            <div class="text-lg opacity-80">Elo: {userElo}</div>
+            <div class="text-2xl mb-2">Your Placement Level: {finalBracket.charAt(0).toUpperCase() + finalBracket.slice(1)}</div>
+            <div class="mt-4 text-left max-w-md mx-auto">
+              <strong>Questions by Difficulty:</strong>
+              <ul>
+                {#each BRACKETS as b}
+                  <li>{b.charAt(0).toUpperCase() + b.slice(1)}: {userQuizAnswers.filter(a => a.bracket === b).length}</li>
+                {/each}
+              </ul>
+            </div>
           </div>
         {/if}
       </div>
@@ -427,8 +455,7 @@ function launchConfetti() {
       <div class="text-center space-y-6 w-full" in:fade={{ duration: 300 }} out:fade={{ duration: 150 }}>
         <div>
           <h2 class="text-3xl font-bold mb-4">Congratulations! 🚀</h2>
-          <div class="text-2xl mb-2">Your estimated skill: {quizRank}</div>
-          <div class="text-lg opacity-80 mb-2">Elo: {userElo}</div>
+          <div class="text-2xl mb-2">Your Placement Level: {finalBracket.charAt(0).toUpperCase() + finalBracket.slice(1)}</div>
           <p class="text-lg opacity-80">
             You've completed your first lesson and earned <span class="text-indigo-400">{$guestProgress.xp} XP</span>!
           </p>

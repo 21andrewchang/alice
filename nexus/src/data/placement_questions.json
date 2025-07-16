@@ -1,402 +1,362 @@
 [
   {
     "id": 1,
-    "question": "What is the result of multiplying a 2×3 matrix by a 3×1 vector?",
-    "choices": ["A 2×1 vector","A 3×2 matrix","A 1×3 vector","A 2×3 matrix"],
-    "answerIndex": 0,
-    "bracket": "beginner",
-    "nodeId": "matrix_multiplication"
-  },
-  {
-    "id": 2,
-    "question": "Which operation computes the dot product of two equal-length vectors?",
-    "choices": ["Element-wise multiplication","Sum of element-wise products","Outer product","Cross product"],
-    "answerIndex": 1,
+    "question": "What is the dot product of [1, 2, 0] and [0, 1, 3]?",
+    "choices": ["0", "2", "3", "6"],
+    "answerIndex": 2,
     "bracket": "beginner",
     "nodeId": "dot_product"
   },
   {
-    "id": 3,
-    "question": "What does the softmax function produce when applied to a vector?",
-    "choices": ["Binary outputs","A probability distribution","Unnormalized scores","Sparse vector"],
-    "answerIndex": 1,
+    "id": 2,
+    "question": "True or false: multiplying a 2×2 matrix by a 2×1 vector yields a 2×1 vector.",
+    "choices": ["True", "False"],
+    "answerIndex": 0,
     "bracket": "beginner",
-    "nodeId": "softmax"
+    "nodeId": "matrix_vector_multiplication"
+  },
+  {
+    "id": 3,
+    "question": "If you flip a fair coin once, what is the probability of heads?",
+    "choices": ["25%", "33%", "50%", "75%"],
+    "answerIndex": 2,
+    "bracket": "beginner",
+    "nodeId": "bernoulli_trial"
   },
   {
     "id": 4,
+    "question": "What is the Euclidean norm of the vector [3, 4]?",
+    "choices": ["5", "7", "25", "√7"],
+    "answerIndex": 0,
+    "bracket": "beginner",
+    "nodeId": "vector_norm"
+  },
+  {
+    "id": 5,
+    "question": "What is 3 times the vector [1, 2]?",
+    "choices": ["[3, 2]", "[1, 6]", "[3, 6]", "[6, 6]"],
+    "answerIndex": 2,
+    "bracket": "beginner",
+    "nodeId": "scalar_multiplication"
+  },
+  {
+    "id": 6,
+    "question": "Compute the derivative d/dx(4x).",
+    "choices": ["x", "4", "0", "1"],
+    "answerIndex": 1,
+    "bracket": "beginner",
+    "nodeId": "basic_derivative"
+  },
+  {
+    "id": 7,
+    "question": "What is the value of ∫₀² x dx?",
+    "choices": ["1", "2", "4", "6"],
+    "answerIndex": 1,
+    "bracket": "beginner",
+    "nodeId": "definite_integral"
+  },
+  {
+    "id": 8,
+    "question": "What does Σ₍ᵢ₌₁₎³ i equal?",
+    "choices": ["3", "6", "9", "None of the above"],
+    "answerIndex": 1,
+    "bracket": "beginner",
+    "nodeId": "summation_notation"
+  },
+  {
+    "id": 9,
     "question": "What is one-hot encoding?",
-    "choices": ["Mapping categories to scalars","Mapping categories to orthogonal binary vectors","Dimensionality reduction","Normalization method"],
+    "choices": ["Mapping categories to scalars","Mapping categories to orthogonal binary vectors","Reducing dimensions","Normalizing data"],
     "answerIndex": 1,
     "bracket": "beginner",
     "nodeId": "one_hot_encoding"
   },
   {
-    "id": 5,
-    "question": "Why are embedding layers used in NLP models?",
-    "choices": ["To reduce vocabulary size","To map tokens into continuous vector space","To normalize inputs","To implement attention"],
-    "answerIndex": 1,
-    "bracket": "beginner",
-    "nodeId": "embeddings"
-  },
-  {
-    "id": 6,
-    "question": "What is gradient descent used for?",
-    "choices": ["Data preprocessing","Optimizing model parameters","Model evaluation","Feature extraction"],
-    "answerIndex": 1,
-    "bracket": "beginner",
-    "nodeId": "gradient_descent"
-  },
-  {
-    "id": 7,
-    "question": "Which variant of gradient descent updates parameters per batch?",
-    "choices": ["Batch GD","Stochastic GD","Mini-batch GD","Coordinate descent"],
-    "answerIndex": 2,
-    "bracket": "intermediate",
-    "nodeId": "mini_batch_gd"
-  },
-  {
-    "id": 8,
-    "question": "What is the role of the learning rate in optimization?",
-    "choices": ["Controls model depth","Scales gradient step size","Adjusts batch size","Determines regularization"],
-    "answerIndex": 1,
-    "bracket": "intermediate",
-    "nodeId": "learning_rate"
-  },
-  {
-    "id": 9,
-    "question": "Which optimizer uses running estimates of first and second moments of gradients?",
-    "choices": ["SGD","Momentum","RMSprop","Adam"],
-    "answerIndex": 3,
-    "bracket": "advanced",
-    "nodeId": "adam_optimizer"
-  },
-  {
     "id": 10,
-    "question": "What is dropout regularization?",
-    "choices": ["Adding noise to inputs","Randomly zeroing activations during training","Reducing learning rate","Increasing model depth"],
+    "question": "In Python, what does len([5, 6, 7, 8]) return?",
+    "choices": ["3", "4", "5", "6"],
     "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "dropout"
+    "bracket": "beginner",
+    "nodeId": "list_length"
   },
   {
     "id": 11,
-    "question": "Why apply layer normalization in deep networks?",
-    "choices": ["Stabilize activations","Reduce parameter count","Improve dropout","Decrease depth"],
+    "question": "What’s the main difference between a list and a tuple in Python?",
+    "choices": ["Lists are mutable","Tuples are mutable","Lists use less memory","Tuples cannot be nested"],
     "answerIndex": 0,
-    "bracket": "advanced",
-    "nodeId": "layer_normalization"
+    "bracket": "beginner",
+    "nodeId": "list_vs_tuple"
   },
   {
     "id": 12,
-    "question": "What is a residual connection?",
-    "choices": ["Concatenating inputs and outputs","Adding input to sublayer output","Multiplying layers","Applying softmax"],
+    "question": "What does a for loop do?",
+    "choices": ["Executes a block until a condition is false","Iterates over a sequence","Defines a function","Creates a variable"],
     "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "residual_connection"
+    "bracket": "beginner",
+    "nodeId": "for_loop"
   },
   {
     "id": 13,
-    "question": "Which common activation appears in feed-forward networks?",
-    "choices": ["Softmax","ReLU","Sigmoid","Tanh"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "activation_functions"
+    "question": "What does a while loop do?",
+    "choices": ["Executes code while a condition is true","Iterates over a sequence","Runs only once","Defines a loop variable"],
+    "answerIndex": 0,
+    "bracket": "beginner",
+    "nodeId": "while_loop"
   },
   {
     "id": 14,
-    "question": "What is the time complexity of multiplying two n×n matrices with the naïve algorithm?",
-    "choices": ["O(n)","O(n log n)","O(n²)","O(n³)"],
-    "answerIndex": 3,
-    "bracket": "advanced",
-    "nodeId": "matrix_complexity"
+    "question": "Define mean and median.",
+    "choices": ["Average and middle value","Most frequent and average","Middle value and minimum","Maximum and minimum"],
+    "answerIndex": 0,
+    "bracket": "beginner",
+    "nodeId": "mean_and_median"
   },
   {
     "id": 15,
-    "question": "What is sequence transduction?",
-    "choices": ["Mapping input sequence to label","Mapping one sequence to another","Adding sequences","Shuffling sequences"],
+    "question": "What is the probability of rolling a 6 on a fair six-sided die?",
+    "choices": ["1/3", "1/6", "1/4", "1/5"],
     "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "sequence_transduction"
+    "bracket": "beginner",
+    "nodeId": "probability_die"
   },
   {
     "id": 16,
-    "question": "How does a recurrent neural network process sequences?",
-    "choices": ["In parallel","Token by token with hidden state","Ignoring order","Using convolution"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "rnn"
+    "question": "What is the formula for the determinant of a 2×2 matrix [[a, b], [c, d]]?",
+    "choices": ["ad − bc","a + d","ab + cd","a/b + c/d"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "determinant_formula"
   },
   {
     "id": 17,
-    "question": "Which layer performs local pattern detection on sequences/images?",
-    "choices": ["Recurrent layer","Convolutional layer","Self-attention","Normalization layer"],
+    "question": "What is an eigenvalue λ of a matrix A?",
+    "choices": ["A(v) = v","det(A − λI) = 0","trace(A) = λ","A * λ = I"],
     "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "cnn"
+    "bracket": "intermediate",
+    "nodeId": "eigenvalues"
   },
   {
     "id": 18,
-    "question": "What role do encoder and decoder play in sequence models?",
-    "choices": ["Encoder generates output; decoder processes input","Encoder processes input; decoder generates output","Both classify","Both embed"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "encoder_decoder"
+    "question": "Use the chain rule to differentiate sin(3x²).",
+    "choices": ["6x cos(3x²)","3x cos(x²)","cos(3x²)","6 cos(x²)"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "chain_rule"
   },
   {
     "id": 19,
-    "question": "What is an attention mechanism’s core idea?",
-    "choices": ["Weight inputs by learned scores","Apply convolution","Use recurrence","Normalize gradients"],
+    "question": "What is the gradient of f(x, y) = x²y + 3y?",
+    "choices": ["(2xy, x² + 3)","(2x + y, 3y)","(2y, x + 3)","(x², 3y)"],
     "answerIndex": 0,
-    "bracket": "advanced",
-    "nodeId": "attention_mechanism"
+    "bracket": "intermediate",
+    "nodeId": "multivariable_gradient"
   },
   {
     "id": 20,
-    "question": "How is scaled dot-product attention computed?",
-    "choices": ["Softmax(QKᵀ)·V","Softmax(QKᵀ/√dₖ)·V","ReLU(Q+K)·V","Sigmoid(QKᵀ)·V"],
+    "question": "Which formula represents Bayes’ theorem?",
+    "choices": ["P(A)P(B) / P(A ∩ B)","P(B | A)P(A) / P(B)","P(A ∩ B) / P(A)","P(A)P(B | A)"],
     "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "scaled_attention"
+    "bracket": "intermediate",
+    "nodeId": "bayes_theorem"
   },
   {
     "id": 21,
-    "question": "What does parallelization refer to in model training?",
-    "choices": ["Sequential updates","Simultaneous computation across devices","Single-threaded loops","Layer stacking"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "parallelization"
+    "question": "What does Σ₍ₖ₌₀₎ⁿ C(n, k) equal?",
+    "choices": ["2ⁿ","n!","n²","n"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "binomial_identity"
   },
   {
     "id": 22,
-    "question": "Why are GPUs favored for deep learning?",
-    "choices": ["Higher clock speed","Optimized for massive parallel operations","Lower power consumption","Larger memory per core"],
+    "question": "What does standard deviation measure in a dataset?",
+    "choices": ["Average deviation from the mean","Spread of data around the mean","Minimum value","Maximum value"],
     "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "gpu_architecture"
+    "bracket": "intermediate",
+    "nodeId": "standard_deviation"
   },
   {
     "id": 23,
-    "question": "What is the BLEU score used to evaluate?",
-    "choices": ["Image quality","Translation quality","Parsing accuracy","Speech synthesis"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "bleu_score"
+    "question": "What is the inverse of matrix A such that A⁻¹A = I?",
+    "choices": ["A⁻¹","Aᵀ","det(A)","trace(A)"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "matrix_inversion"
   },
   {
     "id": 24,
-    "question": "Which technique combines multiple models’ predictions?",
-    "choices": ["Regularization","Ensembling","Dropout","Normalization"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "ensemble_methods"
+    "question": "What is Gaussian elimination used for?",
+    "choices": ["Solving linear systems","Computing eigenvalues","Matrix factorization","Dimension reduction"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "gaussian_elimination"
   },
   {
     "id": 25,
-    "question": "What is label smoothing?",
-    "choices": ["Random label changes","Adding uniform noise to targets","Weighted sampling","Gradient clipping"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "label_smoothing"
+    "question": "Newton’s method updates xₙ to find roots by:",
+    "choices": ["xₙ₊₁ = xₙ − f(xₙ)/f′(xₙ)","Bisecting intervals","Random sampling","Gradient ascent"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "newton_method"
   },
   {
     "id": 26,
-    "question": "How does a mask in attention work?",
-    "choices": ["Zeroes out attention weights","Adds large negative values to logits","Normalizes scores","Concatenates vectors"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "attention_mask"
+    "question": "Which describes a convex function?",
+    "choices": ["Line segment between points lies above the graph","Line segment between points lies below the graph","Graph lies above segment","Graph intersects segment"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "convex_function"
   },
   {
     "id": 27,
-    "question": "What is beam search used for?",
-    "choices": ["Training optimization","Sequence decoding","Feature extraction","Regularization"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "beam_search"
+    "question": "What does gradient descent do?",
+    "choices": ["Optimizes model parameters by moving opposite the gradient","Optimizes the gradient","Minimizes learning rate","Increases batch size"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "gradient_descent"
   },
   {
     "id": 28,
-    "question": "What is constituency parsing?",
-    "choices": ["Assigning part-of-speech tags","Building tree structure for sentence","Translating text","Summarizing text"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "constituency_parsing"
+    "question": "In logistic regression, the model output is:",
+    "choices": ["A probability","A binary label directly","A hidden state","A regression line"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "logistic_regression"
   },
   {
     "id": 29,
-    "question": "Generalization refers to a model’s ability to:",
-    "choices": ["Fit training data perfectly","Perform well on unseen data","Have low parameter count","Train faster"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "generalization"
+    "question": "What is the time complexity of merge sort?",
+    "choices": ["O(n log n)","O(n²)","O(n)","O(log n)"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "time_complexity"
   },
   {
     "id": 30,
-    "question": "What causes overfitting?",
-    "choices": ["Insufficient model capacity","Excessive training data","Model too complex relative to data","High learning rate"],
-    "answerIndex": 2,
-    "bracket": "advanced",
-    "nodeId": "overfitting"
+    "question": "How do you reverse a string \"abc\" in Python?",
+    "choices": ["\"abc\"[::-1]","reverse(\"abc\")","str.reverse(\"abc\")","slice(\"abc\")"],
+    "answerIndex": 0,
+    "bracket": "intermediate",
+    "nodeId": "string_reverse"
   },
   {
     "id": 31,
-    "question": "What is the purpose of weight initialization?",
-    "choices": ["Ensure reproducibility","Break symmetry and stabilize gradients","Reduce memory usage","Increase depth"],
-    "answerIndex": 1,
+    "question": "Which factorization represents the SVD of matrix M?",
+    "choices": ["UΣVᵀ","UVΣ","ΣUV","VΣU"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "weight_initialization"
+    "nodeId": "singular_value_decomposition"
   },
   {
     "id": 32,
-    "question": "Why use an inverse-square-root learning rate schedule?",
-    "choices": ["Faster convergence","Simpler implementation","Warmup then decay","Avoid overfitting"],
-    "answerIndex": 2,
+    "question": "Lagrange multipliers solve constrained optimization by:",
+    "choices": ["∇f = λ ∇g","Setting gradient to zero","Adding a penalty term","Scaling variables"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "lr_schedule"
+    "nodeId": "lagrange_multipliers"
   },
   {
     "id": 33,
-    "question": "What is the computational complexity of self-attention for sequence length n?",
-    "choices": ["O(n)","O(n log n)","O(n²)","O(n³)"],
-    "answerIndex": 2,
+    "question": "Entropy H(p) measures:",
+    "choices": ["Average information content","Prediction error","Gradient magnitude","Parameter count"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "attention_complexity"
+    "nodeId": "entropy"
   },
   {
     "id": 34,
-    "question": "What is sparse attention?",
-    "choices": ["Zeroing small weights","Restricting attention to subsets of positions","Using sparse matrices for embeddings","Removing normalization"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "sparse_attention"
-  },
-  {
-    "id": 35,
-    "question": "Relative positional encoding differs from absolute by:",
-    "choices": ["Encoding distance between tokens","Using fixed sinusoidal vectors","Concatenating positions","Ignoring order"],
+    "question": "KL divergence measures:",
+    "choices": ["Discrepancy between distributions","Correlation","Euclidean distance","Covariance"],
     "answerIndex": 0,
-    "bracket": "advanced",
-    "nodeId": "positional_encoding_relative"
-  },
-  {
-    "id": 36,
-    "question": "What does KL divergence measure between distributions?",
-    "choices": ["Euclidean distance","Similarity","Discrepancy","Correlation"],
-    "answerIndex": 2,
     "bracket": "advanced",
     "nodeId": "kl_divergence"
   },
   {
-    "id": 37,
-    "question": "Transfer learning allows a model to:",
-    "choices": ["Train from scratch faster","Reuse parameters on new tasks","Decrease memory usage","Avoid fine-tuning"],
-    "answerIndex": 1,
+    "id": 35,
+    "question": "Cross-entropy loss is defined as:",
+    "choices": ["−Σ y log p","Σ y p","Σ p log p","−Σ p y"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "transfer_learning"
+    "nodeId": "cross_entropy"
+  },
+  {
+    "id": 36,
+    "question": "Backpropagation computes:",
+    "choices": ["Gradients via the chain rule","Weight updates directly","Activation outputs","Loss value"],
+    "answerIndex": 0,
+    "bracket": "advanced",
+    "nodeId": "backpropagation"
+  },
+  {
+    "id": 37,
+    "question": "Which optimizer uses running estimates of first and second moments of gradients?",
+    "choices": ["Adam","SGD","Momentum","RMSprop"],
+    "answerIndex": 0,
+    "bracket": "advanced",
+    "nodeId": "adam_optimizer"
   },
   {
     "id": 38,
-    "question": "Why might very deep post-layer-norm Transformers be unstable?",
-    "choices": ["Excessive parameter count","Gradient vanishing/explosion","Lack of dropout","Small batch sizes"],
-    "answerIndex": 1,
+    "question": "What is dropout regularization?",
+    "choices": ["Randomly zeroing activations during training","Dropping entire layers","Removing data points","Scaling the learning rate"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "training_stability"
+    "nodeId": "dropout_regularization"
   },
   {
     "id": 39,
-    "question": "What is the main memory bottleneck for long-sequence self-attention?",
-    "choices": ["Embedding lookup","Computing QKᵀ","Feed-forward layers","Layer norm"],
-    "answerIndex": 1,
+    "question": "How is scaled dot-product attention computed?",
+    "choices": ["Softmax(QKᵀ/√dₖ)·V","Softmax(QKᵀ)·V","ReLU(QK)·V","Sigmoid(Q+K)·V"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "memory_bottleneck"
+    "nodeId": "scaled_dot_product_attention"
   },
   {
     "id": 40,
-    "question": "How can training costs be reduced in large models?",
-    "choices": ["Increase batch size only","Use mixed-precision and parallelism","Remove attention","Use larger learning rate"],
-    "answerIndex": 1,
+    "question": "CUDA parallelism refers to:",
+    "choices": ["Executing many threads on GPU cores","Parallel CPU processes","Sequential CPU execution","Vector operations"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "training_costs"
+    "nodeId": "cuda_parallelism"
   },
   {
     "id": 41,
-    "question": "What is ensemble distillation?",
-    "choices": ["Combining models at inference","Transferring ensemble knowledge to a single model","A type of dropout","Parallel training strategy"],
-    "answerIndex": 1,
+    "question": "Why are GPUs favored for deep learning?",
+    "choices": ["Optimized for massive parallel operations","Higher single-thread clock speed","Lower latency branching","Larger per-core caches"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "ensemble_distillation"
+    "nodeId": "gpu_architecture"
   },
   {
     "id": 42,
-    "question": "What is the purpose of gradient clipping?",
-    "choices": ["Accelerate training","Prevent exploding gradients","Improve generalization","Normalize activations"],
-    "answerIndex": 1,
+    "question": "What is beam search used for?",
+    "choices": ["Sequence decoding","Training optimization","Graph search","Feature extraction"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "gradient_clipping"
+    "nodeId": "beam_search"
   },
   {
     "id": 43,
-    "question": "What is zero-shot generalization?",
-    "choices": ["Generalizing with no training","Generalizing on unseen classes without fine-tuning","Fine-tuning on new data","Zero loss on test"],
-    "answerIndex": 1,
+    "question": "What does cross-validation do?",
+    "choices": ["Splits data into folds for evaluation","Regularizes models","Defines a loss function","Selects an optimizer"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "zero_shot"
+    "nodeId": "cross_validation"
   },
   {
     "id": 44,
-    "question": "Which metric captures translation adequacy and fluency beyond BLEU?",
-    "choices": ["ROUGE","METEOR","Accuracy","Perplexity"],
-    "answerIndex": 1,
+    "question": "A Markov chain has the property that:",
+    "choices": ["The next state depends only on the current state","It depends on the full history","It always converges","Transitions are uniform"],
+    "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "translation_metrics"
+    "nodeId": "markov_chain"
   },
   {
     "id": 45,
-    "question": "How does label smoothing relate to minimizing cross-entropy?",
-    "choices": ["Removes cross-entropy term","Adds uniform noise to target distribution","Maximizes cross-entropy","Ignores true labels"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "label_smoothing_ce"
-  },
-  {
-    "id": 46,
-    "question": "What is dynamic masking in attention?",
-    "choices": ["Changing masks per layer","Using fixed masks","Random dropout of keys","Masking future tokens only"],
+    "question": "What does transfer learning allow a model to do?",
+    "choices": ["Reuse parameters on new tasks","Train from scratch faster","Avoid fine-tuning","Normalize data"],
     "answerIndex": 0,
     "bracket": "advanced",
-    "nodeId": "dynamic_masking"
-  },
-  {
-    "id": 47,
-    "question": "Why is self-attention more parallelizable than recurrence?",
-    "choices": ["Processes tokens sequentially","No hidden state dependency","Requires fewer parameters","Uses convolution"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "parallel_attention"
-  },
-  {
-    "id": 48,
-    "question": "What is the impact of tokenization granularity on model performance?",
-    "choices": ["No impact","Trade-off between vocabulary size and sequence length","Only affects embedding size","Only affects attention"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "tokenization"
-  },
-  {
-    "id": 49,
-    "question": "Which factor most influences GPU training throughput?",
-    "choices": ["Sequence length","Batch size and model parallelism","Optimizer choice","Dropout rate"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "gpu_throughput"
-  },
-  {
-    "id": 50,
-    "question": "What is domain adaptation in NLP?",
-    "choices": ["Training on source and target combined","Fine-tuning a pre-trained model on target domain data","Removing domain-specific tokens","Using zero-shot transfer"],
-    "answerIndex": 1,
-    "bracket": "advanced",
-    "nodeId": "domain_adaptation"
+    "nodeId": "transfer_learning"
   }
 ]
