@@ -1256,7 +1256,7 @@ function handleFinishReading(count: number) {
 
 	<!-- Stacked Node Preview panels - right side -->
 	{#if nodeStack.length > 0}
-		<div class="w-1/2 h-full relative" style="background-color: rgba(8, 8, 8, 0.0);">
+		<div class="w-1/2 relative" style="background-color: rgba(8, 8, 8, 0.0); margin-top: 2.75rem; height: calc(100% - 2.75rem);">
 			{#each nodeStack as node, index (node.id)}
 				<div 
 					in:fly={{ x: 300, duration: 250, easing: cubicOut }}

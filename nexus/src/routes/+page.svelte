@@ -583,7 +583,7 @@ body, html, #svelte {
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  font-size: clamp(3rem, 8vw, 6rem);
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
   font-weight: bold;
   position: relative;
   z-index: 3;

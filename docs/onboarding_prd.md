@@ -3,15 +3,15 @@
 ## 1. Overview and Goals
 - **Purpose:** Seamlessly introduce new users to the platform, assess their current knowledge, and recommend a personalized learning path.
 - **Goals:**
-  - Quickly gauge user proficiency across foundational areas (math, programming, ML basics, etc.)
+  - Quickly gauge user proficiency across key foundational areas (math, programming, ML basics, etc.)
   - Make onboarding engaging, adaptive, and visually rewarding
   - Provide actionable next steps and a sense of progress
 
 ## 2. Quiz Flow
 - **Adaptive Quiz:**
   - Users answer a series of questions of varying difficulty (beginner, intermediate, advanced)
-  - Quiz adapts in real time based on user performance (correct/incorrect/streaks/skips)
-  - Difficulty of next question is dynamically adjusted
+  - Quiz adapts based on user performance (correct/incorrect/streaks/skips)
+  - Difficulty of next question is adjusted in real time
 - **Dev/Debug View:**
   - Show current question's difficulty and the most likely next question's difficulty (for development/testing)
   - Optionally show internal placement score/Elo
@@ -51,4 +51,4 @@
 **Next Steps:**
 - Begin with verifying and improving the quiz's difficulty adjustment logic
 - Add a dev/debug view for question difficulty and next likely difficulty
-- Implement feedback chart and personalized recommendations after quiz completion
+- Implement feedback chart and personalized recommendations after quiz completion 
