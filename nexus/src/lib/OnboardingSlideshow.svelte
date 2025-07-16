@@ -5,6 +5,7 @@ import { onMount } from 'svelte';
 import { tweened } from 'svelte/motion';
 import { cubicOut } from 'svelte/easing';
 import placementQuestions from '../data/placement_questions.json';
+const placementQuestionsTyped: PlacementQuestion[] = (placementQuestions as any[]).map((q: any) => ({ ...q, bracket: q.bracket as Bracket }));
 import { writable, derived } from 'svelte/store';
 
 let step: 'goal' | 'quiz' | 'complete' = 'goal';
@@ -16,13 +17,14 @@ type PlacementQuestion = {
   question: string;
   choices: string[];
   answerIndex: number;
-  elo: number;
+  bracket: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   nodeId: string;
 };
 type QuizAnswer = {
   questionId: number;
-  selected: number;
-  correct: boolean;
+  selected: number | null;
+  correct: boolean | null;
+  skipped?: boolean;
 };
 
 let quizQuestions: PlacementQuestion[] = [];
@@ -34,6 +36,39 @@ let quizInFeedback = false;
 let quizProgress = 0;
 let quizDone = false;
 let quizRank = '';
+
+let lastSkipped = false;
+
+let DEV_MODE = true; // Set to true to show Elo debug info
+
+// Quiz config
+const QUIZ_LENGTH = 10;
+
+// State for adaptive Elo
+let streak = 0;
+let lastCorrect: boolean | null = null;
+let kFactor = 32;
+let difficultyTrend: 'up' | 'down' | 'flat' | null = null;
+let lastElo = 1000;
+let lastQuestionElo: number | null = null;
+
+// Bracket system
+const BRACKETS = ['beginner', 'intermediate', 'advanced', 'expert'] as const;
+type Bracket = typeof BRACKETS[number];
+let currentBracket: Bracket = 'intermediate';
+
+function getBracketIndex(bracket: Bracket) {
+  return BRACKETS.indexOf(bracket);
+}
+
+function promoteBracket(bracket: Bracket): Bracket {
+  const idx = getBracketIndex(bracket);
+  return BRACKETS[Math.min(idx + 1, BRACKETS.length - 1)];
+}
+function demoteBracket(bracket: Bracket): Bracket {
+  const idx = getBracketIndex(bracket);
+  return BRACKETS[Math.max(idx - 1, 0)];
+}
 
 
 // --- Progress Bar State ---
@@ -92,8 +127,7 @@ let selectedSeedPaper = '';
 function handleGoalContinue() {
   if (selectedInterest) {
     setGoal(selectedInterest.title);
-    // Select 6 questions, starting with the lowest Elo, then use Elo logic
-    quizQuestions = selectQuizQuestions(placementQuestions, 6);
+    quizQuestions = [];
     currentQuizIndex = 0;
     userQuizAnswers = [];
     userElo = 1000;
@@ -102,36 +136,30 @@ function handleGoalContinue() {
     quizProgress = 0;
     quizDone = false;
     quizRank = '';
+    streak = 0;
+    lastCorrect = null;
+    kFactor = 32;
+    difficultyTrend = null;
+    lastElo = 1000;
+    lastQuestionElo = null;
+    currentBracket = 'intermediate';
+    // Select first question randomly from intermediate bracket, fallback to any if none
+    let available = placementQuestionsTyped.filter(q => q.bracket === currentBracket);
+    if (available.length === 0) {
+      available = placementQuestionsTyped;
+    }
+    const firstQ = available[Math.floor(Math.random() * available.length)];
+    if (firstQ) quizQuestions.push(firstQ);
+    lastQuestionElo = null;
     step = 'quiz';
   }
 }
 
-function selectQuizQuestions(allQuestions: PlacementQuestion[], count: number): PlacementQuestion[] {
-  // Start with the lowest Elo question, then use Elo logic to pick next
-  let selected = [];
-  let usedIds = new Set();
-  let currentElo = 1000;
-  let lastCorrect = null;
-  let streak = 0;
-  let available = [...allQuestions];
-  // Sort by Elo ascending for first pick
-  available.sort((a, b) => a.elo - b.elo);
-  let q = available[0];
-  selected.push(q);
-  usedIds.add(q.id);
-  for (let i = 1; i < count; i++) {
-    // Find questions not used yet
-    let unused = allQuestions.filter(q => !usedIds.has(q.id));
-    // Pick the one closest to currentElo
-    unused.sort((a, b) => Math.abs(a.elo - currentElo) - Math.abs(b.elo - currentElo));
-    let nextQ = unused[0];
-    selected.push(nextQ);
-    usedIds.add(nextQ.id);
-    // For now, just update currentElo up/down by 100 for demo
-    // (real logic: update after each answer)
-    currentElo = nextQ.elo;
-  }
-  return selected;
+// Remove selectQuizQuestions and selectNextQuestion functions entirely, as they are not used in the bracket-based system and reference q.elo.
+
+function updateKFactor(numAnswered: number, streak: number): number {
+  // Decay K as more questions are answered or streak grows
+  return Math.max(8, 32 - Math.floor(numAnswered / 2) - Math.min(Math.abs(streak), 8));
 }
 
 let selectedQuizChoice: number | null = null;
@@ -140,6 +168,66 @@ let showQuizFeedback = false;
 function handleQuizAnswer(idx: number) {
   if (quizInFeedback || userQuizAnswers.length > currentQuizIndex) return;
   selectedQuizChoice = idx;
+}
+
+function handleQuizSkip() {
+  if (quizInFeedback) return;
+  const q = quizQuestions[currentQuizIndex];
+  userQuizAnswers.push({
+    questionId: q.id,
+    selected: null,
+    correct: null,
+    skipped: true
+  });
+  // Skipping slightly decreases streak, but not as much as a wrong answer
+  streak = (streak || 0) - 1;
+  lastCorrect = false;
+  lastSkipped = true;
+  // Bracket logic (demote if 2+ skips in a row)
+  const prevBracket = currentBracket;
+  currentBracket = selectNextBracket(streak, lastCorrect, currentBracket);
+  difficultyTrend = currentBracket === prevBracket ? 'flat' : (getBracketIndex(currentBracket) > getBracketIndex(prevBracket) ? 'up' : 'down');
+  quizFeedback = null;
+  quizInFeedback = true;
+  showQuizFeedback = true;
+  setTimeout(() => {
+    quizInFeedback = false;
+    quizFeedback = null;
+    showQuizFeedback = false;
+    selectedQuizChoice = null;
+    if (currentQuizIndex < QUIZ_LENGTH - 1) {
+      // Select next question from current bracket
+      const usedIds = new Set(quizQuestions.map(q => q.id));
+      const nextQ = selectNextQuestionBracketed(placementQuestionsTyped, usedIds, currentBracket);
+      if (nextQ) quizQuestions.push(nextQ);
+      currentQuizIndex++;
+    } else {
+      quizDone = true;
+      quizRank = getQuizRank(userElo);
+      step = 'complete';
+    }
+  }, 500);
+}
+
+function selectNextBracket(streak: number, lastCorrect: boolean | null, currentBracket: Bracket): Bracket {
+  if (streak >= 2 && lastCorrect === true) {
+    return promoteBracket(currentBracket);
+  } else if (streak <= -2 && lastCorrect === false) {
+    return demoteBracket(currentBracket);
+  } else {
+    return currentBracket;
+  }
+}
+
+function selectNextQuestionBracketed(allQuestions: PlacementQuestion[], usedIds: Set<number>, bracket: Bracket): PlacementQuestion | null {
+  let unused = allQuestions.filter(q => q.bracket === (bracket as Bracket) && !usedIds.has(q.id));
+  if (unused.length === 0) {
+    // fallback: pick from any bracket not used
+    unused = allQuestions.filter(q => !usedIds.has(q.id));
+    if (unused.length === 0) return null;
+  }
+  // Pick randomly from bracket
+  return unused[Math.floor(Math.random() * unused.length)];
 }
 
 function handleQuizContinue() {
@@ -151,10 +239,17 @@ function handleQuizContinue() {
     selected: selectedQuizChoice,
     correct
   });
-  // Elo update (simple)
-  const expected = 1 / (1 + Math.pow(10, (q.elo - userElo) / 400));
-  const K = 32;
-  userElo = Math.round(userElo + K * ((correct ? 1 : 0) - expected));
+  // Streak logic
+  if (lastCorrect === null || lastCorrect === correct) {
+    streak = (streak || 0) + (correct ? 1 : -1);
+  } else {
+    streak = correct ? 1 : -1;
+  }
+  lastCorrect = correct;
+  // Bracket logic
+  const prevBracket = currentBracket;
+  currentBracket = selectNextBracket(streak, lastCorrect, currentBracket);
+  difficultyTrend = currentBracket === prevBracket ? 'flat' : (getBracketIndex(currentBracket) > getBracketIndex(prevBracket) ? 'up' : 'down');
   quizFeedback = correct;
   quizInFeedback = true;
   showQuizFeedback = true;
@@ -163,7 +258,11 @@ function handleQuizContinue() {
     quizFeedback = null;
     showQuizFeedback = false;
     selectedQuizChoice = null;
-    if (currentQuizIndex < quizQuestions.length - 1) {
+    if (currentQuizIndex < QUIZ_LENGTH - 1) {
+      // Select next question from current bracket
+      const usedIds = new Set(quizQuestions.map(q => q.id));
+      const nextQ = selectNextQuestionBracketed(placementQuestionsTyped, usedIds, currentBracket);
+      if (nextQ) quizQuestions.push(nextQ);
       currentQuizIndex++;
     } else {
       quizDone = true;
@@ -217,6 +316,13 @@ function launchConfetti() {
     style="width: {$progress}%"
   ></div>
 </div>
+{#if DEV_MODE}
+  <div class="bg-gray-900 text-white text-xs p-4 mb-4 rounded shadow max-w-xl mx-auto">
+    <div><b>Dev Mode:</b> Elo={userElo}, K={kFactor}, Streak={streak}, Last Correct={String(lastCorrect)}, Bracket={currentBracket}, Trend={difficultyTrend}, Last Skipped={String(lastSkipped)}</div>
+    <div>Answered: {userQuizAnswers.length} / {QUIZ_LENGTH}</div>
+    <div>Last Elo: {lastElo}</div>
+  </div>
+{/if}
 
 <div class="relative" style="min-height: 420px;">
   {#key step}
@@ -231,18 +337,20 @@ function launchConfetti() {
             <div class="grid grid-cols-2 gap-6 mb-8">
               {#each interests as interest, i}
                 <button
-                  class="w-full h-full py-6 px-4 border text-left font-semibold transition shadow-md focus:outline-none"
+                  class="w-full h-full py-6 px-4 border text-left transition shadow-md focus:outline-none flex flex-col items-start justify-start"
                   class:bg-black={true}
                   class:border-white={selectedInterest === interest}
                   class:border-[#333]={selectedInterest !== interest}
                   class:text-white={true}
                   class:shadow-lg={selectedInterest === interest}
-                  style="min-height: 120px; border-width: 1px; border-radius: 0;"
+                  style="min-height: 140px; border-width: 1px; border-radius: 0; height: 100%;"
                   on:click={() => selectedInterest = interest}
                   type="button"
                 >
-                  <div class="text-lg font-bold mb-2">{interest.title}</div>
-                  <div class="text-sm opacity-80">{interest.description}</div>
+                  <div class="flex flex-col flex-1 w-full justify-start items-start">
+                    <div class="text-lg mb-2">{interest.title}</div>
+                    <div class="text-sm opacity-80">{interest.description}</div>
+                  </div>
                 </button>
               {/each}
               {#if interests.length % 2 !== 0}
@@ -269,11 +377,11 @@ function launchConfetti() {
         </div>
         {#if !quizDone}
           <div class="mb-8">
-            <div class="text-xl font-bold mb-4">{quizQuestions[currentQuizIndex].question}</div>
+            <div class="text-xl mb-4">{quizQuestions[currentQuizIndex].question}</div>
             <div class="grid grid-cols-1 gap-4 max-w-xl mx-auto">
               {#each quizQuestions[currentQuizIndex].choices as choice, idx}
                 <button
-                  class="w-full h-full py-6 px-4 border text-left font-semibold transition focus:outline-none"
+                  class="w-full h-full py-6 px-4 border text-left transition focus:outline-none"
                   class:bg-black={true}
                   class:border-[#333]={selectedQuizChoice !== idx || showQuizFeedback}
                   class:border-white={selectedQuizChoice === idx && !showQuizFeedback}
@@ -286,22 +394,31 @@ function launchConfetti() {
                   disabled={userQuizAnswers.length > currentQuizIndex || quizInFeedback}
                   on:click={() => handleQuizAnswer(idx)}
                 >
-                  <div class="text-base font-bold mb-1">{choice}</div>
+                  <div class="text-base mb-1">{choice}</div>
                 </button>
               {/each}
             </div>
-            <button
-              class="w-full mt-8 py-3 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-lg font-semibold transition disabled:opacity-50"
-              disabled={selectedQuizChoice === null || quizInFeedback}
-              on:click={handleQuizContinue}
-            >
-              {currentQuizIndex === quizQuestions.length - 1 ? 'Finish' : 'Continue'}
-            </button>
+            <div class="flex gap-4 mt-8">
+              <button
+                class="flex-1 py-3 bg-indigo-500 hover:bg-indigo-600 rounded-lg text-lg font-semibold transition disabled:opacity-50"
+                disabled={selectedQuizChoice === null || quizInFeedback}
+                on:click={handleQuizContinue}
+              >
+                {currentQuizIndex === quizQuestions.length - 1 ? 'Finish' : 'Continue'}
+              </button>
+              <button
+                class="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-lg font-semibold transition disabled:opacity-50"
+                disabled={quizInFeedback || userQuizAnswers.length > currentQuizIndex}
+                on:click={handleQuizSkip}
+              >
+                Skip
+              </button>
+            </div>
           </div>
         {/if}
         {#if quizDone}
           <div class="text-center mt-8">
-            <div class="text-2xl font-bold mb-2">Your estimated skill: {quizRank}</div>
+            <div class="text-2xl mb-2">Your estimated skill: {quizRank}</div>
             <div class="text-lg opacity-80">Elo: {userElo}</div>
           </div>
         {/if}
@@ -310,22 +427,24 @@ function launchConfetti() {
       <div class="text-center space-y-6 w-full" in:fade={{ duration: 300 }} out:fade={{ duration: 150 }}>
         <div>
           <h2 class="text-3xl font-bold mb-4">Congratulations! 🚀</h2>
+          <div class="text-2xl mb-2">Your estimated skill: {quizRank}</div>
+          <div class="text-lg opacity-80 mb-2">Elo: {userElo}</div>
           <p class="text-lg opacity-80">
             You've completed your first lesson and earned <span class="text-indigo-400">{$guestProgress.xp} XP</span>!
           </p>
         </div>
         <div class="bg-gray-800 p-6 rounded-lg space-y-4">
           <div class="text-center">
-            <div class="text-2xl font-bold text-indigo-400">{$currentLevel}</div>
+            <div class="text-2xl text-indigo-400">{$currentLevel}</div>
             <div class="text-sm opacity-60">{$guestProgress.xp} / {($currentLevel * 100)} XP</div>
           </div>
           <div class="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <div class="font-semibold">Lessons Completed</div>
+              <div>Lessons Completed</div>
               <div class="opacity-60">{$guestProgress.lessonsCompleted}</div>
             </div>
             <div>
-              <div class="font-semibold">Papers Read</div>
+              <div>Papers Read</div>
               <div class="opacity-60">{$guestProgress.papersCompleted}</div>
             </div>
           </div>
