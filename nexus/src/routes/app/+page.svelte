@@ -7,8 +7,8 @@
 	import RankRevealModal from '../../components/RankRevealModal.svelte';
 	import { supabase } from '$lib/supabaseClient';
 
-	let element;
-	let tooltipEl;
+	let element: any;
+	let tooltipEl: any;
 	// selectedNode replaced with nodeStack system
 	// pdfLoading and showPdfFrame removed - handled per node now
 	// Use a persistent store for learnedNodes to prevent reset on re-renders
@@ -34,7 +34,7 @@
 		return fetch('/merged_graph.json').then((r) => r.json());
 	}
 
-	function selectNode(node) {
+	function selectNode(node: any) {
 		// Add to stack instead of setting selectedNode
 		addToNodeStack(node);
 		
@@ -42,7 +42,7 @@
 		centerGraphOnNode(node);
 	}
 
-	function toggleLearned(nodeId) {
+	function toggleLearned(nodeId: any) {
 		if (learnedNodes.has(nodeId)) {
 			learnedNodes.delete(nodeId);
 		} else {
@@ -51,16 +51,16 @@
 		updateNodeStyles();
 	}
 
-	let nodeSel; // Store node selection for updates
-	let linkSel; // Store link selection for updates
-	let textSel; // Store text selection for updates
-	let zoomBehavior; // Store zoom behavior for programmatic control
-	let svgElement; // Store SVG element reference
-	let focusedNode = null; // Currently focused node for dimming effect
+	let nodeSel: any; // Store node selection for updates
+	let linkSel: any; // Store link selection for updates
+	let textSel: any; // Store text selection for updates
+	let zoomBehavior: any; // Store zoom behavior for programmatic control
+	let svgElement: any; // Store SVG element reference
+	let focusedNode: any = null; // Currently focused node for dimming effect
 	let connectedNodes = new Set(); // Set of nodes connected to focused node
-	let graphData = null; // Store graph data for connection analysis
-	let nodeStack = []; // Stack of open nodes for layered interface
-	let navigationHistory = []; // Chronological order of node clicks (for breadcrumb)
+	let graphData: any = null; // Store graph data for connection analysis
+	let nodeStack: any[] = []; // Stack of open nodes for layered interface
+	let navigationHistory: any[] = []; // Chronological order of node clicks (for breadcrumb)
 
 	let activeSectionId = null;
 	// Always use sequential shooting stars
@@ -135,23 +135,21 @@ function handleFinishReading(count: number) {
 		window.location.href = '/';
 	}
 
-	function getBackwardNodes(node) {
+	function getBackwardNodes(node: any) {
 		if (!graphData) return [];
-		return graphData.links
-			.filter(l => l.target === node.id && l.relation === 'prerequisite')
-			.map(l => graphData.nodes.find(n => n.id === (l.source.id ?? l.source)))
-			.filter(Boolean);
+		return (graphData as any).links
+			.filter((l: any) => l.target === node.id && l.relation === 'prerequisite')
+			.map((l: any) => (graphData as any).nodes.find((n: any) => n.id === (l.source.id ?? l.source)));
 	}
 
-	function getForwardNodes(node) {
+	function getForwardNodes(node: any) {
 		if (!graphData) return [];
-		return graphData.links
-			.filter(l => l.source === node.id && l.relation === 'prerequisite')
-			.map(l => graphData.nodes.find(n => n.id === (l.target.id ?? l.target)))
-			.filter(Boolean);
+		return (graphData as any).links
+			.filter((l: any) => l.source === node.id && l.relation === 'prerequisite')
+			.map((l: any) => (graphData as any).nodes.find((n: any) => n.id === (l.target.id ?? l.target)));
 	}
 
-	function getDomainColor(domain) {
+	function getDomainColor(domain: any) {
 		const domainColors = {
 			'math': '#5B8DF2',          // Electric Pulse
 			'tech': '#73DACA',          // Cyber Teal  
@@ -160,7 +158,7 @@ function handleFinishReading(count: number) {
 			'art': '#F7768E',           // Rose Bloom
 			'research-papers': '#BFCAF3' // Papyrus
 		};
-		return domainColors[domain] || '#3A5A8F'; // Default to Desaturated Electric Pulse
+		return domainColors[domain as keyof typeof domainColors] || '#3A5A8F'; // Default to Desaturated Electric Pulse
 	}
 
 	function updateNodeStyles() {
@@ -168,7 +166,7 @@ function handleFinishReading(count: number) {
 			nodeSel
 				.transition()
 				.duration(300)
-				.attr('fill', (d) => {
+				.attr('fill', (d: any) => {
 					// Determine base color (learned vs unlearned)
 					let baseColor;
 					if (d.type === 'paper') {
@@ -184,7 +182,7 @@ function handleFinishReading(count: number) {
 					}
 					return baseColor;
 				})
-				.attr('stroke', (d) => {
+				.attr('stroke', (d: any) => {
 					// Determine base stroke color (learned vs unlearned)
 					let baseColor;
 					if (d.type === 'paper') {
@@ -200,7 +198,7 @@ function handleFinishReading(count: number) {
 					}
 					return baseColor;
 				})
-				.attr('stroke-width', (d) => {
+				.attr('stroke-width', (d: any) => {
 					// Reduce stroke width for focused-out nodes
 					let baseWidth = learnedNodes.has(d.id) ? 3 : 1.5;
 					if (focusedNode && !connectedNodes.has(d.id)) {
@@ -208,7 +206,7 @@ function handleFinishReading(count: number) {
 					}
 					return baseWidth;
 				})
-				.style('filter', (d) => {
+				.style('filter', (d: any) => {
 					// Only show glow on learned nodes that aren't dimmed by focus
 					if (focusedNode && !connectedNodes.has(d.id)) {
 						return null; // No glow for focused-out nodes
@@ -224,7 +222,7 @@ function handleFinishReading(count: number) {
 			linkSel
 				.transition()
 				.duration(300)
-				.style('opacity', (d) => {
+				.style('opacity', (d: any) => {
 					if (!focusedNode) return 1; // No focus, show all links
 					
 					// Show links that connect to the focused node or between connected nodes
@@ -235,7 +233,7 @@ function handleFinishReading(count: number) {
 					}
 					return 0.05; // Very dim for other links
 				})
-				.style('filter', (d) => {
+				.style('filter', (d: any) => {
 					// Add glow effect for links between visited nodes
 					const sourceVisited = learnedNodes.has(d.source.id || d.source);
 					const targetVisited = learnedNodes.has(d.target.id || d.target);
@@ -258,7 +256,7 @@ function handleFinishReading(count: number) {
 					
 					return null; // No glow for unvisited connections
 				})
-				.attr('stroke-width', (d) => {
+				.attr('stroke-width', (d: any) => {
 					// Make visited connections slightly thicker
 					const sourceVisited = learnedNodes.has(d.source.id || d.source);
 					const targetVisited = learnedNodes.has(d.target.id || d.target);
@@ -276,14 +274,14 @@ function handleFinishReading(count: number) {
 			textSel
 				.transition()
 				.duration(300)
-				.attr('font-size', (d) => {
+				.attr('font-size', (d: any) => {
 					// Make text larger for connected nodes when focused
 					if (focusedNode && connectedNodes.has(d.id)) {
 						return '8px'; // Larger font for connected nodes
 					}
 					return '6px'; // Normal font size
 				})
-				.attr('fill', (d) => {
+				.attr('fill', (d: any) => {
 					if (!focusedNode) {
 						return '#CCCCCC'; // Lighter default text when no focus
 					}
@@ -298,7 +296,7 @@ function handleFinishReading(count: number) {
 	}
 
 	// Helper function to dim colors for unlearned nodes
-	function dimColor(color) {
+	function dimColor(color: any) {
 		// Convert hex to RGB, reduce brightness, convert back
 		const hex = color.replace('#', '');
 		const r = parseInt(hex.substr(0, 2), 16);
@@ -314,7 +312,7 @@ function handleFinishReading(count: number) {
 	}
 
 	// Helper function to very aggressively dim colors for focused-out nodes using RGB
-	function veryDimColor(color) {
+	function veryDimColor(color: any) {
 		// Convert hex to RGB, reduce brightness aggressively, convert back
 		const hex = color.replace('#', '');
 		const r = parseInt(hex.substr(0, 2), 16);
@@ -329,7 +327,7 @@ function handleFinishReading(count: number) {
 		return `#${dimR.toString(16).padStart(2, '0')}${dimG.toString(16).padStart(2, '0')}${dimB.toString(16).padStart(2, '0')}`;
 	}
 
-	function chart(data) {
+	function chart(data: any) {
 		const width = 928;
 		const height = 680;
 
@@ -346,13 +344,13 @@ function handleFinishReading(count: number) {
 			.range(['#333333', '#333333', '#333333']); // All connections pure gray
 
 		// Clone data
-		const nodes = data.nodes.map((d) => ({ ...d }));
-		const links = data.links.map((d) => ({ ...d }));
+		const nodes = data.nodes.map((d: any) => ({ ...d }));
+		const links = data.links.map((d: any) => ({ ...d }));
 
 		// Map central relations
 		const centralId = 0;
 		const relationMap = {};
-		links.forEach((l) => {
+		links.forEach((l: any) => {
 			if (l.source === centralId) relationMap[l.target] = l.relation;
 			else if (l.target === centralId) relationMap[l.source] = l.relation;
 		});
@@ -364,7 +362,7 @@ function handleFinishReading(count: number) {
 				'link',
 				d3
 					.forceLink(links)
-					.id((d) => d.id)
+					.id((d: any) => d.id)
 					.distance(100)
 			)
 			.force('charge', d3.forceManyBody().strength(-200))
@@ -372,7 +370,7 @@ function handleFinishReading(count: number) {
 			.force(
 				'x',
 				d3
-					.forceX((d) => {
+					.forceX((d: any) => {
 						// Domain-based positioning with relation override
 						const r = relationMap[d.id];
 						
@@ -386,7 +384,7 @@ function handleFinishReading(count: number) {
 						if (r === 'advance') return width / 4;
 						return 0;
 					})
-					.strength((d) => {
+					.strength((d: any) => {
 						// Stronger positioning force for math domain to separate from tech
 						return d.domain === 'math' ? 0.15 : 0.1;
 					})
@@ -394,7 +392,7 @@ function handleFinishReading(count: number) {
 			.force(
 				'y',
 				d3
-					.forceY((d) => {
+					.forceY((d: any) => {
 						const r = relationMap[d.id];
 						
 						// Math domain gets slight downward offset for visual separation
@@ -404,7 +402,7 @@ function handleFinishReading(count: number) {
 						
 						return r === 'lateral' ? height / 4 : 0;
 					})
-					.strength((d) => {
+					.strength((d: any) => {
 						return d.domain === 'math' ? 0.12 : 0.1;
 					})
 			);
@@ -437,7 +435,7 @@ function handleFinishReading(count: number) {
 				}
 				
 				// Update text opacity and colors, respecting focus state
-				g.selectAll('text').each(function(d) {
+				g.selectAll('text').each(function(d: any) {
 					const textElement = d3.select(this);
 					textElement.style('opacity', opacity);
 					
@@ -496,8 +494,8 @@ function handleFinishReading(count: number) {
 			.data(links)
 			.join('line')
 			.attr('class', 'regular-link')
-			.attr('stroke-width', (d) => Math.sqrt(d.value || 1))
-			.attr('stroke', (d) => linkColor(d.relation))
+			.attr('stroke-width', (d: any) => Math.sqrt(d.value || 1))
+			.attr('stroke', (d: any) => linkColor(d.relation))
 			.attr('stroke-opacity', 0.22); // More transparent
 		
 		// Add shooting star effects for prerequisite links
@@ -556,15 +554,15 @@ function handleFinishReading(count: number) {
 			.selectAll('circle')
 			.data(nodes)
 			.join('circle')
-			.attr('r', (d) => d.type === 'paper' ? 12 : 8) // Larger radius for research papers
-			.attr('fill', (d) => {
+			.attr('r', (d: any) => d.type === 'paper' ? 12 : 8) // Larger radius for research papers
+			.attr('fill', (d: any) => {
 				if (d.type === 'paper') {
 					return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Dimmer papyrus for unlearned papers
 				}
 				const baseColor = getDomainColor(d.domain || 'tech');
 				return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Dimmer for unlearned nodes
 			})
-			.attr('stroke', (d) => {
+			.attr('stroke', (d: any) => {
 				if (d.type === 'paper') {
 					return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Matching stroke for papers
 				}
@@ -574,7 +572,7 @@ function handleFinishReading(count: number) {
 			.attr('stroke-width', 1.5)
 			.attr('cursor', 'pointer')
 			.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
-			.on('mouseover', (event, d) => {
+			.on('mouseover', (event, d: any) => {
 				// Only show tooltip if zoom level is below text threshold (labels not visible)
 				if (!window.currentZoomScale || window.currentZoomScale < 1.5) {
 					d3.select(tooltipEl).classed('hidden', false).text(d.label);
@@ -591,7 +589,7 @@ function handleFinishReading(count: number) {
 					.style('left', event.pageX + 10 + 'px')
 					.style('top', event.pageY + 10 + 'px');
 			})
-			.on('mouseout', (event, d) => {
+			.on('mouseout', (event, d: any) => {
 				// Always hide tooltip on mouseout
 				d3.select(tooltipEl).classed('hidden', true);
 				
@@ -601,7 +599,7 @@ function handleFinishReading(count: number) {
 					.duration(150)
 					.attr('r', d.type === 'paper' ? 12 : 8); // Back to original size
 			})
-			.on('click', (event, d) => {
+			.on('click', (event, d: any) => {
 				event.stopPropagation();
 				selectNode(d);
 			});
@@ -626,10 +624,10 @@ function handleFinishReading(count: number) {
 			// Update regular links
 			g
 				.selectAll('line.regular-link')
-				.attr('x1', (d) => d.source.x)
-				.attr('y1', (d) => d.source.y)
-				.attr('x2', (d) => d.target.x)
-				.attr('y2', (d) => d.target.y);
+				.attr('x1', (d: any) => d.source.x)
+				.attr('y1', (d: any) => d.source.y)
+				.attr('x2', (d: any) => d.target.x)
+				.attr('y2', (d: any) => d.target.y);
 			
 			// Update shooting star links
 			prerequisiteLinks.forEach(link => {
@@ -652,24 +650,24 @@ function handleFinishReading(count: number) {
 			
 			g
 				.selectAll('circle')
-				.attr('cx', (d) => d.x)
-				.attr('cy', (d) => d.y);
+				.attr('cx', (d: any) => d.x)
+				.attr('cy', (d: any) => d.y);
 			g
 				.selectAll('text')
-				.attr('x', (d) => d.x)
-				.attr('y', (d) => d.y + (d.type === 'paper' ? 26 : 20)); // Position labels farther below paper nodes
+				.attr('x', (d: any) => d.x)
+				.attr('y', (d: any) => d.y + (d.type === 'paper' ? 26 : 20)); // Position labels farther below paper nodes
 		});
 
-		function dragstarted(e) {
+		function dragstarted(e: any) {
 			if (!e.active) simulation.alphaTarget(0.3).restart();
 			e.subject.fx = e.subject.x;
 			e.subject.fy = e.subject.y;
 		}
-		function dragged(e) {
+		function dragged(e: any) {
 			e.subject.fx = e.x;
 			e.subject.fy = e.y;
 		}
-		function dragended(e) {
+		function dragended(e: any) {
 			if (!e.active) simulation.alphaTarget(0);
 			e.subject.fx = null;
 			e.subject.fy = null;
@@ -684,7 +682,7 @@ function handleFinishReading(count: number) {
 		return svg.node();
 	}
 
-	function startShootingStarAnimation(prerequisiteLinks) {
+	function startShootingStarAnimation(prerequisiteLinks: any) {
 		// Build dependency graph for sequential mode
 		let linkDelays = new Map();
 		
@@ -759,7 +757,7 @@ function handleFinishReading(count: number) {
 			calculateLevels();
 			
 					// Calculate delays recursively based on when each node receives ALL its prerequisites
-		function calculateLinkDelay(link) {
+		function calculateLinkDelay(link: any) {
 			const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
 			const sourcePrerequisites = nodeDependencies.get(sourceId) || new Set();
 			
@@ -879,12 +877,12 @@ function handleFinishReading(count: number) {
 
 
 	// Helper to slugify header text for IDs
-	function slugify(text) {
+	function slugify(text: any) {
 		return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 	}
 
 	// Function to extract all section headers and their IDs from content
-	export function extractSectionHeaders(content) {
+	export function extractSectionHeaders(content: any) {
 		const headers = [];
 		const headerRegex = /^(####|###|##|#) (.+)$/gm;
 		let match;
@@ -903,14 +901,14 @@ function handleFinishReading(count: number) {
 
 
 	// Function to parse node links and markdown in content
-	function parseNodeLinks(content) {
+	function parseNodeLinks(content: any) {
 		// First, parse markdown
 		let processedContent = content
 			// Convert headers (#### to h4, ### to h3, ## to h2, # to h1) with IDs
-			.replace(/^#### (.+)$/gm, (m, t) => `<h4 id="${slugify(t)}" class="text-base font-semibold mb-2 mt-3" style="color: #D0D0D0;">${t}</h4>`)
-			.replace(/^### (.+)$/gm, (m, t) => `<h3 id="${slugify(t)}" class="text-lg font-semibold mb-2 mt-4" style="color: #E0E0E0;">${t}</h3>`)
-			.replace(/^## (.+)$/gm, (m, t) => `<h2 id="${slugify(t)}" class="text-xl font-bold mb-3 mt-6" style="color: #F0F0F0;">${t}</h2>`)
-			.replace(/^# (.+)$/gm, (m, t) => `<h1 id="${slugify(t)}" class="text-2xl font-bold mb-4 mt-8" style="color: #FFFFFF;">${t}</h1>`)
+			.replace(/^#### (.+)$/gm, (m: any, t: any) => `<h4 id="${slugify(t)}" class="text-base font-semibold mb-2 mt-3" style="color: #D0D0D0;">${t}</h4>`)
+			.replace(/^### (.+)$/gm, (m: any, t: any) => `<h3 id="${slugify(t)}" class="text-lg font-semibold mb-2 mt-4" style="color: #E0E0E0;">${t}</h3>`)
+			.replace(/^## (.+)$/gm, (m: any, t: any) => `<h2 id="${slugify(t)}" class="text-xl font-bold mb-3 mt-6" style="color: #F0F0F0;">${t}</h2>`)
+			.replace(/^# (.+)$/gm, (m: any, t: any) => `<h1 id="${slugify(t)}" class="text-2xl font-bold mb-4 mt-8" style="color: #FFFFFF;">${t}</h1>`)
 			// Convert bold text (**text** to <strong>)
 			.replace(/\*\*(.+?)\*\*/g, '<strong style="color: #FFFFFF;">$1</strong>')
 			// Convert italic text (*text* to <em>)
@@ -934,7 +932,7 @@ function handleFinishReading(count: number) {
 			.replace(/\n/g, '<br>');
 
 		// Then, parse node links
-		return processedContent.replace(/<node id="(\d+)">([^<]+)<\/node>/g, (match, id, text) => {
+		return processedContent.replace(/<node id="(\d+)">([^<]+)<\/node>/g, (match: any, id: any, text: any) => {
 			const nodeId = parseInt(id);
 			const node = graphData?.nodes?.find(n => n.id === nodeId);
 			if (node) {
@@ -952,7 +950,7 @@ function handleFinishReading(count: number) {
 	}
 
 	// Function to select a node by ID (for node links)
-	function selectNodeById(nodeId) {
+	function selectNodeById(nodeId: any) {
 		// Get the live node from the simulation with current x,y coordinates
 		if (typeof window !== 'undefined' && window.simulation) {
 			const liveNodes = window.simulation.nodes();
@@ -969,7 +967,7 @@ function handleFinishReading(count: number) {
 	}
 
 	// Function to center the graph on a specific node (restored original logic)
-	function centerGraphOnNode(node) {
+	function centerGraphOnNode(node: any) {
 		if (zoomBehavior && svgElement) {
 			const scale = 2; // Zoom scale factor
 			const [x, y] = [node.x || 0, node.y || 0]; // Node position
@@ -1001,7 +999,7 @@ function handleFinishReading(count: number) {
 	}
 
 	// Function to add a node to the stack
-	function addToNodeStack(node) {
+	function addToNodeStack(node: any) {
 		// Focus on the node for graph effects
 		focusedNode = node;
 		connectedNodes.clear();
@@ -1041,7 +1039,7 @@ function handleFinishReading(count: number) {
 	}
 
 	// Function to remove a node from the stack
-	function removeFromStack(nodeId) {
+	function removeFromStack(nodeId: any) {
 		nodeStack = nodeStack.filter(n => n.id !== nodeId);
 		
 		// Remove from navigation history as well
@@ -1078,7 +1076,7 @@ function handleFinishReading(count: number) {
 	}
 
 	// Function to navigate to a specific index in the navigation history
-	function navigateToStackIndex(index) {
+	function navigateToStackIndex(index: any) {
 		if (index >= 0 && index < navigationHistory.length) {
 			// Get the selected node from navigation history
 			const selectedNode = navigationHistory[index];
@@ -1125,16 +1123,23 @@ function handleFinishReading(count: number) {
 	}
 
 	let recommendedNode = null;
-	function setRecommendedNode(node) {
+	function setRecommendedNode(node: any) {
 		recommendedNode = node;
 		if (typeof window !== 'undefined' && node) {
 			window.localStorage.setItem('onboardingRecommendedNode', JSON.stringify(node));
 		}
 	}
 
-	let showNextStep = true;
-
 	onMount(() => {
+		// Always try to load the recommended node from localStorage on mount
+		if (typeof window !== 'undefined' && !recommendedNode) {
+			const rec = window.localStorage.getItem('onboardingRecommendedNode');
+			if (rec) {
+				try {
+					recommendedNode = JSON.parse(rec);
+				} catch {}
+			}
+		}
 		// Check for ?node=ID param and open that node if present
 		const params = new URLSearchParams(window.location.search);
 		const nodeIdParam = params.get('node');
@@ -1143,14 +1148,11 @@ function handleFinishReading(count: number) {
 			// Remove the param from the URL (optional, for cleanliness)
 			window.history.replaceState({}, document.title, window.location.pathname);
 		}
-		// Always show Next Step box
-		showNextStep = true;
 	});
 
 	function handleNextStepClick() {
 		if (recommendedNode && window.selectNodeById) {
 			window.selectNodeById(recommendedNode.nodeId);
-			showNextStep = false;
 			if (typeof window !== 'undefined') {
 				window.sessionStorage.setItem('hideNextStepBox', 'true');
 			}
@@ -1166,7 +1168,7 @@ function handleFinishReading(count: number) {
 		window.selectNodeById = selectNodeById;
 		
 		// Add click listener for node links
-		const handleNodeLinkClick = (event) => {
+		const handleNodeLinkClick = (event: any) => {
 			const target = event.target.closest('.node-link');
 			if (target && target.dataset.nodeId) {
 				const nodeId = parseInt(target.dataset.nodeId);
@@ -1280,8 +1282,7 @@ function handleFinishReading(count: number) {
 		</div>
 	{/if}
 
-<!-- Next Step Recommendation Box - top left, below breadcrumb -->
-{#if recommendedNode && showNextStep}
+{#if recommendedNode}
   <div class="absolute top-20 left-4 z-50">
     <div class="flex items-center gap-2 px-4 py-2 rounded-lg shadow" style="background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px);">
       <span class="font-semibold text-indigo-300">Next Step:</span>
