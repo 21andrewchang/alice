@@ -6,6 +6,7 @@
 	import PaginatedContent from '../../components/PaginatedContent.svelte';
 	import RankRevealModal from '../../components/RankRevealModal.svelte';
 	import { supabase } from '$lib/supabaseClient';
+	import { recommendedNodeStore } from '$lib/recommendedNodeStore';
 
 	let element: any;
 	let tooltipEl: any;
@@ -1123,31 +1124,14 @@ function handleFinishReading(count: number) {
 	}
 
 	let recommendedNode = null;
-	function setRecommendedNode(node: any) {
+
+	recommendedNodeStore.subscribe((node) => {
 		recommendedNode = node;
-		if (typeof window !== 'undefined' && node) {
-			window.localStorage.setItem('onboardingRecommendedNode', JSON.stringify(node));
-		}
-	}
+	});
 
 	onMount(() => {
 		// Always try to load the recommended node from localStorage on mount
-		if (typeof window !== 'undefined' && !recommendedNode) {
-			const rec = window.localStorage.getItem('onboardingRecommendedNode');
-			if (rec) {
-				try {
-					recommendedNode = JSON.parse(rec);
-				} catch {}
-			}
-		}
-		// Check for ?node=ID param and open that node if present
-		const params = new URLSearchParams(window.location.search);
-		const nodeIdParam = params.get('node');
-		if (nodeIdParam && window.selectNodeById) {
-			setTimeout(() => window.selectNodeById(Number(nodeIdParam)), 200);
-			// Remove the param from the URL (optional, for cleanliness)
-			window.history.replaceState({}, document.title, window.location.pathname);
-		}
+		// This logic is now handled by the recommendedNodeStore
 	});
 
 	function handleNextStepClick() {
@@ -1288,9 +1272,9 @@ function handleFinishReading(count: number) {
       <span class="font-semibold text-indigo-300">Next Step:</span>
       <a
         href="#"
-        on:click|preventDefault={() => selectNodeById(recommendedNode.nodeId)}
+        on:click|preventDefault={() => selectNodeById(recommendedNode.id)}
         class="text-sm font-medium hover:underline transition-colors cursor-pointer"
-        style="color: {recommendedNode.nodeId === 0 ? '#BFCAF3' : getDomainColor && getDomainColor('tech')}; background: none; border: none; padding: 0;"
+        style="color: {recommendedNode.type === 'paper' ? '#BFCAF3' : getDomainColor(recommendedNode.domain)}; background: none; border: none; padding: 0;"
       >
         {recommendedNode.label}
       </a>

@@ -4,6 +4,11 @@
   import OnboardingOverlay from '$lib/OnboardingOverlay.svelte';
   import { supabase } from '$lib/supabaseClient';
   import { onMount } from 'svelte';
+  import { recommendedNodeStore } from '$lib/recommendedNodeStore';
+
+  function handleSetRecommendation(node: any) {
+    recommendedNodeStore.set(node);
+  }
 
   // SSR session
   let user = data.session?.user;
@@ -32,5 +37,5 @@
 <slot />
 
 {#if $shouldShowOnboarding}
-  <OnboardingOverlay />
+  <OnboardingOverlay onSetRecommendation={handleSetRecommendation} />
 {/if}
