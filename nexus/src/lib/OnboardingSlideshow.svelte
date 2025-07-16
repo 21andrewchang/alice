@@ -140,6 +140,9 @@ $: if (step === 'complete') {
   if (typeof localStorage !== 'undefined' && staticRecommendation) {
     localStorage.setItem('onboardingRecommendedNode', JSON.stringify(staticRecommendation));
   }
+  if (onSetRecommendation && staticRecommendation) {
+    onSetRecommendation(staticRecommendation);
+  }
 }
 
 let interests = [
