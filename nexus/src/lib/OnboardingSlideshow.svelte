@@ -42,6 +42,7 @@ let lastSkipped = false;
 
 // Quiz config
 const QUIZ_LENGTH = 10;
+const TOTAL_SLIDES = 1 + QUIZ_LENGTH + 1; // 1 for goal, 10 for quiz, 1 for complete
 
 // State for adaptive Elo
 let streak = 0;
@@ -92,18 +93,17 @@ const currentSlideIndex = derived([
 ], ([$step, $currentQuizIndex, $quizLen]) => {
   if ($step === 'goal') return 0;
   if ($step === 'quiz') return 1 + $currentQuizIndex;
-  if ($step === 'complete') return 1 + ($quizLen || 6);
+  if ($step === 'complete') return TOTAL_SLIDES - 1; // last slide
   return 0;
 });
 
 function getTotalSlides() {
-  // 1 for interest, quizQuestions.length for quiz, 1 for complete
-  return 1 + (quizQuestions.length || 6) + 1;
+  return TOTAL_SLIDES;
 }
 
 // Update progress bar whenever currentSlideIndex or quizQuestions.length changes
 $: {
-  const percent = (($currentSlideIndex + 1) / getTotalSlides()) * 100;
+  const percent = ((($currentSlideIndex + 1) / TOTAL_SLIDES) * 100);
   progress.set(percent);
 }
 
@@ -394,7 +394,7 @@ function launchConfetti() {
         </div>
         <!-- END DEV/DEBUG VIEW -->
         <div class="text-center mb-4 text-lg font-semibold">
-          Question {currentQuizIndex + 1} of {quizQuestions.length}
+          Question {currentQuizIndex + 1} of {QUIZ_LENGTH}
         </div>
         {#if !quizDone}
           <div class="mb-8">
@@ -425,7 +425,7 @@ function launchConfetti() {
                 disabled={selectedQuizChoice === null || quizInFeedback}
                 on:click={handleQuizContinue}
               >
-                {currentQuizIndex === quizQuestions.length - 1 ? 'Finish' : 'Continue'}
+                {currentQuizIndex === QUIZ_LENGTH - 1 ? 'Finish' : 'Continue'}
               </button>
               <button
                 class="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-lg font-semibold transition disabled:opacity-50"
