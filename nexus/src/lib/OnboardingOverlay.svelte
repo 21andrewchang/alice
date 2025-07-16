@@ -2,6 +2,7 @@
   import { onboardingComplete } from '$lib/onboarding';
   import OnboardingSlideshow from '$lib/OnboardingSlideshow.svelte';
   import { onDestroy } from 'svelte';
+  export let onSetRecommendation;
   let show = true;
   const unsub = onboardingComplete.subscribe(val => {
     show = !val;
@@ -19,10 +20,12 @@
   }
 </script>
 
+<svelte:options accessors={true} />
+
 {#if show}
   <div class="fixed inset-0 flex items-center justify-center z-50 text-white p-4 onboarding-bg">
     <div class="max-w-2xl w-full space-y-6 onboarding-panel">
-      <OnboardingSlideshow />
+      <OnboardingSlideshow {onSetRecommendation} />
     </div>
   </div>
 {/if}

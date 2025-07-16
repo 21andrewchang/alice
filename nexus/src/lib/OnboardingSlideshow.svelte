@@ -107,6 +107,41 @@ $: {
   progress.set(percent);
 }
 
+// --- Static Recommendations by Placement Level ---
+const staticRecommendations = {
+  beginner: {
+    nodeId: 1,
+    label: 'Neural Networks',
+    description: 'Start here to build a strong foundation in neural networks, the building blocks of all modern AI.'
+  },
+  intermediate: {
+    nodeId: 3,
+    label: 'Sequence Transduction Model',
+    description: 'You have the basics down! Next, learn how models map input sequences to outputs—core to translation, summarization, and more.'
+  },
+  advanced: {
+    nodeId: 0,
+    label: 'Attention Is All You Need',
+    description: 'You’re ready for the cutting edge! Dive straight into the Transformer paper that revolutionized deep learning.'
+  },
+  expert: {
+    nodeId: 0,
+    label: 'Attention Is All You Need',
+    description: 'You’re ready for the cutting edge! Dive straight into the Transformer paper that revolutionized deep learning.'
+  }
+};
+
+type StaticRecommendation = { nodeId: number; label: string; description: string } | null;
+
+let staticRecommendation: StaticRecommendation = null;
+
+$: if (step === 'complete') {
+  staticRecommendation = staticRecommendations[finalBracket] || staticRecommendations['beginner'];
+  if (typeof localStorage !== 'undefined' && staticRecommendation) {
+    localStorage.setItem('onboardingRecommendedNode', JSON.stringify(staticRecommendation));
+  }
+}
+
 let interests = [
   {
     title: 'Transformers & Sequence Modeling',
@@ -460,6 +495,17 @@ function launchConfetti() {
             You've completed your first lesson and earned <span class="text-indigo-400">{$guestProgress.xp} XP</span>!
           </p>
         </div>
+        <!-- Static Recommendation Section -->
+        {#if staticRecommendation}
+          <div class="bg-indigo-900 bg-opacity-80 p-6 rounded-lg mt-6 text-left max-w-xl mx-auto">
+            <div class="text-lg font-bold mb-2">Recommended Next Step</div>
+            <div class="text-sm opacity-90 mb-4">
+              {staticRecommendation.description}
+            </div>
+            <div class="text-xl text-indigo-300 mb-1">{staticRecommendation.label}</div>
+          </div>
+        {/if}
+        <!-- End Static Recommendation Section -->
         <div class="bg-gray-800 p-6 rounded-lg space-y-4">
           <div class="text-center">
             <div class="text-2xl text-indigo-400">{$currentLevel}</div>

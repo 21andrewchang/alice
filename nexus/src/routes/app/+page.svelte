@@ -1124,6 +1124,39 @@ function handleFinishReading(count: number) {
 		window.selectNodeById = selectNodeById;
 	}
 
+	let recommendedNode = null;
+	function setRecommendedNode(node) {
+		recommendedNode = node;
+		if (typeof window !== 'undefined' && node) {
+			window.localStorage.setItem('onboardingRecommendedNode', JSON.stringify(node));
+		}
+	}
+
+	let showNextStep = true;
+
+	onMount(() => {
+		// Check for ?node=ID param and open that node if present
+		const params = new URLSearchParams(window.location.search);
+		const nodeIdParam = params.get('node');
+		if (nodeIdParam && window.selectNodeById) {
+			setTimeout(() => window.selectNodeById(Number(nodeIdParam)), 200);
+			// Remove the param from the URL (optional, for cleanliness)
+			window.history.replaceState({}, document.title, window.location.pathname);
+		}
+		// Always show Next Step box
+		showNextStep = true;
+	});
+
+	function handleNextStepClick() {
+		if (recommendedNode && window.selectNodeById) {
+			window.selectNodeById(recommendedNode.nodeId);
+			showNextStep = false;
+			if (typeof window !== 'undefined') {
+				window.sessionStorage.setItem('hideNextStepBox', 'true');
+			}
+		}
+	}
+
 	onMount(async () => {
 		const data = await loadData();
 		element.innerHTML = '';
@@ -1246,6 +1279,23 @@ function handleFinishReading(count: number) {
 			</div>
 		</div>
 	{/if}
+
+<!-- Next Step Recommendation Box - top left, below breadcrumb -->
+{#if recommendedNode && showNextStep}
+  <div class="absolute top-20 left-4 z-50">
+    <div class="flex items-center gap-2 px-4 py-2 rounded-lg shadow" style="background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px);">
+      <span class="font-semibold text-indigo-300">Next Step:</span>
+      <a
+        href="#"
+        on:click|preventDefault={() => selectNodeById(recommendedNode.nodeId)}
+        class="text-sm font-medium hover:underline transition-colors cursor-pointer"
+        style="color: {recommendedNode.nodeId === 0 ? '#BFCAF3' : getDomainColor && getDomainColor('tech')}; background: none; border: none; padding: 0;"
+      >
+        {recommendedNode.label}
+      </a>
+    </div>
+  </div>
+{/if}
 	
 
 
