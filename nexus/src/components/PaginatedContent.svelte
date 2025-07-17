@@ -132,14 +132,14 @@
     }));
   }
 
+  // Define handleNodeStatusUpdate outside of onMount to make it accessible in onDestroy
+  function handleNodeStatusUpdate() {
+    // Force re-render of content with updated node statuses
+    updateContentWithLatestNodeStatus();
+  }
+
   onMount(() => {
     document.addEventListener('keydown', handleKeydown);
-    
-    // Add listener for node status updates
-    const handleNodeStatusUpdate = () => {
-      // Force re-render of content with updated node statuses
-      updateContentWithLatestNodeStatus();
-    };
     
     // Listen for custom node status update events
     window.addEventListener('nodeStatusUpdated', handleNodeStatusUpdate);
