@@ -1400,8 +1400,7 @@
 						width: 50%;
 						max-height: calc(100vh - 2.75rem);
 						z-index: {10 + index};
-						background-color: rgba(8, 8, 8, 0.5);
-						backdrop-filter: blur(5px);
+						background-color: transparent;
 					"
 				>
 					<div class="h-full p-4">
