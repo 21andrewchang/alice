@@ -1403,9 +1403,9 @@
 						background-color: transparent;
 					"
 				>
-					<div class="h-full p-4">
+					<div class="h-full p-5">
 						<div
-							class="h-full overflow-hidden rounded-lg shadow-lg"
+							class="h-full overflow-auto rounded-lg shadow-lg"
 							style="background-color: #111; border: 1px solid #333333;"
 						>
 							<div class="h-full overflow-hidden">
