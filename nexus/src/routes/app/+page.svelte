@@ -33,7 +33,7 @@
 	}
 
 	// User profile store for reactivity
-	const userProfileStore = writable(SuggestionService.getUserProfile());
+	const userProfileStore = writable(getSuggestionService().getUserProfile());
 
 	let mergedGraph: { nodes: any[]; links: any[] } = { nodes: [], links: [] };
 	let mergedGraphLoaded = false;
