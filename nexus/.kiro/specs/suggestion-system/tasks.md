@@ -26,13 +26,13 @@
     - Add service initialization logic
     - _Requirements: 1.1, 1.3, 2.1, 2.2_
 
-  - [x] 3.2 Implement user profile management
+  - [ ] 3.2 Implement user profile management
     - Create functions to build user profile from available data
     - Track ELO bracket and quiz performance
     - Maintain visited and mastered nodes lists
     - _Requirements: 1.3, 1.4, 2.3, 3.1, 3.2_
 
-  - [x] 3.3 Build node selection algorithm
+  - [ ] 3.3 Build node selection algorithm
     - Implement node scoring function
     - Create difficulty matching algorithm
     - Add prerequisite validation logic
@@ -40,44 +40,44 @@
     - _Requirements: 1.1, 1.2, 1.5, 2.1, 2.2_
 
 - [ ] 4. Implement recommendation triggers
-  - [x] 4.1 Add quiz completion trigger
+  - [ ] 4.1 Add quiz completion trigger
     - Hook into quiz completion events
     - Update user profile with quiz results
     - Generate new recommendation based on performance
     - _Requirements: 1.1, 1.2, 2.1, 2.2_
 
-  - [x] 4.2 Add node visit trigger
+  - [ ] 4.2 Add node visit trigger
     - Hook into node selection events
     - Update user profile with visited node
     - Generate new recommendation if needed
     - _Requirements: 1.3, 1.5, 2.1_
 
-  - [x] 4.3 Add application startup trigger
+  - [ ] 4.3 Add application startup trigger
     - Initialize recommendation on app load
     - Handle first-time users with default recommendations
     - Restore previous recommendations for returning users
     - _Requirements: 1.4, 3.4_
 
 - [ ] 5. Enhance the Next Step UI component
-  - [x] 5.1 Update the existing UI
+  - [ ] 5.1 Update the existing UI
     - Add recommendation reason display
     - Implement refresh button for alternative suggestions
     - Show node type/domain indicator
     - _Requirements: 1.1, 1.3, 2.4_
 
-  - [x] 5.2 Add tooltip with explanation
+  - [ ] 5.2 Add tooltip with explanation
     - Create tooltip component for recommendation explanation
     - Generate human-readable explanations for recommendations
     - Style tooltip to match application design
     - _Requirements: 2.4, 3.3_
 
-- [x] 6. Implement knowledge graph analysis
+- [ ] 6. Implement knowledge graph analysis
   - Develop functions to analyze node connections
   - Create helper methods for finding related nodes
   - Implement prerequisite chain analysis
   - _Requirements: 1.1, 1.2, 2.1, 3.4_
 
-- [x] 7. Create fallback recommendation strategies
+- [ ] 7. Create fallback recommendation strategies
   - Implement popularity-based recommendations
   - Add domain exploration recommendations
   - Create review recommendations for previously visited nodes

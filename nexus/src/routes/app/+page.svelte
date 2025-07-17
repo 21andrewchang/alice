@@ -7,6 +7,7 @@
 	import RankRevealModal from '../../components/RankRevealModal.svelte';
 	import { supabase } from '$lib/supabaseClient';
 	import { recommendedNodeStore } from '$lib/recommendedNodeStore';
+	import { initializeSuggestionSystem } from '$lib/suggestionSystemInit';
 	import {
 		nodeStatusService,
 		getNodeVisualState,
@@ -1172,6 +1173,9 @@
 	});
 
 	onMount(() => {
+		// Initialize the suggestion system
+		initializeSuggestionSystem();
+		
 		// Always try to load the recommended node from localStorage on mount
 		// This logic is now handled by the recommendedNodeStore
 
@@ -1262,7 +1266,8 @@
 
 	function handleNextStepClick() {
 		if (recommendedNode && window.selectNodeById) {
-			window.selectNodeById(recommendedNode.nodeId);
+			// Use the local selectNodeById function instead of window.selectNodeById
+			selectNodeById(recommendedNode.node.id);
 			if (typeof window !== 'undefined') {
 				window.sessionStorage.setItem('hideNextStepBox', 'true');
 			}
@@ -1360,22 +1365,26 @@
 	{#if recommendedNode}
 		<div class="absolute top-20 left-4 z-50">
 			<div
-				class="flex items-center gap-2 rounded-lg px-4 py-2 shadow"
+				class="flex flex-col rounded-lg px-4 py-2 shadow"
 				style="background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px);"
 			>
-				<span class="font-semibold text-indigo-300">Next Step:</span>
-				<a
-					href="#"
-					on:click|preventDefault={() => selectNodeById(recommendedNode.id)}
-					class="cursor-pointer text-sm font-medium transition-colors hover:underline"
-					style="color: {recommendedNode.type === 'paper'
-						? '#BFCAF3'
-						: getNodeDomainColor(
-								recommendedNode.domain
-							)}; background: none; border: none; padding: 0;"
-				>
-					{recommendedNode.label}
-				</a>
+				<div class="flex items-center gap-2">
+					<span class="font-semibold text-indigo-300">Next Step:</span>
+					<span
+						class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link"
+						data-node-id="{recommendedNode.node.id}"
+						style="color: {recommendedNode.node.type === 'paper'
+							? '#BFCAF3'
+							: getNodeDomainColor(
+									recommendedNode.node.domain
+								)}; font-weight: 500; text-decoration: underline;"
+					>
+						{recommendedNode.node.label}
+					</span>
+				</div>
+				<div class="text-xs text-gray-400 mt-1">
+					↳ {recommendedNode.reasonText}
+				</div>
 			</div>
 		</div>
 	{/if}
