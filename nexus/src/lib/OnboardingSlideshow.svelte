@@ -138,12 +138,24 @@ $: if (step === 'complete') {
   staticRecommendationExplanation = staticRecommendationExplanations[bracket] ?? staticRecommendationExplanations['beginner'];
   if (typeof localStorage !== 'undefined' && staticRecommendation) {
     localStorage.setItem('userBracket', bracket);
-    localStorage.setItem('currentRecommendation', JSON.stringify(staticRecommendation));
+    localStorage.setItem('currentRecommendation', JSON.stringify({
+      node: staticRecommendation,
+      confidence: 1.0,
+      timestamp: new Date().toISOString()
+    }));
     console.log('Set userBracket:', bracket);
-    console.log('Set currentRecommendation:', staticRecommendation);
+    console.log('Set currentRecommendation:', {
+      node: staticRecommendation,
+      confidence: 1.0,
+      timestamp: new Date().toISOString()
+    });
   }
   if (onSetRecommendation && staticRecommendation) {
-    onSetRecommendation(staticRecommendation);
+    onSetRecommendation({
+      node: staticRecommendation,
+      confidence: 1.0,
+      timestamp: new Date().toISOString()
+    });
   }
 }
 
