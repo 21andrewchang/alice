@@ -6,7 +6,7 @@
 	import PaginatedContent from '../../components/PaginatedContent.svelte';
 	import RankRevealModal from '../../components/RankRevealModal.svelte';
 	import { supabase } from '$lib/supabaseClient';
-	import { recommendedNodeStore } from '$lib/recommendedNodeStore';
+	import { recommendedNodeStore } from '$lib/suggestionSystem';
 	import { initializeSuggestionSystem } from '$lib/suggestionSystemInit';
 	import {
 		nodeStatusService,
@@ -65,7 +65,7 @@
 		placementBracket: 'beginner',
 		currentBracket: 'beginner',
 		nodesVisited: 0,
-		recentNodeLabels: []
+		recentNodeLabels: [] as string[]
 	});
 
 	let mergedGraph: { nodes: any[]; links: any[] } = { nodes: [], links: [] };
@@ -1280,6 +1280,7 @@
 	});
 
 	onMount(() => {
+		initializeSuggestionSystem();
 		loadMergedGraph();
 		updateUserProfileDebug();
 		window.addEventListener('nodeVisited', updateUserProfileDebug);

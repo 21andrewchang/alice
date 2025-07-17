@@ -112,10 +112,10 @@ $: {
 
 // --- Static Recommendations by Placement Level ---
 const staticRecommendations = {
-  beginner: 1, // nodeId
-  intermediate: 3,
-  advanced: 0,
-  expert: 0
+  beginner: 31, // Matrix Multiplication
+  intermediate: 1, // Neural Networks
+  advanced: 10, // Transformer
+  expert: 0 // Attention Is All You Need
 };
 
 type StaticRecommendation = { nodeId: number; label: string; description: string } | null;
@@ -136,6 +136,7 @@ $: if (step === 'complete') {
   staticRecommendation = node;
   staticRecommendationExplanation = staticRecommendationExplanations[finalBracket] ?? staticRecommendationExplanations['beginner'];
   if (typeof localStorage !== 'undefined' && staticRecommendation) {
+    console.log('Setting onboardingRecommendedNode:', staticRecommendation);
     localStorage.setItem('onboardingRecommendedNode', JSON.stringify(staticRecommendation));
   }
   if (onSetRecommendation && staticRecommendation) {
