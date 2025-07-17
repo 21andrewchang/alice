@@ -1395,9 +1395,10 @@
 					class="node-view-panel pointer-events-auto absolute transition-all duration-300"
 					style="
 						top: 2.75rem;
-						right: {index * 18}px;
+						right: 0;
 						bottom: 0;
 						width: 50%;
+						max-height: calc(100vh - 2.75rem);
 						z-index: {10 + index};
 						background-color: rgba(8, 8, 8, 0.5);
 						backdrop-filter: blur(5px);
