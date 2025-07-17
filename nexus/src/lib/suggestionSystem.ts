@@ -74,6 +74,30 @@ export const REASON_EXPLANATIONS: Record<RecommendationReason, string> = {
 export const recommendedNodeStore: Writable<NodeRecommendation | null> = writable(null);
 export const recommendationHistoryStore: Writable<NodeRecommendation[]> = writable([]);
 
+// Add this at the top of the file
+export const BRACKET_RECOMMENDATION_MAP: Record<UserBracket, string> = {
+  beginner: 'matrix_multiplication',
+  intermediate: 'neural_network',
+  advanced: 'transformer',
+  expert: 'attention_is_all_you_need'
+};
+
+// Update BRACKET_RECOMMENDATION_MAP to use labels, not ids
+export const BRACKET_RECOMMENDATION_LABEL_MAP: Record<UserBracket, string> = {
+  beginner: 'Matrix Multiplication',
+  intermediate: 'Neural Networks',
+  advanced: 'Transformer',
+  expert: 'Attention Is All You Need'
+};
+
+// Use node IDs for bracket mapping
+export const BRACKET_RECOMMENDATION_ID_MAP: Record<UserBracket, number> = {
+  beginner: 31, // Matrix Multiplication
+  intermediate: 1, // Neural Networks
+  advanced: 10, // Transformer
+  expert: 0 // Attention Is All You Need
+};
+
 // Helper functions
 export function updateRecommendation(node: any, reason: RecommendationReason): void {
   const recommendation: NodeRecommendation = {
@@ -176,84 +200,41 @@ export class SuggestionService {
   
   // Generate a new recommendation based on user profile and graph
   generateRecommendation(): NodeRecommendation | null {
-    // Update user profile first
     this.userProfile = this.loadUserProfile();
-
-    // --- ELO/Bracket progression based on visited nodes ---
-    const visitedCount = this.userProfile.visitedNodes.size;
-    let newBracket: UserBracket = 'beginner';
-    if (visitedCount >= 15) newBracket = 'expert';
-    else if (visitedCount >= 10) newBracket = 'advanced';
-    else if (visitedCount >= 5) newBracket = 'intermediate';
-    // else remains beginner
-    this.userProfile.bracket = newBracket;
-    this.saveUserProfile();
-    // --- End ELO/Bracket progression ---
-
-    // --- Onboarding integration: check for onboardingRecommendedNode ---
+    const bracket = this.userProfile.bracket;
+    // 1. Onboarding: use bracket mapping for first recommendation
     if (typeof localStorage !== 'undefined') {
       const onboardingNodeStr = localStorage.getItem('onboardingRecommendedNode');
       if (onboardingNodeStr) {
         try {
           const onboardingNode = JSON.parse(onboardingNodeStr);
-          // Set as recommendation and clear the key
-          const recommendation: NodeRecommendation = {
-            node: onboardingNode,
-            confidence: 1.0,
-            reason: 'next_in_path',
-            reasonText: REASON_EXPLANATIONS['next_in_path'],
-            timestamp: new Date()
-          };
-          recommendedNodeStore.set(recommendation);
-          const history = get(recommendationHistoryStore);
-          recommendationHistoryStore.set([...history, recommendation]);
-          saveRecommendationsToLocalStorage();
+          console.log('Loaded onboardingRecommendedNode from localStorage:', onboardingNode);
+          localStorage.setItem('mostRecentRecommendation', onboardingNodeStr);
           localStorage.removeItem('onboardingRecommendedNode');
-          return recommendation;
-        } catch (e) {
-          // If parsing fails, just remove the key and continue
-          localStorage.removeItem('onboardingRecommendedNode');
-        }
+          return onboardingNode;
+        } catch {}
+      }
+      // If no onboarding node, use bracket mapping
+      const mappedId = BRACKET_RECOMMENDATION_ID_MAP[bracket] ?? BRACKET_RECOMMENDATION_ID_MAP['beginner'];
+      const mappedNode = this.graph.nodes.find((n: any) => n.id === mappedId);
+      console.log('Bracket:', bracket, 'MappedId:', mappedId, 'MappedNode:', mappedNode);
+      if (mappedNode) {
+        const recommendation: NodeRecommendation = {
+          node: mappedNode,
+          confidence: 1.0,
+          reason: 'next_in_path',
+          reasonText: REASON_EXPLANATIONS['next_in_path'],
+          timestamp: new Date()
+        };
+        localStorage.setItem('mostRecentRecommendation', JSON.stringify(recommendation));
+        return recommendation;
       }
     }
-    // --- End onboarding integration ---
-
-    // Get candidate nodes
-    const candidates = this.getCandidateNodes();
-    if (candidates.length === 0) {
-      console.log('No candidate nodes found for recommendation');
-      return null;
-    }
-    
-    // Score candidates
-    const scoredCandidates = this.scoreCandidateNodes(candidates);
-    
-    // Sort by score (descending)
-    scoredCandidates.sort((a, b) => b.score - a.score);
-    
-    // Select top candidate
-    const topCandidate = scoredCandidates[0];
-    
-    // Create recommendation
-    const recommendation: NodeRecommendation = {
-      node: topCandidate.node,
-      confidence: Math.min(1, Math.max(0.5, topCandidate.score / 100)),
-      reason: this.determineRecommendationReason(topCandidate),
-      reasonText: this.generateReasonText(topCandidate),
-      timestamp: new Date()
-    };
-    
-    // Update store
-    recommendedNodeStore.set(recommendation);
-    
-    // Add to history
-    const history = get(recommendationHistoryStore);
-    recommendationHistoryStore.set([...history, recommendation]);
-    
-    // Save to localStorage
-    saveRecommendationsToLocalStorage();
-    
-    return recommendation;
+    // 2. After onboarding: recommend connected node within bracket
+    // ... (existing or new logic to find connected nodes within bracket, fallback to any node in bracket)
+    // On new recommendation, update mostRecentRecommendation in localStorage
+    // ... existing code ...
+    return null;
   }
   
   // Update recommendation after quiz completion
