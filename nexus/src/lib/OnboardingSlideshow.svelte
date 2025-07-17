@@ -131,13 +131,16 @@ const staticRecommendationExplanations = {
 };
 
 $: if (step === 'complete') {
-  const nodeId = staticRecommendations[finalBracket] ?? staticRecommendations['beginner'];
+  const bracket = currentBracket; // This is the user's bracket after quiz
+  const nodeId = staticRecommendations[bracket] ?? staticRecommendations['beginner'];
   const node = mergedGraph.nodes.find((n: any) => n.id === nodeId);
   staticRecommendation = node;
-  staticRecommendationExplanation = staticRecommendationExplanations[finalBracket] ?? staticRecommendationExplanations['beginner'];
+  staticRecommendationExplanation = staticRecommendationExplanations[bracket] ?? staticRecommendationExplanations['beginner'];
   if (typeof localStorage !== 'undefined' && staticRecommendation) {
-    console.log('Setting onboardingRecommendedNode:', staticRecommendation);
-    localStorage.setItem('onboardingRecommendedNode', JSON.stringify(staticRecommendation));
+    localStorage.setItem('userBracket', bracket);
+    localStorage.setItem('currentRecommendation', JSON.stringify(staticRecommendation));
+    console.log('Set userBracket:', bracket);
+    console.log('Set currentRecommendation:', staticRecommendation);
   }
   if (onSetRecommendation && staticRecommendation) {
     onSetRecommendation(staticRecommendation);
