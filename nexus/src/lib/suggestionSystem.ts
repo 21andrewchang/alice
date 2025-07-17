@@ -207,9 +207,35 @@ export class SuggestionService {
   
   // Generate a new recommendation based on user profile and graph
   generateRecommendation(): NodeRecommendation | null {
-    // Always use userBracket from localStorage
     const bracket = getUserBracket();
-    // Use ID mapping for initial recommendation
+    // Get all unvisited nodes
+    const visitedIds = new Set(Array.from(this.userProfile.visitedNodes));
+    // Get current recommendation (if any)
+    const currentRec = this.getCurrentRecommendation();
+    const currentId = currentRec?.node?.id;
+    // Filter for unvisited nodes that are not the current suggestion
+    const candidates = this.graph.nodes.filter((n: any) => !visitedIds.has(n.id) && n.id !== currentId);
+    if (candidates.length > 0) {
+      const idx = Math.floor(Math.random() * candidates.length);
+      const node = candidates[idx];
+      const recommendation: NodeRecommendation = {
+        node,
+        confidence: 1.0,
+        timestamp: new Date()
+      };
+      console.log('[DEBUG] generateRecommendation: random candidate node:', node.id, node.label);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('currentRecommendation', JSON.stringify({
+          ...recommendation,
+          node: node,
+          confidence: 1.0,
+          timestamp: recommendation.timestamp.toISOString()
+        }));
+      }
+      recommendedNodeStore.set(recommendation);
+      return recommendation;
+    }
+    // Fallback: use bracket default if no candidates
     const mappedId = BRACKET_RECOMMENDATION_ID_MAP[bracket] ?? BRACKET_RECOMMENDATION_ID_MAP['beginner'];
     const mappedNode = this.graph.nodes.find((n: any) => n.id === mappedId);
     if (mappedNode) {
@@ -218,6 +244,7 @@ export class SuggestionService {
         confidence: 1.0,
         timestamp: new Date()
       };
+      console.log('[DEBUG] generateRecommendation: fallback to bracket default node:', mappedNode.id, mappedNode.label);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('currentRecommendation', JSON.stringify({
           ...recommendation,
@@ -250,8 +277,29 @@ export class SuggestionService {
   updateAfterNodeVisit(nodeId: string): void {
     // Add to visited nodes
     this.userProfile.visitedNodes.add(nodeId);
+
+    // Bracket rank up logic based on visited nodes
+    const visitedCount = this.userProfile.visitedNodes.size;
+    let newBracket = this.userProfile.bracket;
+    console.log(`[DEBUG] Visited nodes count: ${visitedCount}, current bracket: ${this.userProfile.bracket}`);
+    if (visitedCount === 5 || visitedCount === 10 || visitedCount === 20) {
+      console.log(`[DEBUG] Visited nodes reached threshold: ${visitedCount}`);
+    }
+    if (visitedCount >= 20) {
+      newBracket = 'expert';
+    } else if (visitedCount >= 10) {
+      newBracket = 'advanced';
+    } else if (visitedCount >= 5) {
+      newBracket = 'intermediate';
+    } else {
+      newBracket = 'beginner';
+    }
+    if (newBracket !== this.userProfile.bracket) {
+      console.log(`[DEBUG] Bracket changing from ${this.userProfile.bracket} to ${newBracket}`);
+      this.userProfile.bracket = newBracket;
+    }
+
     this.saveUserProfile();
-    
     // Only generate new recommendation if current one is stale or for the visited node
     const currentRecommendation = this.getCurrentRecommendation();
     if (!currentRecommendation || currentRecommendation.node.id === nodeId) {
