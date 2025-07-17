@@ -1296,6 +1296,15 @@
 			window.removeEventListener('nodeStatusUpdated', updateUserProfileDebug);
 		};
 	});
+
+	let userProfileClicked = false;
+	function handleUserProfileClick() {
+		userProfileClicked = true;
+		resetProgress();
+		setTimeout(() => {
+			userProfileClicked = false;
+		}, 100);
+	}
 </script>
 
 <!-- Debug overlay: show session object -->
@@ -1310,9 +1319,12 @@
 {/if}
 
 <!-- USER PROFILE DEBUG PANEL (ALWAYS VISIBLE, NO LOGOUT BUTTON) -->
-<div class="user-profile-debug" style="position: absolute; top: 1rem; right: 7rem; z-index: 1000; background: #222; color: #fff; padding: 1rem; border-radius: 8px; font-size: 0.9rem;">
+<div
+	class="user-profile-debug {userProfileClicked ? 'clicked' : ''} flex items-center gap-2 rounded-lg px-4 py-2 shadow text-[#A3B4FF]"
+	style="position: absolute; bottom: 1rem; left: 1rem; z-index: 1000; background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px); padding: 8px; min-height: unset;"
+	on:click={handleUserProfileClick}
+>
 	<p><b>User Bracket:</b> {$userProfileStore.bracket}</p>
-	<button on:click={resetProgress} style="margin-top: 0.5rem; padding: 0.5em 1em; background: #b00; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Reset Progress</button>
 </div>
 
 <!-- Cyberpunk theme main container with side-by-side layout -->
@@ -1368,7 +1380,7 @@
 
 	<!-- Next Step UI: Only render if recommendedNode and recommendedNode.node are defined -->
 	{#if recommendedNode && recommendedNode.node}
-		<div class="absolute top-20 left-4 z-50">
+		<div class="absolute bottom-4 left-56 z-50">
 			<div
 				class="flex items-center gap-2 rounded-lg px-4 py-2 shadow next-step-glow"
 				style="background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px); min-height: unset;"
@@ -1509,5 +1521,10 @@
 	  20% { box-shadow: 0 0 16px 6px #7f9cf5; }
 	  60% { box-shadow: 0 0 16px 6px #7f9cf5; }
 	  100% { box-shadow: 0 0 0px 0px #7f9cf5; }
+	}
+
+	.user-profile-debug.clicked {
+		background: #b00 !important;
+		color: #fff;
 	}
 </style>
