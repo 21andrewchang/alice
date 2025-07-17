@@ -1,13 +1,23 @@
 <!-- PaginatedContent.svelte -->
 <script lang="ts">
   import { currentPageStore } from '$lib/stores';
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, afterUpdate } from 'svelte';
+  import { nodeStatusService } from '$lib/nodeStatus';
+  import { writable } from 'svelte/store';
 
   export let node: any;
   export let parseNodeLinks: (content: string) => string;
   export let onClose: () => void;
   export let nodesVisited: number = 0;
   export let onFinishReading: (nodesVisited: number) => void = () => {};
+  
+  // Create a reactive store to track node status changes
+  const nodeStatusVersion = writable(0);
+  
+  // Function to force re-render of content when node status changes
+  function updateContentWithLatestNodeStatus() {
+    nodeStatusVersion.update(v => v + 1);
+  }
 
   // Add getDomainColor utility (copy from app page)
   function getDomainColor(domain: string) {
@@ -95,7 +105,7 @@
   }
 
   function finishReading() {
-    const learnedNodesCount = (window as any).persistentLearnedNodes ? (window as any).persistentLearnedNodes.size : 0;
+    const learnedNodesCount = nodeStatusService.getAllStatuses().size;
     const adjustedCount = Math.max(0, learnedNodesCount - 1);
     onFinishReading(adjustedCount);
   }
@@ -111,16 +121,44 @@
   function handleQuizSubmit() {
     quizSubmitted = true;
     quizScore = node.quiz.reduce((score: number, q: any, i: number) => (quizAnswers[i] === q.answerIndex ? score + 1 : score), 0);
+    
+    // Update node status based on quiz result
+    const scorePercentage = (quizScore / node.quiz.length) * 100;
+    nodeStatusService.updateFromQuizResult(node.id, scorePercentage);
+    
+    // Trigger visual updates by dispatching a custom event
+    window.dispatchEvent(new CustomEvent('nodeStatusUpdated', { 
+      detail: { nodeId: node.id, score: scorePercentage } 
+    }));
   }
 
   onMount(() => {
     document.addEventListener('keydown', handleKeydown);
+    
+    // Add listener for node status updates
+    const handleNodeStatusUpdate = () => {
+      // Force re-render of content with updated node statuses
+      updateContentWithLatestNodeStatus();
+    };
+    
+    // Listen for custom node status update events
+    window.addEventListener('nodeStatusUpdated', handleNodeStatusUpdate);
+    
+    // Also listen for focus/blur events to catch when user returns to the page
+    window.addEventListener('focus', handleNodeStatusUpdate);
+    
     quizAnswers = node.quiz ? Array(node.quiz.length).fill(-1) : [];
     quizSubmitted = false;
     quizScore = 0;
+    
+    // Initial update to ensure content reflects current status
+    updateContentWithLatestNodeStatus();
   });
+  
   onDestroy(() => {
     document.removeEventListener('keydown', handleKeydown);
+    window.removeEventListener('nodeStatusUpdated', handleNodeStatusUpdate);
+    window.removeEventListener('focus', handleNodeStatusUpdate);
   });
 </script>
 
@@ -177,7 +215,9 @@
         <div class="mb-6">
           <h3 class="text-lg font-semibold mb-3" style="color: #BFCAF3;">{pages[currentPage].title}</h3>
           <div class="leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
-            {@html parseNodeLinks(pages[currentPage].content || '')}
+            {#key $nodeStatusVersion}
+              {@html parseNodeLinks(pages[currentPage].content || '')}
+            {/key}
           </div>
         </div>
         {#if currentPage === totalPages - 1 && !node.quiz}
@@ -231,8 +271,21 @@
               Submit Quiz
             </button>
           {:else}
-            <div class="mt-4 text-center font-semibold" style="color: #BFCAF3;">
-              You scored {quizScore} / {node.quiz.length}
+            <div class="mt-4 text-center">
+              <div class="font-semibold" style="color: #BFCAF3;">
+                You scored {quizScore} / {node.quiz.length}
+              </div>
+              
+              <!-- Show mastery status -->
+              {#if (quizScore / node.quiz.length) * 100 >= 80}
+                <div class="mt-2 text-sm" style="color: #73DACA;">
+                  🎉 Congratulations! You've mastered this node.
+                </div>
+              {:else}
+                <div class="mt-2 text-sm" style="color: #F7768E;">
+                  You need 80% to master this node. Try again later!
+                </div>
+              {/if}
             </div>
           {/if}
         </div>

@@ -7,12 +7,21 @@
 	import RankRevealModal from '../../components/RankRevealModal.svelte';
 	import { supabase } from '$lib/supabaseClient';
 	import { recommendedNodeStore } from '$lib/recommendedNodeStore';
+	import { 
+		nodeStatusService, 
+		getNodeVisualState, 
+		calculateLinkVisualState, 
+		shouldEnhanceLink,
+		getDomainColor as getNodeDomainColor,
+		dimColor as dimNodeColor
+	} from '$lib/nodeStatus';
 
 	let element: any;
 	let tooltipEl: any;
 	// selectedNode replaced with nodeStack system
 	// pdfLoading and showPdfFrame removed - handled per node now
-	// Use a persistent store for learnedNodes to prevent reset on re-renders
+	// DEPRECATED: Old learnedNodes Set - kept for backward compatibility during migration
+	// New code should use nodeStatusService instead
 	let learnedNodes = (() => {
 		if (typeof window !== 'undefined' && (window as any).persistentLearnedNodes) {
 			return (window as any).persistentLearnedNodes;
@@ -44,10 +53,13 @@
 	}
 
 	function toggleLearned(nodeId: any) {
-		if (learnedNodes.has(nodeId)) {
-			learnedNodes.delete(nodeId);
+		// Toggle between not_visited and visited states
+		const currentStatus = nodeStatusService.getNodeStatus(nodeId);
+		if (currentStatus.status === 'not_visited') {
+			nodeStatusService.markAsVisited(nodeId);
 		} else {
-			learnedNodes.add(nodeId);
+			// Reset to not_visited (remove from status tracking)
+			nodeStatusService.updateNodeStatus(nodeId, { status: 'not_visited' });
 		}
 		updateNodeStyles();
 	}
@@ -150,17 +162,7 @@ function handleFinishReading(count: number) {
 			.map((l: any) => (graphData as any).nodes.find((n: any) => n.id === (l.target.id ?? l.target)));
 	}
 
-	function getDomainColor(domain: any) {
-		const domainColors = {
-			'math': '#5B8DF2',          // Electric Pulse
-			'tech': '#73DACA',          // Cyber Teal  
-			'sciences': '#BA6FFF',      // Cosmic Violet
-			'humanities': '#F88951',    // Sunset Amber
-			'art': '#F7768E',           // Rose Bloom
-			'research-papers': '#BFCAF3' // Papyrus
-		};
-		return domainColors[domain as keyof typeof domainColors] || '#3A5A8F'; // Default to Desaturated Electric Pulse
-	}
+
 
 	function updateNodeStyles() {
 		if (nodeSel) {
@@ -168,14 +170,9 @@ function handleFinishReading(count: number) {
 				.transition()
 				.duration(300)
 				.attr('fill', (d: any) => {
-					// Determine base color (learned vs unlearned)
-					let baseColor;
-					if (d.type === 'paper') {
-						baseColor = learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8';
-					} else {
-						const domainColor = getDomainColor(d.domain || 'tech');
-						baseColor = learnedNodes.has(d.id) ? domainColor : dimColor(domainColor);
-					}
+					// Get visual state using new calculation functions
+					const visualState = getNodeVisualState(d.id, d.domain || 'tech', d.type || 'concept');
+					let baseColor = visualState.baseColor;
 					
 					// Apply focus dimming by darkening color much more aggressively
 					if (focusedNode && !connectedNodes.has(d.id)) {
@@ -184,14 +181,9 @@ function handleFinishReading(count: number) {
 					return baseColor;
 				})
 				.attr('stroke', (d: any) => {
-					// Determine base stroke color (learned vs unlearned)
-					let baseColor;
-					if (d.type === 'paper') {
-						baseColor = learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8';
-					} else {
-						const domainColor = getDomainColor(d.domain || 'tech');
-						baseColor = learnedNodes.has(d.id) ? domainColor : dimColor(domainColor);
-					}
+					// Get visual state using new calculation functions
+					const visualState = getNodeVisualState(d.id, d.domain || 'tech', d.type || 'concept');
+					let baseColor = visualState.strokeColor;
 					
 					// Apply focus dimming by darkening color much more aggressively
 					if (focusedNode && !connectedNodes.has(d.id)) {
@@ -200,21 +192,25 @@ function handleFinishReading(count: number) {
 					return baseColor;
 				})
 				.attr('stroke-width', (d: any) => {
+					// Get visual state using new calculation functions
+					const visualState = getNodeVisualState(d.id, d.domain || 'tech', d.type || 'concept');
+					let baseWidth = visualState.strokeWidth;
+					
 					// Reduce stroke width for focused-out nodes
-					let baseWidth = learnedNodes.has(d.id) ? 3 : 1.5;
 					if (focusedNode && !connectedNodes.has(d.id)) {
 						return Math.max(0.5, baseWidth * 0.5); // Thinner stroke for dimmed nodes
 					}
 					return baseWidth;
 				})
 				.style('filter', (d: any) => {
-					// Only show glow on learned nodes that aren't dimmed by focus
+					// Only show glow on nodes that aren't dimmed by focus
 					if (focusedNode && !connectedNodes.has(d.id)) {
 						return null; // No glow for focused-out nodes
 					}
-					if (d.type === 'paper') return learnedNodes.has(d.id) ? 'drop-shadow(0 0 6px #BFCAF3)' : null;
-					const domainColor = getDomainColor(d.domain || 'tech');
-					return learnedNodes.has(d.id) ? `drop-shadow(0 0 6px ${domainColor})` : null;
+					
+					// Get visual state using new calculation functions
+					const visualState = getNodeVisualState(d.id, d.domain || 'tech', d.type || 'concept');
+					return visualState.glowEffect;
 				});
 		}
 		
@@ -235,38 +231,37 @@ function handleFinishReading(count: number) {
 					return 0.05; // Very dim for other links
 				})
 				.style('filter', (d: any) => {
-					// Add glow effect for links between visited nodes
-					const sourceVisited = learnedNodes.has(d.source.id || d.source);
-					const targetVisited = learnedNodes.has(d.target.id || d.target);
+					// Use new link visual state calculation functions
+					const sourceNode = graphData?.nodes?.find(n => n.id === (d.source.id || d.source));
+					const targetNode = graphData?.nodes?.find(n => n.id === (d.target.id || d.target));
 					
-					if (sourceVisited && targetVisited) {
-						// Both nodes are visited - add glow effect
-						const sourceNode = graphData?.nodes?.find(n => n.id === (d.source.id || d.source));
-						const targetNode = graphData?.nodes?.find(n => n.id === (d.target.id || d.target));
-						
-						// Use the color of the source node for the glow
-						let glowColor;
-						if (sourceNode?.type === 'paper') {
-							glowColor = '#BFCAF3'; // Papyrus color for papers
-						} else {
-							glowColor = getDomainColor(sourceNode?.domain || 'tech');
-						}
-						
-						return `drop-shadow(0 0 8px ${glowColor}) drop-shadow(0 0 4px ${glowColor})`;
+					const linkState = calculateLinkVisualState(
+						d.source.id || d.source,
+						d.target.id || d.target,
+						sourceNode?.domain || 'tech',
+						sourceNode?.type || 'concept'
+					);
+					
+					// Enhanced glow for mastered connections
+					if (linkState.glowEffect) {
+						return `drop-shadow(0 0 8px ${linkState.glowEffect.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#73DACA'}) drop-shadow(0 0 4px ${linkState.glowEffect.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#73DACA'})`;
 					}
 					
-					return null; // No glow for unvisited connections
+					return null; // No glow for non-mastered connections
 				})
 				.attr('stroke-width', (d: any) => {
-					// Make visited connections slightly thicker
-					const sourceVisited = learnedNodes.has(d.source.id || d.source);
-					const targetVisited = learnedNodes.has(d.target.id || d.target);
+					// Use new link visual state calculation functions
+					const sourceNode = graphData?.nodes?.find(n => n.id === (d.source.id || d.source));
+					const linkState = calculateLinkVisualState(
+						d.source.id || d.source,
+						d.target.id || d.target,
+						sourceNode?.domain || 'tech',
+						sourceNode?.type || 'concept'
+					);
 					
-					if (sourceVisited && targetVisited) {
-						return Math.sqrt(d.value || 1) * 1.5; // 50% thicker for visited connections
-					}
-					
-					return Math.sqrt(d.value || 1); // Normal thickness
+					// Use calculated stroke width, but scale with link value
+					const baseWidth = Math.sqrt(d.value || 1);
+					return linkState.strokeWidth > 1.5 ? baseWidth * 1.5 : baseWidth;
 				});
 		}
 		
@@ -296,21 +291,7 @@ function handleFinishReading(count: number) {
 		}
 	}
 
-	// Helper function to dim colors for unlearned nodes
-	function dimColor(color: any) {
-		// Convert hex to RGB, reduce brightness, convert back
-		const hex = color.replace('#', '');
-		const r = parseInt(hex.substr(0, 2), 16);
-		const g = parseInt(hex.substr(2, 2), 16);
-		const b = parseInt(hex.substr(4, 2), 16);
-		
-		// Reduce brightness by ~40%
-		const dimR = Math.round(r * 0.6);
-		const dimG = Math.round(g * 0.6);
-		const dimB = Math.round(b * 0.6);
-		
-		return `#${dimR.toString(16).padStart(2, '0')}${dimG.toString(16).padStart(2, '0')}${dimB.toString(16).padStart(2, '0')}`;
-	}
+
 
 	// Helper function to very aggressively dim colors for focused-out nodes using RGB
 	function veryDimColor(color: any) {
@@ -557,20 +538,25 @@ function handleFinishReading(count: number) {
 			.join('circle')
 			.attr('r', (d: any) => d.type === 'paper' ? 12 : 8) // Larger radius for research papers
 			.attr('fill', (d: any) => {
-				if (d.type === 'paper') {
-					return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Dimmer papyrus for unlearned papers
-				}
-				const baseColor = getDomainColor(d.domain || 'tech');
-				return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Dimmer for unlearned nodes
+				// Use new visual state calculation functions
+				const visualState = getNodeVisualState(d.id, d.domain || 'tech', d.type || 'concept');
+				return visualState.baseColor;
 			})
 			.attr('stroke', (d: any) => {
-				if (d.type === 'paper') {
-					return learnedNodes.has(d.id) ? '#BFCAF3' : '#8A9BB8'; // Matching stroke for papers
-				}
-				const baseColor = getDomainColor(d.domain || 'tech');
-				return learnedNodes.has(d.id) ? baseColor : dimColor(baseColor); // Matching stroke, dimmed for unlearned
+				// Use new visual state calculation functions
+				const visualState = getNodeVisualState(d.id, d.domain || 'tech', d.type || 'concept');
+				return visualState.strokeColor;
 			})
-			.attr('stroke-width', 1.5)
+			.attr('stroke-width', (d: any) => {
+				// Use new visual state calculation functions
+				const visualState = getNodeVisualState(d.id, d.domain || 'tech', d.type || 'concept');
+				return visualState.strokeWidth;
+			})
+			.style('filter', (d: any) => {
+				// Use new visual state calculation functions
+				const visualState = getNodeVisualState(d.id, d.domain || 'tech', d.type || 'concept');
+				return visualState.glowEffect;
+			})
 			.attr('cursor', 'pointer')
 			.call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
 			.on('mouseover', (event, d: any) => {
@@ -937,13 +923,18 @@ function handleFinishReading(count: number) {
 			const nodeId = parseInt(id);
 			const node = graphData?.nodes?.find(n => n.id === nodeId);
 			if (node) {
-				const color = node.type === 'paper' ? '#BFCAF3' : getDomainColor(node.domain || 'tech');
-				if (learnedNodes.has(nodeId)) {
+				const color = node.type === 'paper' ? '#BFCAF3' : getNodeDomainColor(node.domain || 'tech');
+				
+				// Get node status to determine visual representation
+				if (nodeStatusService.isMastered(nodeId)) {
+					// Mastered: colored text with glow effect and mastery indicator
+					return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="color: ${color}; font-weight: 600; text-shadow: 0 0 4px ${color}80;">${text} <span style="font-size: 0.8em; vertical-align: super;">✓</span></span>`;
+				} else if (nodeStatusService.isVisited(nodeId)) {
 					// Visited: just colored text, no box
 					return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="color: ${color}; font-weight: 500;">${text}</span>`;
 				} else {
-					// Not visited: box style
-					return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="display: inline-flex; align-items: center; background: ${color}18; border: 1px solid ${color}4D; border-radius: 5px; padding: 0px 3px; margin: 2px 0; color: ${color}; font-weight: 500;">${text}</span>`;
+					// Not visited: box style with even padding
+					return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="display: inline-flex; align-items: center; background: ${color}18; border: 1px solid ${color}4D; border-radius: 5px; padding: 2px 3px; color: ${color}; font-weight: 500;">${text}</span>`;
 				}
 			}
 			return text;
@@ -958,11 +949,23 @@ function handleFinishReading(count: number) {
 			const liveNode = liveNodes.find(n => n.id === nodeId);
 			
 			if (liveNode) {
+				// Mark the node as visited immediately
+				nodeStatusService.markAsVisited(nodeId);
+				
 				// Add to the stack first (same order as selectNode)
 				addToNodeStack(liveNode);
 				
 				// Then center the graph on the selected node
 				centerGraphOnNode(liveNode);
+				
+				// Update visual styles to reflect the new status
+				updateNodeStyles();
+				
+				// Dispatch a custom event to notify that node status has changed
+				// This will trigger re-rendering of content in PaginatedContent component
+				window.dispatchEvent(new CustomEvent('nodeStatusUpdated', { 
+					detail: { nodeId: nodeId }
+				}));
 			}
 		}
 	}
@@ -1018,8 +1021,8 @@ function handleFinishReading(count: number) {
 			});
 		}
 		
-		// Mark as learned
-		learnedNodes.add(node.id);
+		// Mark as visited using new status system
+		nodeStatusService.markAsVisited(node.id);
 		
 		// Add to navigation history (chronological order)
 		const existingIndex = navigationHistory.findIndex(n => n.id === node.id);
@@ -1132,6 +1135,88 @@ function handleFinishReading(count: number) {
 	onMount(() => {
 		// Always try to load the recommended node from localStorage on mount
 		// This logic is now handled by the recommendedNodeStore
+		
+		// Add event listener for node status updates from quiz completion
+		const handleNodeStatusUpdate = (event: CustomEvent<{ nodeId: string; score: number }>) => {
+			// Get the updated node status
+			const nodeId = event.detail.nodeId;
+			const score = event.detail.score;
+			const status = nodeStatusService.getNodeStatus(nodeId);
+			
+			// Log the update for debugging
+			console.log(`Node ${nodeId} status updated:`, status);
+			
+			// Update node styles to reflect new status
+			updateNodeStyles();
+			
+			// Find the node data for the updated node
+			const nodeData = graphData?.nodes?.find((n: any) => n.id === nodeId);
+			
+			// If the node is in the current view, highlight it to show the status change
+			if (nodeSel && nodeData) {
+				// Get the node's domain for color
+				const domain = nodeData.domain || 'tech';
+				const nodeType = nodeData.type || 'concept';
+				
+				// Get visual state for the node
+				const visualState = getNodeVisualState(nodeId, domain, nodeType);
+				
+				// Create a pulsing animation effect
+				nodeSel
+					.filter((d: any) => d.id === nodeId)
+					.transition()
+					.duration(300)
+					.attr('r', (d: any) => (d.type === 'paper' ? 12 : 8) * 1.5) // Temporarily increase size
+					.style('filter', visualState.glowEffect ? 
+						`${visualState.glowEffect} drop-shadow(0 0 12px ${visualState.baseColor})` : 
+						null
+					)
+					.transition()
+					.duration(500)
+					.attr('r', (d: any) => d.type === 'paper' ? 12 : 8) // Return to normal size
+					.style('filter', visualState.glowEffect); // Return to normal glow
+				
+				// Show a toast notification for mastery
+				if (status.status === 'mastered') {
+					// Create a temporary toast notification
+					const toast = document.createElement('div');
+					toast.textContent = `🎉 Node "${nodeData.label}" mastered!`;
+					toast.style.position = 'fixed';
+					toast.style.bottom = '20px';
+					toast.style.right = '20px';
+					toast.style.backgroundColor = visualState.baseColor;
+					toast.style.color = '#111111';
+					toast.style.padding = '10px 20px';
+					toast.style.borderRadius = '4px';
+					toast.style.zIndex = '1000';
+					toast.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+					toast.style.opacity = '0';
+					toast.style.transition = 'opacity 0.3s ease-in-out';
+					
+					document.body.appendChild(toast);
+					
+					// Fade in
+					setTimeout(() => {
+						toast.style.opacity = '1';
+					}, 10);
+					
+					// Remove after 3 seconds
+					setTimeout(() => {
+						toast.style.opacity = '0';
+						setTimeout(() => {
+							document.body.removeChild(toast);
+						}, 300);
+					}, 3000);
+				}
+			}
+		};
+		
+		window.addEventListener('nodeStatusUpdated', handleNodeStatusUpdate as EventListener);
+		
+		// Cleanup function to remove event listener
+		return () => {
+			window.removeEventListener('nodeStatusUpdated', handleNodeStatusUpdate as EventListener);
+		};
 	});
 
 	function handleNextStepClick() {
@@ -1257,7 +1342,7 @@ function handleFinishReading(count: number) {
 					<button
 						on:click={() => navigateToStackIndex(index)}
 						class="text-sm font-medium hover:underline transition-colors cursor-pointer"
-						style="color: {node.type === 'paper' ? '#BFCAF3' : getDomainColor(node.domain)};"
+						style="color: {node.type === 'paper' ? '#BFCAF3' : getNodeDomainColor(node.domain)};"
 					>
 						{node.label}
 					</button>
@@ -1274,7 +1359,7 @@ function handleFinishReading(count: number) {
         href="#"
         on:click|preventDefault={() => selectNodeById(recommendedNode.id)}
         class="text-sm font-medium hover:underline transition-colors cursor-pointer"
-        style="color: {recommendedNode.type === 'paper' ? '#BFCAF3' : getDomainColor(recommendedNode.domain)}; background: none; border: none; padding: 0;"
+        style="color: {recommendedNode.type === 'paper' ? '#BFCAF3' : getNodeDomainColor(recommendedNode.domain)}; background: none; border: none; padding: 0;"
       >
         {recommendedNode.label}
       </a>
@@ -1339,7 +1424,7 @@ function handleFinishReading(count: number) {
 										{node}
 										{parseNodeLinks}
 										onClose={() => removeFromStack(node.id)}
-										nodesVisited={learnedNodes.size}
+										nodesVisited={nodeStatusService.getAllStatuses().size}
 										onFinishReading={handleFinishReading}
 									/>
 								{/if}
