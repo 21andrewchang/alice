@@ -17,6 +17,9 @@ export async function initializeSuggestionSystem(): Promise<void> {
     const graphData = await fetch('/merged_graph.json').then(r => r.json());
     initializeSuggestionService(graphData);
     const suggestionService = getSuggestionService();
+    if (typeof window !== 'undefined') {
+      window.suggestionService = suggestionService;
+    }
     // Always load currentRecommendation from localStorage if present
     let rec: any = null;
     if (typeof localStorage !== 'undefined') {
@@ -38,5 +41,12 @@ export async function initializeSuggestionSystem(): Promise<void> {
     console.log('[SuggestionInit] Suggestion system initialized successfully');
   } catch (error) {
     console.error('Failed to initialize suggestion system:', error);
+  }
+}
+
+// Add type declaration for window.suggestionService
+declare global {
+  interface Window {
+    suggestionService: any;
   }
 }

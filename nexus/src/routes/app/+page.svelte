@@ -16,6 +16,7 @@
 		getDomainColor as getNodeDomainColor,
 		dimColor as dimNodeColor
 	} from '$lib/nodeStatus';
+	import { getSuggestionService, SuggestionService } from '$lib/suggestionSystem';
 	// Import mergedGraph with type assertion for JSON
 	// REMOVE: import mergedGraph from '../merged_graph.json' assert { type: 'json' };
 	import { writable } from 'svelte/store';
@@ -31,53 +32,22 @@
 		return [];
 	}
 
-	// Helper to get userBracket
-	function getUserBracket(): string {
-		if (typeof window !== 'undefined') {
-			const bracket = localStorage.getItem('userBracket');
-			if (bracket) return bracket;
-		}
-		return 'beginner';
-	}
-
-	// Helper to calculate current bracket from visited count
-	function getCurrentBracket(visitedCount: number): string {
-		if (visitedCount >= 15) return 'expert';
-		if (visitedCount >= 10) return 'advanced';
-		if (visitedCount >= 5) return 'intermediate';
-		return 'beginner';
-	}
-
 	// User profile store for reactivity
-	const userProfileStore = writable({
-		userBracket: getUserBracket(),
-		nodesVisited: 0,
-		recentNodeLabels: [] as string[]
-	});
+	const userProfileStore = writable(SuggestionService.getUserProfile());
 
 	let mergedGraph: { nodes: any[]; links: any[] } = { nodes: [], links: [] };
 	let mergedGraphLoaded = false;
 
 	function updateUserProfileDebug() {
-		const visitedNodes = getVisitedNodes();
-		const userBracket = getUserBracket();
-		const nodesVisited = visitedNodes.length;
-		const recentNodes = visitedNodes.slice(-5);
-		const recentNodeLabels = mergedGraphLoaded
-			? recentNodes.map((id: string) => {
-				const node = mergedGraph.nodes.find((n: any) => n.id === id);
-				return node ? node.label : id;
-			})
-			: recentNodes;
-		userProfileStore.set({
-			userBracket,
-			nodesVisited,
-			recentNodeLabels
-		});
+		const suggestionService = getSuggestionService();
+		const userProfile = suggestionService.getUserProfile();
+		userProfileStore.set(userProfile);
 	}
 
 	// Listen for node visit events (assuming you have a function or event for this)
-	function onNodeVisited() {
+	function onNodeVisited(nodeId: string) {
+		const suggestionService = getSuggestionService();
+		suggestionService.updateAfterNodeVisit(nodeId);
 		updateUserProfileDebug();
 	}
 
@@ -145,10 +115,12 @@
 		const currentStatus = nodeStatusService.getNodeStatus(nodeId);
 		if (currentStatus.status === 'not_visited') {
 			nodeStatusService.markAsVisited(nodeId);
+			onNodeVisited(nodeId); // Call SuggestionService logic
 			window.dispatchEvent(new Event('nodeVisited'));
 		} else {
 			// Reset to not_visited (remove from status tracking)
 			nodeStatusService.updateNodeStatus(nodeId, { status: 'not_visited' });
+			updateUserProfileDebug();
 		}
 		updateNodeStyles();
 	}
@@ -1074,6 +1046,7 @@
 
 	// Function to select a node by ID (for node links)
 	function selectNodeById(nodeId: any) {
+		console.log('[DEBUG] selectNodeById called with nodeId:', nodeId);
 		// Get the live node from the simulation with current x,y coordinates
 		if (typeof window !== 'undefined' && window.simulation) {
 			const liveNodes = window.simulation.nodes();
@@ -1081,8 +1054,9 @@
 
 			if (liveNode) {
 				// Mark the node as visited immediately
+				console.log('[DEBUG] Marking node as visited:', nodeId);
 				nodeStatusService.markAsVisited(nodeId);
-				window.dispatchEvent(new Event('nodeVisited'));
+				onNodeVisited(nodeId); // Call SuggestionService logic
 
 				// Add to the stack first (same order as selectNode)
 				addToNodeStack(liveNode);
@@ -1090,16 +1064,16 @@
 				// Then center the graph on the selected node
 				centerGraphOnNode(liveNode);
 
-				// Update visual styles to reflect the new status
-				updateNodeStyles();
-
-				// Dispatch a custom event to notify that node status has changed
-				// This will trigger re-rendering of content in PaginatedContent component
-				window.dispatchEvent(
-					new CustomEvent('nodeStatusUpdated', {
-						detail: { nodeId: nodeId }
-					})
-				);
+				// --- MVP Recommendation Logic ---
+				if (recommendedNode && recommendedNode.node && nodeId === recommendedNode.node.id) {
+					console.log('[DEBUG] Clicked recommended node:', nodeId);
+					if (window.suggestionService && typeof window.suggestionService.generateRecommendation === 'function') {
+						console.log('[DEBUG] Generating new recommendation...');
+						window.suggestionService.generateRecommendation();
+					}
+				} else {
+					console.log('[DEBUG] Clicked non-recommended node:', nodeId);
+				}
 			}
 		}
 	}
@@ -1154,7 +1128,7 @@
 
 		// Mark as visited using new status system
 		nodeStatusService.markAsVisited(node.id);
-		window.dispatchEvent(new Event('nodeVisited'));
+		onNodeVisited(node.id); // Call SuggestionService logic
 
 		// Add to navigation history (chronological order)
 		const existingIndex = navigationHistory.findIndex((n) => n.id === node.id);
@@ -1341,7 +1315,7 @@
 
 <!-- USER PROFILE DEBUG PANEL (ALWAYS VISIBLE, NO LOGOUT BUTTON) -->
 <div class="user-profile-debug" style="position: absolute; top: 1rem; right: 7rem; z-index: 1000; background: #222; color: #fff; padding: 1rem; border-radius: 8px; font-size: 0.9rem;">
-	<p><b>User Bracket:</b> {$userProfileStore.userBracket}</p>
+	<p><b>User Bracket:</b> {$userProfileStore.bracket}</p>
 	<p><b>Nodes Visited:</b> {$userProfileStore.nodesVisited}</p>
 	<p><b>Recent Nodes:</b></p>
 	<ul>
