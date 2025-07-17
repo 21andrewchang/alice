@@ -320,8 +320,21 @@ export class SuggestionService {
     const eloChange = Math.round((quizScore - 50) / 2);
     this.userProfile.eloRating = Math.max(0, this.userProfile.eloRating + eloChange);
     
+    // Update learning streak
+    this.updateLearningStreak(quizScore);
+    
     // Update bracket based on new ELO
     this.updateBracket();
+  }
+  
+  private updateLearningStreak(quizScore: number): void {
+    // If score is good (above 70), increase streak
+    if (quizScore >= 70) {
+      this.userProfile.learningStreak += 1;
+    } else {
+      // Reset streak on poor performance
+      this.userProfile.learningStreak = 0;
+    }
   }
   
   private updateBracket(): void {
@@ -561,8 +574,27 @@ export class SuggestionService {
   
   private determineRecommendationReason(scoredCandidate: { node: any, score: number, factors: Record<string, number> }): RecommendationReason {
     const { factors } = scoredCandidate;
+    const { node } = scoredCandidate;
     
-    // Determine the primary reason based on highest factor
+    // Consider user performance trends
+    const performanceTrend = this.analyzePerformanceTrend();
+    
+    // If user is on a winning streak, prioritize challenge progression
+    if (this.userProfile.learningStreak >= 3 && factors.difficultyMatch > 0.6) {
+      return 'challenge_progression';
+    }
+    
+    // If user is struggling, prioritize prerequisites or review
+    if (performanceTrend === 'declining' && factors.prerequisiteCompletion < 0.7) {
+      return 'prerequisite_needed';
+    }
+    
+    // If user is a beginner, prioritize foundational content
+    if (this.userProfile.bracket === 'beginner' && (node.foundational || node.difficulty === 1)) {
+      return 'next_in_path';
+    }
+    
+    // Standard logic as fallback
     if (factors.prerequisiteCompletion < 0.5) {
       return 'prerequisite_needed';
     }
@@ -580,6 +612,32 @@ export class SuggestionService {
     }
     
     return 'review_recommended';
+  }
+  
+  // Analyze recent performance trend to determine if user is improving or struggling
+  private analyzePerformanceTrend(): 'improving' | 'stable' | 'declining' | 'unknown' {
+    const recentQuizzes = [...this.userProfile.quizHistory]
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, 5); // Look at 5 most recent quizzes
+    
+    if (recentQuizzes.length < 3) {
+      return 'unknown'; // Not enough data
+    }
+    
+    // Calculate average scores for first and second half of recent quizzes
+    const midpoint = Math.floor(recentQuizzes.length / 2);
+    const recentAvg = recentQuizzes.slice(0, midpoint).reduce((sum, q) => sum + q.score, 0) / midpoint;
+    const olderAvg = recentQuizzes.slice(midpoint).reduce((sum, q) => sum + q.score, 0) / (recentQuizzes.length - midpoint);
+    
+    // Determine trend
+    const difference = recentAvg - olderAvg;
+    if (difference > 10) {
+      return 'improving';
+    } else if (difference < -10) {
+      return 'declining';
+    } else {
+      return 'stable';
+    }
   }
   
   private generateReasonText(scoredCandidate: { node: any, score: number, factors: Record<string, number> }): string {

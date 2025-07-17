@@ -1,3 +1,4 @@
-import { writable } from 'svelte/store';
+import { recommendedNodeStore } from './suggestionSystem';
 
-export const recommendedNodeStore = writable<any>(null); 
+// Re-export the enhanced recommendedNodeStore from suggestionSystem.ts
+export { recommendedNodeStore };
