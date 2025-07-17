@@ -212,13 +212,43 @@ export class SuggestionService {
   // Generate a new recommendation based on user profile and graph
   generateRecommendation(): NodeRecommendation | null {
     const bracket = getUserBracket();
-    // Get all unvisited nodes
     const visitedIds = new Set(Array.from(this.userProfile.visitedNodes));
-    // Get current recommendation (if any)
     const currentRec = this.getCurrentRecommendation();
     const currentId = currentRec?.node?.id;
-    // Filter for unvisited nodes that are not the current suggestion
-    const candidates = this.graph.nodes.filter((n: any) => !visitedIds.has(n.id) && n.id !== currentId);
+
+    // Curated node ID groups by bracket
+    const bracketNodeGroups: Record<UserBracket, number[]> = {
+      beginner: [40, 33, 31, 32, 43], // Mean, Vector Ops, Matrix Mult, Dot Product, Weighted Sum, Softmax, Derivative
+      intermediate: [1, 14, 16, 5, 19, 21, 22], // Neural Nets, Embedding, Convolution, RNN, Seq Modeling, Lang Modeling, Hidden States, Training, GPU, Batching, Variance
+      advanced: [3, 4, 6, 7, 8, 9, 10], // Seq Transduction, Attention, Encoder, Decoder, Multi-Head, Self-Attn, Transformer, Positional, FFN, CNN, LSTM, GRU, Machine Translation, Auto-Regressive, Dependencies, ConvS2S, ByteNet, Gradient, Chain Rule, Partial Deriv, Trig, Linear Transform
+      expert: [0] // Attention Is All You Need
+    };
+
+    // Try to recommend from the user's bracket, fallback to easier brackets
+    const bracketOrder: UserBracket[] =
+      bracket === 'expert' ? ['expert', 'advanced', 'intermediate', 'beginner'] :
+      bracket === 'advanced' ? ['advanced', 'intermediate', 'beginner'] :
+      bracket === 'intermediate' ? ['intermediate', 'beginner'] :
+      ['beginner'];
+
+    let candidates: any[] = [];
+    for (const b of bracketOrder) {
+      candidates = this.graph.nodes.filter((n: any) =>
+        bracketNodeGroups[b].includes(n.id) &&
+        !visitedIds.has(n.id) &&
+        n.id !== currentId
+      );
+      if (candidates.length > 0) break;
+    }
+    // If still none, fallback to any unvisited node
+    if (candidates.length === 0) {
+      candidates = this.graph.nodes.filter((n: any) => !visitedIds.has(n.id) && n.id !== currentId);
+    }
+    // If still none, fallback to expert node
+    if (candidates.length === 0) {
+      candidates = [this.graph.nodes.find((n: any) => n.id === 0)];
+    }
+    // Pick random from candidates
     if (candidates.length > 0) {
       const idx = Math.floor(Math.random() * candidates.length);
       const node = candidates[idx];
@@ -227,32 +257,11 @@ export class SuggestionService {
         confidence: 1.0,
         timestamp: new Date()
       };
-      console.log('[DEBUG] generateRecommendation: random candidate node:', node.id, node.label);
+      console.log('[DEBUG] generateRecommendation: bracketed candidate node:', node.id, node.label);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('currentRecommendation', JSON.stringify({
           ...recommendation,
           node: node,
-          confidence: 1.0,
-          timestamp: recommendation.timestamp.toISOString()
-        }));
-      }
-      recommendedNodeStore.set(recommendation);
-      return recommendation;
-    }
-    // Fallback: use bracket default if no candidates
-    const mappedId = BRACKET_RECOMMENDATION_ID_MAP[bracket] ?? BRACKET_RECOMMENDATION_ID_MAP['beginner'];
-    const mappedNode = this.graph.nodes.find((n: any) => n.id === mappedId);
-    if (mappedNode) {
-      const recommendation: NodeRecommendation = {
-        node: mappedNode,
-        confidence: 1.0,
-        timestamp: new Date()
-      };
-      console.log('[DEBUG] generateRecommendation: fallback to bracket default node:', mappedNode.id, mappedNode.label);
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('currentRecommendation', JSON.stringify({
-          ...recommendation,
-          node: mappedNode,
           confidence: 1.0,
           timestamp: recommendation.timestamp.toISOString()
         }));
