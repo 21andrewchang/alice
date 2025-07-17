@@ -16,6 +16,110 @@
 		getDomainColor as getNodeDomainColor,
 		dimColor as dimNodeColor
 	} from '$lib/nodeStatus';
+	// Import mergedGraph with type assertion for JSON
+	// REMOVE: import mergedGraph from '../merged_graph.json' assert { type: 'json' };
+	import { writable } from 'svelte/store';
+
+	// Helper to get visited nodes from nodeStatusService
+	function getVisitedNodes(): string[] {
+		if (nodeStatusService && typeof nodeStatusService.getAllStatuses === 'function') {
+			const statuses = nodeStatusService.getAllStatuses();
+			return Array.from(statuses.values())
+				.filter(s => s.status === 'visited' || s.status === 'mastered')
+				.map(s => s.nodeId);
+		}
+		const profileStr = localStorage.getItem('userProfile');
+		if (profileStr) {
+			try {
+				const profile = JSON.parse(profileStr);
+				return Array.isArray(profile.visitedNodes) ? profile.visitedNodes : [];
+			} catch {}
+		}
+		return [];
+	}
+
+	// Helper to get placement bracket
+	function getPlacementBracket(): string {
+		const placement = localStorage.getItem('placementBracket');
+		if (placement) return placement;
+		const profileStr = localStorage.getItem('userProfile');
+		if (profileStr) {
+			try {
+				const profile = JSON.parse(profileStr);
+				return profile.placementBracket || profile.bracket || 'beginner';
+			} catch {}
+		}
+		return 'beginner';
+	}
+
+	// Helper to calculate current bracket from visited count
+	function getCurrentBracket(visitedCount: number): string {
+		if (visitedCount >= 15) return 'expert';
+		if (visitedCount >= 10) return 'advanced';
+		if (visitedCount >= 5) return 'intermediate';
+		return 'beginner';
+	}
+
+	// User profile store for reactivity
+	const userProfileStore = writable({
+		placementBracket: 'beginner',
+		currentBracket: 'beginner',
+		nodesVisited: 0,
+		recentNodeLabels: []
+	});
+
+	let mergedGraph: { nodes: any[]; links: any[] } = { nodes: [], links: [] };
+	let mergedGraphLoaded = false;
+
+	function updateUserProfileDebug() {
+		const visitedNodes = getVisitedNodes();
+		const placementBracket = getPlacementBracket();
+		const nodesVisited = visitedNodes.length;
+		const currentBracket = getCurrentBracket(nodesVisited);
+		const recentNodes = visitedNodes.slice(-5);
+		const recentNodeLabels = mergedGraphLoaded
+			? recentNodes.map((id: string) => {
+				const node = mergedGraph.nodes.find((n: any) => n.id === id);
+				return node ? node.label : id;
+			})
+			: recentNodes;
+		userProfileStore.set({
+			placementBracket,
+			currentBracket,
+			nodesVisited,
+			recentNodeLabels
+		});
+	}
+
+	// Listen for node visit events (assuming you have a function or event for this)
+	function onNodeVisited() {
+		updateUserProfileDebug();
+	}
+
+	// Reset button logic
+	function resetProgress() {
+		localStorage.removeItem('userProfile');
+		localStorage.removeItem('visitedNodes');
+		localStorage.removeItem('masteredNodes');
+		localStorage.removeItem('placementBracket');
+		localStorage.removeItem('onboardingRecommendedNode');
+		if (nodeStatusService && typeof nodeStatusService.clearAll === 'function') {
+			nodeStatusService.clearAll();
+		}
+		updateUserProfileDebug();
+	}
+
+	// Load mergedGraph dynamically
+	async function loadMergedGraph() {
+		try {
+			const res = await fetch('/merged_graph.json');
+			if (res.ok) {
+				mergedGraph = await res.json();
+				mergedGraphLoaded = true;
+				updateUserProfileDebug();
+			}
+		} catch {}
+	}
 
 	let element: any;
 	let tooltipEl: any;
@@ -56,6 +160,7 @@
 		const currentStatus = nodeStatusService.getNodeStatus(nodeId);
 		if (currentStatus.status === 'not_visited') {
 			nodeStatusService.markAsVisited(nodeId);
+			window.dispatchEvent(new Event('nodeVisited'));
 		} else {
 			// Reset to not_visited (remove from status tracking)
 			nodeStatusService.updateNodeStatus(nodeId, { status: 'not_visited' });
@@ -236,8 +341,8 @@
 				})
 				.style('filter', (d: any) => {
 					// Use new link visual state calculation functions
-					const sourceNode = graphData?.nodes?.find((n) => n.id === (d.source.id || d.source));
-					const targetNode = graphData?.nodes?.find((n) => n.id === (d.target.id || d.target));
+					const sourceNode = graphData?.nodes?.find((n: { id: string | number }) => n.id === (d.source.id || d.source));
+					const targetNode = graphData?.nodes?.find((n: { id: string | number }) => n.id === (d.target.id || d.target));
 
 					const linkState = calculateLinkVisualState(
 						d.source.id || d.source,
@@ -255,7 +360,7 @@
 				})
 				.attr('stroke-width', (d: any) => {
 					// Use new link visual state calculation functions
-					const sourceNode = graphData?.nodes?.find((n) => n.id === (d.source.id || d.source));
+					const sourceNode = graphData?.nodes?.find((n: { id: string | number }) => n.id === (d.source.id || d.source));
 					const linkState = calculateLinkVisualState(
 						d.source.id || d.source,
 						d.target.id || d.target,
@@ -333,10 +438,10 @@
 
 		// Map central relations
 		const centralId = 0;
-		const relationMap = {};
+		const relationMap: Record<string, string> = {};
 		links.forEach((l: any) => {
-			if (l.source === centralId) relationMap[l.target] = l.relation;
-			else if (l.target === centralId) relationMap[l.source] = l.relation;
+			if (l.source === centralId) relationMap[l.target as string] = l.relation;
+			else if (l.target === centralId) relationMap[l.source as string] = l.relation;
 		});
 
 		// Simulation with domain-aware clustering
@@ -420,7 +525,7 @@
 				}
 
 				// Update text opacity and colors, respecting focus state
-				g.selectAll('text').each(function (d: any) {
+				svg.selectAll('text').each(function (d: any) {
 					const textElement = d3.select(this);
 					textElement.style('opacity', opacity);
 
@@ -489,7 +594,7 @@
 		// Add shooting star effects for prerequisite links
 		const prerequisiteLinks = links.filter((link) => link.relation === 'prerequisite');
 
-		prerequisiteLinks.forEach((link, index) => {
+		prerequisiteLinks.forEach((link: any, index: number) => {
 			// Create gradient for each shooting star
 			const gradientId = `shooting-star-gradient-${index}`;
 			const gradient = svg
@@ -582,7 +687,7 @@
 				d3.select(event.target)
 					.transition()
 					.duration(150)
-					.attr('r', (d.type === 'paper' ? 12 : 8) * 1.15); // 15% bigger
+					.attr('r', (d: any) => (d.type === 'paper' ? 12 : 8) * 1.15); // 15% bigger
 			})
 			.on('mousemove', (event) => {
 				d3.select(tooltipEl)
@@ -629,7 +734,7 @@
 				.attr('y2', (d: any) => d.target.y);
 
 			// Update shooting star links
-			prerequisiteLinks.forEach((link) => {
+			prerequisiteLinks.forEach((link: any) => {
 				if (link.starLine && link.gradient) {
 					// Update gradient coordinates
 					link.gradient
@@ -688,7 +793,7 @@
 			const nodeDependents = new Map();
 
 			// Initialize maps
-			prerequisiteLinks.forEach((link) => {
+			prerequisiteLinks.forEach((link: any) => {
 				const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
 				const targetId = typeof link.target === 'object' ? link.target.id : link.target;
 
@@ -707,7 +812,7 @@
 
 			// Find nodes with no prerequisites (fundamental nodes)
 			const fundamentalNodes = new Set();
-			prerequisiteLinks.forEach((link) => {
+			prerequisiteLinks.forEach((link: any) => {
 				const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
 				const targetId = typeof link.target === 'object' ? link.target.id : link.target;
 
@@ -788,7 +893,7 @@
 			}
 
 			// Calculate delays for all links
-			prerequisiteLinks.forEach((link) => {
+			prerequisiteLinks.forEach((link: any) => {
 				const delay = calculateLinkDelay(link);
 				linkDelays.set(link, delay);
 			});
@@ -797,7 +902,7 @@
 		function animate() {
 			const currentTime = Date.now() * 0.001; // Current time in seconds
 
-			prerequisiteLinks.forEach((link, index) => {
+			prerequisiteLinks.forEach((link: any, index: number) => {
 				if (link.gradient) {
 					// Only animate if no node is focused OR this link is directly connected to the focused node
 					const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
@@ -960,7 +1065,7 @@
 			/<node id="(\d+)">([^<]+)<\/node>/g,
 			(match: any, id: any, text: any) => {
 				const nodeId = parseInt(id);
-				const node = graphData?.nodes?.find((n) => n.id === nodeId);
+				const node = graphData?.nodes?.find((n: { id: string | number }) => n.id === nodeId);
 				if (node) {
 					const color =
 						node.type === 'paper' ? '#BFCAF3' : getNodeDomainColor(node.domain || 'tech');
@@ -992,6 +1097,7 @@
 			if (liveNode) {
 				// Mark the node as visited immediately
 				nodeStatusService.markAsVisited(nodeId);
+				window.dispatchEvent(new Event('nodeVisited'));
 
 				// Add to the stack first (same order as selectNode)
 				addToNodeStack(liveNode);
@@ -1063,6 +1169,7 @@
 
 		// Mark as visited using new status system
 		nodeStatusService.markAsVisited(node.id);
+		window.dispatchEvent(new Event('nodeVisited'));
 
 		// Add to navigation history (chronological order)
 		const existingIndex = navigationHistory.findIndex((n) => n.id === node.id);
@@ -1173,94 +1280,11 @@
 	});
 
 	onMount(() => {
-		// Initialize the suggestion system
-		initializeSuggestionSystem();
-		
-		// Always try to load the recommended node from localStorage on mount
-		// This logic is now handled by the recommendedNodeStore
-
-		// Add event listener for node status updates from quiz completion
-		const handleNodeStatusUpdate = (event: CustomEvent<{ nodeId: string; score: number }>) => {
-			// Get the updated node status
-			const nodeId = event.detail.nodeId;
-			const score = event.detail.score;
-			const status = nodeStatusService.getNodeStatus(nodeId);
-
-			// Log the update for debugging
-			console.log(`Node ${nodeId} status updated:`, status);
-
-			// Update node styles to reflect new status
-			updateNodeStyles();
-
-			// Find the node data for the updated node
-			const nodeData = graphData?.nodes?.find((n: any) => n.id === nodeId);
-
-			// If the node is in the current view, highlight it to show the status change
-			if (nodeSel && nodeData) {
-				// Get the node's domain for color
-				const domain = nodeData.domain || 'tech';
-				const nodeType = nodeData.type || 'concept';
-
-				// Get visual state for the node
-				const visualState = getNodeVisualState(nodeId, domain, nodeType);
-
-				// Create a pulsing animation effect
-				nodeSel
-					.filter((d: any) => d.id === nodeId)
-					.transition()
-					.duration(300)
-					.attr('r', (d: any) => (d.type === 'paper' ? 12 : 8) * 1.5) // Temporarily increase size
-					.style(
-						'filter',
-						visualState.glowEffect
-							? `${visualState.glowEffect} drop-shadow(0 0 12px ${visualState.baseColor})`
-							: null
-					)
-					.transition()
-					.duration(500)
-					.attr('r', (d: any) => (d.type === 'paper' ? 12 : 8)) // Return to normal size
-					.style('filter', visualState.glowEffect); // Return to normal glow
-
-				// Show a toast notification for mastery
-				if (status.status === 'mastered') {
-					// Create a temporary toast notification
-					const toast = document.createElement('div');
-					toast.textContent = `🎉 Node "${nodeData.label}" mastered!`;
-					toast.style.position = 'fixed';
-					toast.style.bottom = '20px';
-					toast.style.right = '20px';
-					toast.style.backgroundColor = visualState.baseColor;
-					toast.style.color = '#111111';
-					toast.style.padding = '10px 20px';
-					toast.style.borderRadius = '4px';
-					toast.style.zIndex = '1000';
-					toast.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-					toast.style.opacity = '0';
-					toast.style.transition = 'opacity 0.3s ease-in-out';
-
-					document.body.appendChild(toast);
-
-					// Fade in
-					setTimeout(() => {
-						toast.style.opacity = '1';
-					}, 10);
-
-					// Remove after 3 seconds
-					setTimeout(() => {
-						toast.style.opacity = '0';
-						setTimeout(() => {
-							document.body.removeChild(toast);
-						}, 300);
-					}, 3000);
-				}
-			}
-		};
-
-		window.addEventListener('nodeStatusUpdated', handleNodeStatusUpdate as EventListener);
-
-		// Cleanup function to remove event listener
+		loadMergedGraph();
+		updateUserProfileDebug();
+		window.addEventListener('nodeVisited', updateUserProfileDebug);
 		return () => {
-			window.removeEventListener('nodeStatusUpdated', handleNodeStatusUpdate as EventListener);
+			window.removeEventListener('nodeVisited', updateUserProfileDebug);
 		};
 	});
 
@@ -1298,6 +1322,24 @@
 			document.removeEventListener('click', handleNodeLinkClick);
 		};
 	});
+
+	// Update debug panel on mount and whenever a node is visited or recommendedNode changes
+	onMount(async () => {
+		// Load mergedGraph dynamically
+		try {
+			const res = await fetch('/merged_graph.json');
+			mergedGraph = await res.json();
+			mergedGraphLoaded = true;
+			updateUserProfileDebug();
+		} catch (e) {
+			console.error('Failed to load merged_graph.json', e);
+		}
+		window.addEventListener('nodeStatusUpdated', updateUserProfileDebug);
+		recommendedNodeStore.subscribe(() => updateUserProfileDebug());
+		return () => {
+			window.removeEventListener('nodeStatusUpdated', updateUserProfileDebug);
+		};
+	});
 </script>
 
 <!-- Debug overlay: show session object -->
@@ -1311,15 +1353,18 @@
 	</div>
 {/if}
 
-<!-- Logout button bottom left -->
-<div class="fixed bottom-4 left-4 z-50">
-	<button
-		class="rounded-lg px-4 py-2 font-semibold"
-		style="background-color: #22242C; color: #fff; border: 1px solid #333333;"
-		on:click={handleLogout}
-	>
-		Log out
-	</button>
+<!-- USER PROFILE DEBUG PANEL (ALWAYS VISIBLE, NO LOGOUT BUTTON) -->
+<div class="user-profile-debug" style="position: absolute; top: 1rem; right: 7rem; z-index: 1000; background: #222; color: #fff; padding: 1rem; border-radius: 8px; font-size: 0.9rem;">
+	<p><b>Placement Bracket:</b> {$userProfileStore.placementBracket}</p>
+	<p><b>Current Bracket:</b> {$userProfileStore.currentBracket}</p>
+	<p><b>Nodes Visited:</b> {$userProfileStore.nodesVisited}</p>
+	<p><b>Recent Nodes:</b></p>
+	<ul>
+		{#each $userProfileStore.recentNodeLabels as label}
+			<li>{label}</li>
+		{/each}
+	</ul>
+	<button on:click={resetProgress} style="margin-top: 0.5rem; padding: 0.5em 1em; background: #b00; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Reset Progress</button>
 </div>
 
 <!-- Cyberpunk theme main container with side-by-side layout -->
@@ -1365,7 +1410,7 @@
 	{#if recommendedNode}
 		<div class="absolute top-20 left-4 z-50">
 			<div
-				class="flex flex-col rounded-lg px-4 py-2 shadow"
+				class="flex flex-col rounded-lg px-4 py-2 shadow next-step-glow"
 				style="background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px);"
 			>
 				<div class="flex items-center gap-2">
@@ -1503,5 +1548,16 @@
 		height: 100%;
 		z-index: 10;
 		background: #0a0a0a;
+	}
+
+	/* Glow animation for Next Step box */
+	.next-step-glow {
+	  animation: nextStepGlow 1s;
+	}
+	@keyframes nextStepGlow {
+	  0% { box-shadow: 0 0 0px 0px #7f9cf5; }
+	  20% { box-shadow: 0 0 16px 6px #7f9cf5; }
+	  60% { box-shadow: 0 0 16px 6px #7f9cf5; }
+	  100% { box-shadow: 0 0 0px 0px #7f9cf5; }
 	}
 </style>
