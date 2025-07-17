@@ -21,18 +21,11 @@ export interface QuizAttempt {
   completionTime: number;
 }
 
-export type RecommendationReason = 
-  | 'next_in_path' 
-  | 'prerequisite_needed' 
-  | 'knowledge_gap' 
-  | 'challenge_progression'
-  | 'review_recommended';
-
+// Remove RecommendationReason, reason, reasonText, REASON_EXPLANATIONS from types and logic
+// NodeRecommendation should only have: node, confidence, timestamp
 export interface NodeRecommendation {
   node: any; // Graph node object
   confidence: number; // How confident the system is about this recommendation (0-1)
-  reason: RecommendationReason;
-  reasonText: string; // Human-readable explanation
   timestamp: Date;
 }
 
@@ -60,14 +53,6 @@ export const BRACKET_ELO_THRESHOLDS = {
   intermediate: 1000,
   advanced: 2000,
   expert: 3000
-};
-
-export const REASON_EXPLANATIONS: Record<RecommendationReason, string> = {
-  'next_in_path': 'This is the next logical step in your learning path',
-  'prerequisite_needed': 'You need to understand this concept before moving forward',
-  'knowledge_gap': 'This will help fill a gap in your knowledge',
-  'challenge_progression': 'This will challenge you to advance your skills',
-  'review_recommended': 'Reviewing this will strengthen your understanding'
 };
 
 // Enhanced stores
@@ -99,13 +84,11 @@ export const BRACKET_RECOMMENDATION_ID_MAP: Record<UserBracket, number> = {
 };
 
 // Helper functions
-export function updateRecommendation(node: any, reason: RecommendationReason): void {
+export function updateRecommendation(node: any, confidence: number, timestamp: Date): void {
   const recommendation: NodeRecommendation = {
     node,
-    confidence: 0.8, // Default confidence
-    reason,
-    reasonText: REASON_EXPLANATIONS[reason],
-    timestamp: new Date()
+    confidence,
+    timestamp
   };
   
   // Update current recommendation
@@ -137,8 +120,11 @@ function saveRecommendationsToLocalStorage(): void {
     if (typeof localStorage !== 'undefined') {
       // Save current recommendation
       if (currentRecommendation) {
+        // Always wrap in { node, ... } structure
         localStorage.setItem('currentRecommendation', JSON.stringify({
           ...currentRecommendation,
+          node: currentRecommendation.node,
+          confidence: currentRecommendation.confidence,
           timestamp: currentRecommendation.timestamp.toISOString()
         }));
       }
@@ -147,6 +133,8 @@ function saveRecommendationsToLocalStorage(): void {
       const limitedHistory = history.slice(-10);
       localStorage.setItem('recommendationHistory', JSON.stringify(limitedHistory.map(rec => ({
         ...rec,
+        node: rec.node,
+        confidence: rec.confidence,
         timestamp: rec.timestamp.toISOString()
       }))));
     }
@@ -162,10 +150,19 @@ export function loadRecommendationsFromLocalStorage(): void {
       const savedRecommendation = localStorage.getItem('currentRecommendation');
       if (savedRecommendation) {
         const parsed = JSON.parse(savedRecommendation);
-        recommendedNodeStore.set({
-          ...parsed,
-          timestamp: new Date(parsed.timestamp)
-        });
+        // If the structure is just a node, wrap it
+        if (parsed && !parsed.node) {
+          recommendedNodeStore.set({
+            node: parsed,
+            confidence: 0.8,
+            timestamp: new Date()
+          });
+        } else {
+          recommendedNodeStore.set({
+            ...parsed,
+            timestamp: new Date(parsed.timestamp)
+          });
+        }
       }
       
       // Load history
@@ -219,12 +216,15 @@ export class SuggestionService {
       const recommendation: NodeRecommendation = {
         node: mappedNode,
         confidence: 1.0,
-        reason: 'next_in_path',
-        reasonText: REASON_EXPLANATIONS['next_in_path'],
         timestamp: new Date()
       };
       if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('currentRecommendation', JSON.stringify(recommendation));
+        localStorage.setItem('currentRecommendation', JSON.stringify({
+          ...recommendation,
+          node: mappedNode,
+          confidence: 1.0,
+          timestamp: recommendation.timestamp.toISOString()
+        }));
       }
       recommendedNodeStore.set(recommendation);
       return recommendation;
@@ -587,7 +587,7 @@ export class SuggestionService {
     return 0.5;
   }
   
-  private determineRecommendationReason(scoredCandidate: { node: any, score: number, factors: Record<string, number> }): RecommendationReason {
+  private determineRecommendationReason(scoredCandidate: { node: any, score: number, factors: Record<string, number> }): string {
     const { factors } = scoredCandidate;
     const { node } = scoredCandidate;
     
@@ -596,37 +596,37 @@ export class SuggestionService {
     
     // If user is on a winning streak, prioritize challenge progression
     if (this.userProfile.learningStreak >= 3 && factors.difficultyMatch > 0.6) {
-      return 'challenge_progression';
+      return 'This will challenge you to advance your skills';
     }
     
     // If user is struggling, prioritize prerequisites or review
     if (performanceTrend === 'declining' && factors.prerequisiteCompletion < 0.7) {
-      return 'prerequisite_needed';
+      return 'You need to understand this concept before moving forward';
     }
     
     // If user is a beginner, prioritize foundational content
     if (this.userProfile.bracket === 'beginner' && (node.foundational || node.difficulty === 1)) {
-      return 'next_in_path';
+      return 'This is the next logical step in your learning path';
     }
     
     // Standard logic as fallback
     if (factors.prerequisiteCompletion < 0.5) {
-      return 'prerequisite_needed';
+      return 'You need to understand this concept before moving forward';
     }
     
     if (factors.difficultyMatch > 0.8) {
-      return 'next_in_path';
+      return 'This is the next logical step in your learning path';
     }
     
     if (factors.difficultyMatch > 0.6) {
-      return 'challenge_progression';
+      return 'This will challenge you to advance your skills';
     }
     
     if (factors.domainDiversity > 0.8) {
-      return 'knowledge_gap';
+      return 'This will help fill a gap in your knowledge';
     }
     
-    return 'review_recommended';
+    return 'Reviewing this will strengthen your understanding';
   }
   
   // Analyze recent performance trend to determine if user is improving or struggling
@@ -657,7 +657,7 @@ export class SuggestionService {
   
   private generateReasonText(scoredCandidate: { node: any, score: number, factors: Record<string, number> }): string {
     const reason = this.determineRecommendationReason(scoredCandidate);
-    return REASON_EXPLANATIONS[reason];
+    return reason;
   }
 }
 

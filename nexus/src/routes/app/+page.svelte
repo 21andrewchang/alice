@@ -1407,38 +1407,22 @@
 	{#if recommendedNode && recommendedNode.node}
 		<div class="absolute top-20 left-4 z-50">
 			<div
-				class="flex flex-col rounded-lg px-4 py-2 shadow next-step-glow"
-				style="background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px);"
+				class="flex items-center gap-2 rounded-lg px-4 py-2 shadow next-step-glow"
+				style="background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px); min-height: unset;"
 			>
-				<div class="flex items-center gap-2">
-					<span class="font-semibold text-indigo-300">Next Step:</span>
-					<span
-						class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link"
-						data-node-id="{recommendedNode.node.id}"
-						style="color: {recommendedNode.node.type === 'paper'
-							? '#BFCAF3'
-							: getNodeDomainColor(
-									recommendedNode.node.domain
-								)}; font-weight: 500; text-decoration: underline;"
-					>
-						{recommendedNode.node.label}
-					</span>
-				</div>
-				<div class="text-xs text-gray-400 mt-1">
-					↳ {recommendedNode.reasonText}
-				</div>
+				<span class="font-semibold text-indigo-300">Next Step:</span>
+				<span
+					class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link"
+					data-node-id="{recommendedNode.node.id}"
+					style="color: {recommendedNode.node.type === 'paper'
+						? '#BFCAF3'
+						: getNodeDomainColor(
+							recommendedNode.node.domain
+						)}; font-weight: 500; text-decoration: underline;"
+				>
+					{recommendedNode.node.label}
+				</span>
 			</div>
-		</div>
-	{:else}
-		<!-- Debugging output for recommendedNode -->
-		<div class="absolute top-20 left-4 z-50" style="background: #222; color: #fff; padding: 1em; border-radius: 8px; max-width: 400px;">
-			<strong>Next Step Debug:</strong>
-			<pre style="font-size: 0.8em; color: #BFCAF3; overflow-x: auto;">{JSON.stringify(recommendedNode, null, 2)}</pre>
-			{#if !recommendedNode}
-				<div style="color: #ff6666;">No recommendation found. (recommendedNode is null or undefined)</div>
-			{:else if recommendedNode && !recommendedNode.node}
-				<div style="color: #ffcc00;">Malformed recommendation: missing <code>node</code> property.</div>
-			{/if}
 		</div>
 	{/if}
 
