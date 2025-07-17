@@ -1316,13 +1316,6 @@
 <!-- USER PROFILE DEBUG PANEL (ALWAYS VISIBLE, NO LOGOUT BUTTON) -->
 <div class="user-profile-debug" style="position: absolute; top: 1rem; right: 7rem; z-index: 1000; background: #222; color: #fff; padding: 1rem; border-radius: 8px; font-size: 0.9rem;">
 	<p><b>User Bracket:</b> {$userProfileStore.bracket}</p>
-	<p><b>Nodes Visited:</b> {$userProfileStore.nodesVisited}</p>
-	<p><b>Recent Nodes:</b></p>
-	<ul>
-		{#each $userProfileStore.recentNodeLabels as label}
-			<li>{label}</li>
-		{/each}
-	</ul>
 	<button on:click={resetProgress} style="margin-top: 0.5rem; padding: 0.5em 1em; background: #b00; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Reset Progress</button>
 </div>
 
