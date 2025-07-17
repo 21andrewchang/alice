@@ -183,6 +183,16 @@ export function loadRecommendationsFromLocalStorage(): void {
   }
 }
 
+function getUserBracket(): UserBracket {
+  if (typeof localStorage !== 'undefined') {
+    const bracket = localStorage.getItem('userBracket');
+    if (bracket === 'beginner' || bracket === 'intermediate' || bracket === 'advanced' || bracket === 'expert') {
+      return bracket;
+    }
+  }
+  return 'beginner';
+}
+
 // SuggestionService class
 export class SuggestionService {
   private userProfile: UserProfile;
@@ -200,40 +210,25 @@ export class SuggestionService {
   
   // Generate a new recommendation based on user profile and graph
   generateRecommendation(): NodeRecommendation | null {
-    this.userProfile = this.loadUserProfile();
-    const bracket = this.userProfile.bracket;
-    // 1. Onboarding: use bracket mapping for first recommendation
-    if (typeof localStorage !== 'undefined') {
-      const onboardingNodeStr = localStorage.getItem('onboardingRecommendedNode');
-      if (onboardingNodeStr) {
-        try {
-          const onboardingNode = JSON.parse(onboardingNodeStr);
-          console.log('Loaded onboardingRecommendedNode from localStorage:', onboardingNode);
-          localStorage.setItem('mostRecentRecommendation', onboardingNodeStr);
-          localStorage.removeItem('onboardingRecommendedNode');
-          return onboardingNode;
-        } catch {}
+    // Always use userBracket from localStorage
+    const bracket = getUserBracket();
+    // Use ID mapping for initial recommendation
+    const mappedId = BRACKET_RECOMMENDATION_ID_MAP[bracket] ?? BRACKET_RECOMMENDATION_ID_MAP['beginner'];
+    const mappedNode = this.graph.nodes.find((n: any) => n.id === mappedId);
+    if (mappedNode) {
+      const recommendation: NodeRecommendation = {
+        node: mappedNode,
+        confidence: 1.0,
+        reason: 'next_in_path',
+        reasonText: REASON_EXPLANATIONS['next_in_path'],
+        timestamp: new Date()
+      };
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('currentRecommendation', JSON.stringify(recommendation));
       }
-      // If no onboarding node, use bracket mapping
-      const mappedId = BRACKET_RECOMMENDATION_ID_MAP[bracket] ?? BRACKET_RECOMMENDATION_ID_MAP['beginner'];
-      const mappedNode = this.graph.nodes.find((n: any) => n.id === mappedId);
-      console.log('Bracket:', bracket, 'MappedId:', mappedId, 'MappedNode:', mappedNode);
-      if (mappedNode) {
-        const recommendation: NodeRecommendation = {
-          node: mappedNode,
-          confidence: 1.0,
-          reason: 'next_in_path',
-          reasonText: REASON_EXPLANATIONS['next_in_path'],
-          timestamp: new Date()
-        };
-        localStorage.setItem('mostRecentRecommendation', JSON.stringify(recommendation));
-        return recommendation;
-      }
+      recommendedNodeStore.set(recommendation);
+      return recommendation;
     }
-    // 2. After onboarding: recommend connected node within bracket
-    // ... (existing or new logic to find connected nodes within bracket, fallback to any node in bracket)
-    // On new recommendation, update mostRecentRecommendation in localStorage
-    // ... existing code ...
     return null;
   }
   

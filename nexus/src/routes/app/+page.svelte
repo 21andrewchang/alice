@@ -22,32 +22,20 @@
 
 	// Helper to get visited nodes from nodeStatusService
 	function getVisitedNodes(): string[] {
-		if (nodeStatusService && typeof nodeStatusService.getAllStatuses === 'function') {
+		if (typeof window !== 'undefined' && nodeStatusService && typeof nodeStatusService.getAllStatuses === 'function') {
 			const statuses = nodeStatusService.getAllStatuses();
 			return Array.from(statuses.values())
 				.filter(s => s.status === 'visited' || s.status === 'mastered')
 				.map(s => s.nodeId);
 		}
-		const profileStr = localStorage.getItem('userProfile');
-		if (profileStr) {
-			try {
-				const profile = JSON.parse(profileStr);
-				return Array.isArray(profile.visitedNodes) ? profile.visitedNodes : [];
-			} catch {}
-		}
 		return [];
 	}
 
-	// Helper to get placement bracket
-	function getPlacementBracket(): string {
-		const placement = localStorage.getItem('placementBracket');
-		if (placement) return placement;
-		const profileStr = localStorage.getItem('userProfile');
-		if (profileStr) {
-			try {
-				const profile = JSON.parse(profileStr);
-				return profile.placementBracket || profile.bracket || 'beginner';
-			} catch {}
+	// Helper to get userBracket
+	function getUserBracket(): string {
+		if (typeof window !== 'undefined') {
+			const bracket = localStorage.getItem('userBracket');
+			if (bracket) return bracket;
 		}
 		return 'beginner';
 	}
@@ -62,8 +50,7 @@
 
 	// User profile store for reactivity
 	const userProfileStore = writable({
-		placementBracket: 'beginner',
-		currentBracket: 'beginner',
+		userBracket: getUserBracket(),
 		nodesVisited: 0,
 		recentNodeLabels: [] as string[]
 	});
@@ -73,9 +60,8 @@
 
 	function updateUserProfileDebug() {
 		const visitedNodes = getVisitedNodes();
-		const placementBracket = getPlacementBracket();
+		const userBracket = getUserBracket();
 		const nodesVisited = visitedNodes.length;
-		const currentBracket = getCurrentBracket(nodesVisited);
 		const recentNodes = visitedNodes.slice(-5);
 		const recentNodeLabels = mergedGraphLoaded
 			? recentNodes.map((id: string) => {
@@ -84,8 +70,7 @@
 			})
 			: recentNodes;
 		userProfileStore.set({
-			placementBracket,
-			currentBracket,
+			userBracket,
 			nodesVisited,
 			recentNodeLabels
 		});
@@ -101,7 +86,7 @@
 		localStorage.removeItem('userProfile');
 		localStorage.removeItem('visitedNodes');
 		localStorage.removeItem('masteredNodes');
-		localStorage.removeItem('placementBracket');
+		localStorage.removeItem('userBracket');
 		localStorage.removeItem('onboardingRecommendedNode');
 		if (nodeStatusService && typeof nodeStatusService.clearAll === 'function') {
 			nodeStatusService.clearAll();
@@ -1356,8 +1341,7 @@
 
 <!-- USER PROFILE DEBUG PANEL (ALWAYS VISIBLE, NO LOGOUT BUTTON) -->
 <div class="user-profile-debug" style="position: absolute; top: 1rem; right: 7rem; z-index: 1000; background: #222; color: #fff; padding: 1rem; border-radius: 8px; font-size: 0.9rem;">
-	<p><b>Placement Bracket:</b> {$userProfileStore.placementBracket}</p>
-	<p><b>Current Bracket:</b> {$userProfileStore.currentBracket}</p>
+	<p><b>User Bracket:</b> {$userProfileStore.userBracket}</p>
 	<p><b>Nodes Visited:</b> {$userProfileStore.nodesVisited}</p>
 	<p><b>Recent Nodes:</b></p>
 	<ul>
@@ -1408,7 +1392,19 @@
 		</div>
 	{/if}
 
-	{#if recommendedNode}
+	{#if typeof window !== 'undefined'}
+		<!-- Graph container - always full width -->
+		<div class="h-full w-full">
+			<div bind:this={element} class="h-full w-full"></div>
+		</div>
+	{:else}
+		<div class="flex items-center justify-center h-full w-full text-gray-500">
+			Loading graph...
+		</div>
+	{/if}
+
+	<!-- Next Step UI: Only render if recommendedNode and recommendedNode.node are defined -->
+	{#if recommendedNode && recommendedNode.node}
 		<div class="absolute top-20 left-4 z-50">
 			<div
 				class="flex flex-col rounded-lg px-4 py-2 shadow next-step-glow"
@@ -1433,12 +1429,18 @@
 				</div>
 			</div>
 		</div>
+	{:else}
+		<!-- Debugging output for recommendedNode -->
+		<div class="absolute top-20 left-4 z-50" style="background: #222; color: #fff; padding: 1em; border-radius: 8px; max-width: 400px;">
+			<strong>Next Step Debug:</strong>
+			<pre style="font-size: 0.8em; color: #BFCAF3; overflow-x: auto;">{JSON.stringify(recommendedNode, null, 2)}</pre>
+			{#if !recommendedNode}
+				<div style="color: #ff6666;">No recommendation found. (recommendedNode is null or undefined)</div>
+			{:else if recommendedNode && !recommendedNode.node}
+				<div style="color: #ffcc00;">Malformed recommendation: missing <code>node</code> property.</div>
+			{/if}
+		</div>
 	{/if}
-
-	<!-- Graph container - always full width -->
-	<div class="h-full w-full">
-		<div bind:this={element} class="h-full w-full"></div>
-	</div>
 
 	<!-- Modal Node Preview panels - overlay on top of graph -->
 	{#if nodeStack.length > 0}
