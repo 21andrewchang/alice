@@ -178,7 +178,46 @@ export class SuggestionService {
   generateRecommendation(): NodeRecommendation | null {
     // Update user profile first
     this.userProfile = this.loadUserProfile();
-    
+
+    // --- ELO/Bracket progression based on visited nodes ---
+    const visitedCount = this.userProfile.visitedNodes.size;
+    let newBracket: UserBracket = 'beginner';
+    if (visitedCount >= 15) newBracket = 'expert';
+    else if (visitedCount >= 10) newBracket = 'advanced';
+    else if (visitedCount >= 5) newBracket = 'intermediate';
+    // else remains beginner
+    this.userProfile.bracket = newBracket;
+    this.saveUserProfile();
+    // --- End ELO/Bracket progression ---
+
+    // --- Onboarding integration: check for onboardingRecommendedNode ---
+    if (typeof localStorage !== 'undefined') {
+      const onboardingNodeStr = localStorage.getItem('onboardingRecommendedNode');
+      if (onboardingNodeStr) {
+        try {
+          const onboardingNode = JSON.parse(onboardingNodeStr);
+          // Set as recommendation and clear the key
+          const recommendation: NodeRecommendation = {
+            node: onboardingNode,
+            confidence: 1.0,
+            reason: 'next_in_path',
+            reasonText: REASON_EXPLANATIONS['next_in_path'],
+            timestamp: new Date()
+          };
+          recommendedNodeStore.set(recommendation);
+          const history = get(recommendationHistoryStore);
+          recommendationHistoryStore.set([...history, recommendation]);
+          saveRecommendationsToLocalStorage();
+          localStorage.removeItem('onboardingRecommendedNode');
+          return recommendation;
+        } catch (e) {
+          // If parsing fails, just remove the key and continue
+          localStorage.removeItem('onboardingRecommendedNode');
+        }
+      }
+    }
+    // --- End onboarding integration ---
+
     // Get candidate nodes
     const candidates = this.getCandidateNodes();
     if (candidates.length === 0) {
