@@ -1081,21 +1081,17 @@
 	// Function to center the graph on a specific node (restored original logic)
 	function centerGraphOnNode(node: any) {
 		if (zoomBehavior && svgElement) {
-			const scale = 2; // Zoom scale factor
+			const scale = 1.2; // Less zoom-in than before
 			const [x, y] = [node.x || 0, node.y || 0]; // Node position
 
 			// Get the current container dimensions
 			const containerWidth = 928;
 			const containerHeight = 680;
 
-			// SVG viewBox is centered at (0,0), so we need to account for that
-			// When side panel is open, we want to center in the left half
-			const visibleWidth = containerWidth / 2; // Left half for graph
-
-			// Calculate target position in SVG coordinates (viewBox is centered)
-			// We want the node to appear at 1/4 from left edge and 1/3 from top
-			const targetX = -containerWidth / 4 + visibleWidth / 2; // Center of left half
-			const targetY = -containerHeight / 2 + containerHeight / 3; // 1/3 from top
+			// Instead of centering in the middle, center in the open area on the left
+			// Target position: 1/4 from left, vertically centered
+			const targetX = -containerWidth / 4; // 1/4 from left edge
+			const targetY = 0; // Vertically centered
 
 			// Create transform to move the node to the target position
 			const transform = d3.zoomIdentity
