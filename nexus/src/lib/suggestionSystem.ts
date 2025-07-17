@@ -199,6 +199,10 @@ export class SuggestionService {
     this.graph = graph;
     this.userProfile = this.loadUserProfile();
   }
+
+  public getUserProfile(): UserProfile {
+    return this.userProfile;
+  }
   
   // Get current recommendation
   getCurrentRecommendation(): NodeRecommendation | null {
