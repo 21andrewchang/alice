@@ -153,6 +153,12 @@
     
     // Initial update to ensure content reflects current status
     updateContentWithLatestNodeStatus();
+
+    // --- Fix: Mark node as visited immediately on open ---
+    if (node && node.id) {
+      nodeStatusService.markAsVisited(node.id);
+      updateContentWithLatestNodeStatus();
+    }
   });
   
   onDestroy(() => {
