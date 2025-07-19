@@ -1,4 +1,4 @@
-import { initializeSuggestionService, getSuggestionService } from './suggestionSystem';
+import { initializeSuggestionService, getSuggestionService, recommendedNodeStore } from './suggestionSystem';
 
 /**
  * Initializes the suggestion system with the graph data
@@ -6,23 +6,47 @@ import { initializeSuggestionService, getSuggestionService } from './suggestionS
  */
 export async function initializeSuggestionSystem(): Promise<void> {
   try {
+    // Remove all legacy/other keys
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('placementBracket');
+      localStorage.removeItem('mostRecentRecommendation');
+      localStorage.removeItem('recommendationHistory');
+      // Do not remove userBracket or currentRecommendation
+    }
     // Load graph data
     const graphData = await fetch('/merged_graph.json').then(r => r.json());
-    
-    // Initialize the suggestion service with the graph data
     initializeSuggestionService(graphData);
-    
-    // Generate initial recommendation if needed
     const suggestionService = getSuggestionService();
-    const currentRecommendation = suggestionService.getCurrentRecommendation();
-    
-    if (!currentRecommendation) {
-      // No current recommendation, generate one
-      suggestionService.generateRecommendation();
+    if (typeof window !== 'undefined') {
+      window.suggestionService = suggestionService;
     }
-    
-    console.log('Suggestion system initialized successfully');
+    // Always load currentRecommendation from localStorage if present
+    let rec: any = null;
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('currentRecommendation');
+      if (saved) {
+        rec = JSON.parse(saved);
+        recommendedNodeStore.set(rec);
+        console.log('[SuggestionInit] Loaded currentRecommendation from localStorage:', rec);
+      }
+    }
+    if (!rec) {
+      rec = suggestionService.generateRecommendation();
+      if (rec && typeof localStorage !== 'undefined') {
+        localStorage.setItem('currentRecommendation', JSON.stringify(rec));
+        recommendedNodeStore.set(rec);
+        console.log('[SuggestionInit] Generated and set currentRecommendation:', rec);
+      }
+    }
+    console.log('[SuggestionInit] Suggestion system initialized successfully');
   } catch (error) {
     console.error('Failed to initialize suggestion system:', error);
+  }
+}
+
+// Add type declaration for window.suggestionService
+declare global {
+  interface Window {
+    suggestionService: any;
   }
 }

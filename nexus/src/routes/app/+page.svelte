@@ -6,7 +6,7 @@
 	import PaginatedContent from '../../components/PaginatedContent.svelte';
 	import RankRevealModal from '../../components/RankRevealModal.svelte';
 	import { supabase } from '$lib/supabaseClient';
-	import { recommendedNodeStore } from '$lib/recommendedNodeStore';
+	import { recommendedNodeStore } from '$lib/suggestionSystem';
 	import { initializeSuggestionSystem } from '$lib/suggestionSystemInit';
 	import {
 		nodeStatusService,
@@ -16,83 +16,38 @@
 		getDomainColor as getNodeDomainColor,
 		dimColor as dimNodeColor
 	} from '$lib/nodeStatus';
+	import { getSuggestionService, SuggestionService } from '$lib/suggestionSystem';
 	// Import mergedGraph with type assertion for JSON
 	// REMOVE: import mergedGraph from '../merged_graph.json' assert { type: 'json' };
 	import { writable } from 'svelte/store';
 
 	// Helper to get visited nodes from nodeStatusService
 	function getVisitedNodes(): string[] {
-		if (nodeStatusService && typeof nodeStatusService.getAllStatuses === 'function') {
+		if (typeof window !== 'undefined' && nodeStatusService && typeof nodeStatusService.getAllStatuses === 'function') {
 			const statuses = nodeStatusService.getAllStatuses();
 			return Array.from(statuses.values())
 				.filter(s => s.status === 'visited' || s.status === 'mastered')
 				.map(s => s.nodeId);
 		}
-		const profileStr = localStorage.getItem('userProfile');
-		if (profileStr) {
-			try {
-				const profile = JSON.parse(profileStr);
-				return Array.isArray(profile.visitedNodes) ? profile.visitedNodes : [];
-			} catch {}
-		}
 		return [];
 	}
 
-	// Helper to get placement bracket
-	function getPlacementBracket(): string {
-		const placement = localStorage.getItem('placementBracket');
-		if (placement) return placement;
-		const profileStr = localStorage.getItem('userProfile');
-		if (profileStr) {
-			try {
-				const profile = JSON.parse(profileStr);
-				return profile.placementBracket || profile.bracket || 'beginner';
-			} catch {}
-		}
-		return 'beginner';
-	}
-
-	// Helper to calculate current bracket from visited count
-	function getCurrentBracket(visitedCount: number): string {
-		if (visitedCount >= 15) return 'expert';
-		if (visitedCount >= 10) return 'advanced';
-		if (visitedCount >= 5) return 'intermediate';
-		return 'beginner';
-	}
-
 	// User profile store for reactivity
-	const userProfileStore = writable({
-		placementBracket: 'beginner',
-		currentBracket: 'beginner',
-		nodesVisited: 0,
-		recentNodeLabels: []
-	});
+	const userProfileStore = writable(getSuggestionService().getUserProfile());
 
 	let mergedGraph: { nodes: any[]; links: any[] } = { nodes: [], links: [] };
 	let mergedGraphLoaded = false;
 
 	function updateUserProfileDebug() {
-		const visitedNodes = getVisitedNodes();
-		const placementBracket = getPlacementBracket();
-		const nodesVisited = visitedNodes.length;
-		const currentBracket = getCurrentBracket(nodesVisited);
-		const recentNodes = visitedNodes.slice(-5);
-		const recentNodeLabels = mergedGraphLoaded
-			? recentNodes.map((id: string) => {
-				const node = mergedGraph.nodes.find((n: any) => n.id === id);
-				return node ? node.label : id;
-			})
-			: recentNodes;
-		userProfileStore.set({
-			placementBracket,
-			currentBracket,
-			nodesVisited,
-			recentNodeLabels
-		});
+		const suggestionService = getSuggestionService();
+		const userProfile = suggestionService.getUserProfile();
+		userProfileStore.set(userProfile);
 	}
 
 	// Listen for node visit events (assuming you have a function or event for this)
-	function onNodeVisited() {
+	function onNodeVisited(nodeId: string) {
+		const suggestionService = getSuggestionService();
+		suggestionService.updateAfterNodeVisit(nodeId);
 		updateUserProfileDebug();
 	}
 
@@ -101,7 +56,7 @@
 		localStorage.removeItem('userProfile');
 		localStorage.removeItem('visitedNodes');
 		localStorage.removeItem('masteredNodes');
-		localStorage.removeItem('placementBracket');
+		localStorage.removeItem('userBracket');
 		localStorage.removeItem('onboardingRecommendedNode');
 		if (nodeStatusService && typeof nodeStatusService.clearAll === 'function') {
 			nodeStatusService.clearAll();
@@ -160,10 +115,12 @@
 		const currentStatus = nodeStatusService.getNodeStatus(nodeId);
 		if (currentStatus.status === 'not_visited') {
 			nodeStatusService.markAsVisited(nodeId);
+			onNodeVisited(nodeId); // Call SuggestionService logic
 			window.dispatchEvent(new Event('nodeVisited'));
 		} else {
 			// Reset to not_visited (remove from status tracking)
 			nodeStatusService.updateNodeStatus(nodeId, { status: 'not_visited' });
+			updateUserProfileDebug();
 		}
 		updateNodeStyles();
 	}
@@ -1089,6 +1046,7 @@
 
 	// Function to select a node by ID (for node links)
 	function selectNodeById(nodeId: any) {
+		console.log('[DEBUG] selectNodeById called with nodeId:', nodeId);
 		// Get the live node from the simulation with current x,y coordinates
 		if (typeof window !== 'undefined' && window.simulation) {
 			const liveNodes = window.simulation.nodes();
@@ -1096,8 +1054,9 @@
 
 			if (liveNode) {
 				// Mark the node as visited immediately
+				console.log('[DEBUG] Marking node as visited:', nodeId);
 				nodeStatusService.markAsVisited(nodeId);
-				window.dispatchEvent(new Event('nodeVisited'));
+				onNodeVisited(nodeId); // Call SuggestionService logic
 
 				// Add to the stack first (same order as selectNode)
 				addToNodeStack(liveNode);
@@ -1105,16 +1064,16 @@
 				// Then center the graph on the selected node
 				centerGraphOnNode(liveNode);
 
-				// Update visual styles to reflect the new status
-				updateNodeStyles();
-
-				// Dispatch a custom event to notify that node status has changed
-				// This will trigger re-rendering of content in PaginatedContent component
-				window.dispatchEvent(
-					new CustomEvent('nodeStatusUpdated', {
-						detail: { nodeId: nodeId }
-					})
-				);
+				// --- MVP Recommendation Logic ---
+				if (recommendedNode && recommendedNode.node && nodeId === recommendedNode.node.id) {
+					console.log('[DEBUG] Clicked recommended node:', nodeId);
+					if (window.suggestionService && typeof window.suggestionService.generateRecommendation === 'function') {
+						console.log('[DEBUG] Generating new recommendation...');
+						window.suggestionService.generateRecommendation();
+					}
+				} else {
+					console.log('[DEBUG] Clicked non-recommended node:', nodeId);
+				}
 			}
 		}
 	}
@@ -1122,21 +1081,17 @@
 	// Function to center the graph on a specific node (restored original logic)
 	function centerGraphOnNode(node: any) {
 		if (zoomBehavior && svgElement) {
-			const scale = 2; // Zoom scale factor
+			const scale = 1.2; // Less zoom-in than before
 			const [x, y] = [node.x || 0, node.y || 0]; // Node position
 
 			// Get the current container dimensions
 			const containerWidth = 928;
 			const containerHeight = 680;
 
-			// SVG viewBox is centered at (0,0), so we need to account for that
-			// When side panel is open, we want to center in the left half
-			const visibleWidth = containerWidth / 2; // Left half for graph
-
-			// Calculate target position in SVG coordinates (viewBox is centered)
-			// We want the node to appear at 1/4 from left edge and 1/3 from top
-			const targetX = -containerWidth / 4 + visibleWidth / 2; // Center of left half
-			const targetY = -containerHeight / 2 + containerHeight / 3; // 1/3 from top
+			// Instead of centering in the middle, center in the open area on the left
+			// Target position: 1/4 from left, vertically centered
+			const targetX = -containerWidth / 4; // 1/4 from left edge
+			const targetY = 0; // Vertically centered
 
 			// Create transform to move the node to the target position
 			const transform = d3.zoomIdentity
@@ -1169,7 +1124,7 @@
 
 		// Mark as visited using new status system
 		nodeStatusService.markAsVisited(node.id);
-		window.dispatchEvent(new Event('nodeVisited'));
+		onNodeVisited(node.id); // Call SuggestionService logic
 
 		// Add to navigation history (chronological order)
 		const existingIndex = navigationHistory.findIndex((n) => n.id === node.id);
@@ -1280,6 +1235,7 @@
 	});
 
 	onMount(() => {
+		initializeSuggestionSystem();
 		loadMergedGraph();
 		updateUserProfileDebug();
 		window.addEventListener('nodeVisited', updateUserProfileDebug);
@@ -1340,6 +1296,15 @@
 			window.removeEventListener('nodeStatusUpdated', updateUserProfileDebug);
 		};
 	});
+
+	let userProfileClicked = false;
+	function handleUserProfileClick() {
+		userProfileClicked = true;
+		resetProgress();
+		setTimeout(() => {
+			userProfileClicked = false;
+		}, 100);
+	}
 </script>
 
 <!-- Debug overlay: show session object -->
@@ -1354,17 +1319,12 @@
 {/if}
 
 <!-- USER PROFILE DEBUG PANEL (ALWAYS VISIBLE, NO LOGOUT BUTTON) -->
-<div class="user-profile-debug" style="position: absolute; top: 1rem; right: 7rem; z-index: 1000; background: #222; color: #fff; padding: 1rem; border-radius: 8px; font-size: 0.9rem;">
-	<p><b>Placement Bracket:</b> {$userProfileStore.placementBracket}</p>
-	<p><b>Current Bracket:</b> {$userProfileStore.currentBracket}</p>
-	<p><b>Nodes Visited:</b> {$userProfileStore.nodesVisited}</p>
-	<p><b>Recent Nodes:</b></p>
-	<ul>
-		{#each $userProfileStore.recentNodeLabels as label}
-			<li>{label}</li>
-		{/each}
-	</ul>
-	<button on:click={resetProgress} style="margin-top: 0.5rem; padding: 0.5em 1em; background: #b00; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Reset Progress</button>
+<div
+	class="user-profile-debug {userProfileClicked ? 'clicked' : ''} flex items-center gap-2 rounded-lg px-4 py-2 shadow text-[#A3B4FF]"
+	style="position: absolute; bottom: 1rem; left: 1rem; z-index: 1000; background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px); padding: 8px; min-height: unset;"
+	on:click={handleUserProfileClick}
+>
+	<p><b>User Bracket:</b> {$userProfileStore.bracket}</p>
 </div>
 
 <!-- Cyberpunk theme main container with side-by-side layout -->
@@ -1407,37 +1367,39 @@
 		</div>
 	{/if}
 
-	{#if recommendedNode}
-		<div class="absolute top-20 left-4 z-50">
-			<div
-				class="flex flex-col rounded-lg px-4 py-2 shadow next-step-glow"
-				style="background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px);"
-			>
-				<div class="flex items-center gap-2">
-					<span class="font-semibold text-indigo-300">Next Step:</span>
-					<span
-						class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link"
-						data-node-id="{recommendedNode.node.id}"
-						style="color: {recommendedNode.node.type === 'paper'
-							? '#BFCAF3'
-							: getNodeDomainColor(
-									recommendedNode.node.domain
-								)}; font-weight: 500; text-decoration: underline;"
-					>
-						{recommendedNode.node.label}
-					</span>
-				</div>
-				<div class="text-xs text-gray-400 mt-1">
-					↳ {recommendedNode.reasonText}
-				</div>
-			</div>
+	{#if typeof window !== 'undefined'}
+		<!-- Graph container - always full width -->
+		<div class="h-full w-full">
+			<div bind:this={element} class="h-full w-full"></div>
+		</div>
+	{:else}
+		<div class="flex items-center justify-center h-full w-full text-gray-500">
+			Loading graph...
 		</div>
 	{/if}
 
-	<!-- Graph container - always full width -->
-	<div class="h-full w-full">
-		<div bind:this={element} class="h-full w-full"></div>
-	</div>
+	<!-- Next Step UI: Only render if recommendedNode and recommendedNode.node are defined -->
+	{#if recommendedNode && recommendedNode.node}
+		<div class="absolute bottom-4 left-56 z-50">
+			<div
+				class="flex items-center gap-2 rounded-lg px-4 py-2 shadow next-step-glow"
+				style="background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px); min-height: unset;"
+			>
+				<span class="font-semibold text-indigo-300">Next Step:</span>
+				<span
+					class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link"
+					data-node-id="{recommendedNode.node.id}"
+					style="color: {recommendedNode.node.type === 'paper'
+						? '#BFCAF3'
+						: getNodeDomainColor(
+							recommendedNode.node.domain
+						)}; font-weight: 500; text-decoration: underline;"
+				>
+					{recommendedNode.node.label}
+				</span>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Modal Node Preview panels - overlay on top of graph -->
 	{#if nodeStack.length > 0}
@@ -1559,5 +1521,10 @@
 	  20% { box-shadow: 0 0 16px 6px #7f9cf5; }
 	  60% { box-shadow: 0 0 16px 6px #7f9cf5; }
 	  100% { box-shadow: 0 0 0px 0px #7f9cf5; }
+	}
+
+	.user-profile-debug.clicked {
+		background: #b00 !important;
+		color: #fff;
 	}
 </style>
