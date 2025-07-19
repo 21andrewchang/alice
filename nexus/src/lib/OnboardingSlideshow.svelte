@@ -112,10 +112,10 @@ $: {
 
 // --- Static Recommendations by Placement Level ---
 const staticRecommendations = {
-  beginner: 1, // nodeId
-  intermediate: 3,
-  advanced: 0,
-  expert: 0
+  beginner: 31, // Matrix Multiplication
+  intermediate: 1, // Neural Networks
+  advanced: 10, // Transformer
+  expert: 0 // Attention Is All You Need
 };
 
 type StaticRecommendation = { nodeId: number; label: string; description: string } | null;
@@ -131,15 +131,31 @@ const staticRecommendationExplanations = {
 };
 
 $: if (step === 'complete') {
-  const nodeId = staticRecommendations[finalBracket] ?? staticRecommendations['beginner'];
+  const bracket = currentBracket; // This is the user's bracket after quiz
+  const nodeId = staticRecommendations[bracket] ?? staticRecommendations['beginner'];
   const node = mergedGraph.nodes.find((n: any) => n.id === nodeId);
   staticRecommendation = node;
-  staticRecommendationExplanation = staticRecommendationExplanations[finalBracket] ?? staticRecommendationExplanations['beginner'];
+  staticRecommendationExplanation = staticRecommendationExplanations[bracket] ?? staticRecommendationExplanations['beginner'];
   if (typeof localStorage !== 'undefined' && staticRecommendation) {
-    localStorage.setItem('onboardingRecommendedNode', JSON.stringify(staticRecommendation));
+    localStorage.setItem('userBracket', bracket);
+    localStorage.setItem('currentRecommendation', JSON.stringify({
+      node: staticRecommendation,
+      confidence: 1.0,
+      timestamp: new Date().toISOString()
+    }));
+    console.log('Set userBracket:', bracket);
+    console.log('Set currentRecommendation:', {
+      node: staticRecommendation,
+      confidence: 1.0,
+      timestamp: new Date().toISOString()
+    });
   }
   if (onSetRecommendation && staticRecommendation) {
-    onSetRecommendation(staticRecommendation);
+    onSetRecommendation({
+      node: staticRecommendation,
+      confidence: 1.0,
+      timestamp: new Date().toISOString()
+    });
   }
 }
 

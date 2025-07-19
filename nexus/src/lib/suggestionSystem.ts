@@ -21,18 +21,11 @@ export interface QuizAttempt {
   completionTime: number;
 }
 
-export type RecommendationReason = 
-  | 'next_in_path' 
-  | 'prerequisite_needed' 
-  | 'knowledge_gap' 
-  | 'challenge_progression'
-  | 'review_recommended';
-
+// Remove RecommendationReason, reason, reasonText, REASON_EXPLANATIONS from types and logic
+// NodeRecommendation should only have: node, confidence, timestamp
 export interface NodeRecommendation {
   node: any; // Graph node object
   confidence: number; // How confident the system is about this recommendation (0-1)
-  reason: RecommendationReason;
-  reasonText: string; // Human-readable explanation
   timestamp: Date;
 }
 
@@ -62,26 +55,40 @@ export const BRACKET_ELO_THRESHOLDS = {
   expert: 3000
 };
 
-export const REASON_EXPLANATIONS: Record<RecommendationReason, string> = {
-  'next_in_path': 'This is the next logical step in your learning path',
-  'prerequisite_needed': 'You need to understand this concept before moving forward',
-  'knowledge_gap': 'This will help fill a gap in your knowledge',
-  'challenge_progression': 'This will challenge you to advance your skills',
-  'review_recommended': 'Reviewing this will strengthen your understanding'
-};
-
 // Enhanced stores
 export const recommendedNodeStore: Writable<NodeRecommendation | null> = writable(null);
 export const recommendationHistoryStore: Writable<NodeRecommendation[]> = writable([]);
 
+// Add this at the top of the file
+export const BRACKET_RECOMMENDATION_MAP: Record<UserBracket, string> = {
+  beginner: 'matrix_multiplication',
+  intermediate: 'neural_network',
+  advanced: 'transformer',
+  expert: 'attention_is_all_you_need'
+};
+
+// Update BRACKET_RECOMMENDATION_MAP to use labels, not ids
+export const BRACKET_RECOMMENDATION_LABEL_MAP: Record<UserBracket, string> = {
+  beginner: 'Matrix Multiplication',
+  intermediate: 'Neural Networks',
+  advanced: 'Transformer',
+  expert: 'Attention Is All You Need'
+};
+
+// Use node IDs for bracket mapping
+export const BRACKET_RECOMMENDATION_ID_MAP: Record<UserBracket, number> = {
+  beginner: 31, // Matrix Multiplication
+  intermediate: 1, // Neural Networks
+  advanced: 10, // Transformer
+  expert: 0 // Attention Is All You Need
+};
+
 // Helper functions
-export function updateRecommendation(node: any, reason: RecommendationReason): void {
+export function updateRecommendation(node: any, confidence: number, timestamp: Date): void {
   const recommendation: NodeRecommendation = {
     node,
-    confidence: 0.8, // Default confidence
-    reason,
-    reasonText: REASON_EXPLANATIONS[reason],
-    timestamp: new Date()
+    confidence,
+    timestamp
   };
   
   // Update current recommendation
@@ -113,8 +120,11 @@ function saveRecommendationsToLocalStorage(): void {
     if (typeof localStorage !== 'undefined') {
       // Save current recommendation
       if (currentRecommendation) {
+        // Always wrap in { node, ... } structure
         localStorage.setItem('currentRecommendation', JSON.stringify({
           ...currentRecommendation,
+          node: currentRecommendation.node,
+          confidence: currentRecommendation.confidence,
           timestamp: currentRecommendation.timestamp.toISOString()
         }));
       }
@@ -123,6 +133,8 @@ function saveRecommendationsToLocalStorage(): void {
       const limitedHistory = history.slice(-10);
       localStorage.setItem('recommendationHistory', JSON.stringify(limitedHistory.map(rec => ({
         ...rec,
+        node: rec.node,
+        confidence: rec.confidence,
         timestamp: rec.timestamp.toISOString()
       }))));
     }
@@ -138,10 +150,19 @@ export function loadRecommendationsFromLocalStorage(): void {
       const savedRecommendation = localStorage.getItem('currentRecommendation');
       if (savedRecommendation) {
         const parsed = JSON.parse(savedRecommendation);
-        recommendedNodeStore.set({
-          ...parsed,
-          timestamp: new Date(parsed.timestamp)
-        });
+        // If the structure is just a node, wrap it
+        if (parsed && !parsed.node) {
+          recommendedNodeStore.set({
+            node: parsed,
+            confidence: 0.8,
+            timestamp: new Date()
+          });
+        } else {
+          recommendedNodeStore.set({
+            ...parsed,
+            timestamp: new Date(parsed.timestamp)
+          });
+        }
       }
       
       // Load history
@@ -159,6 +180,16 @@ export function loadRecommendationsFromLocalStorage(): void {
   }
 }
 
+function getUserBracket(): UserBracket {
+  if (typeof localStorage !== 'undefined') {
+    const bracket = localStorage.getItem('userBracket');
+    if (bracket === 'beginner' || bracket === 'intermediate' || bracket === 'advanced' || bracket === 'expert') {
+      return bracket;
+    }
+  }
+  return 'beginner';
+}
+
 // SuggestionService class
 export class SuggestionService {
   private userProfile: UserProfile;
@@ -168,6 +199,10 @@ export class SuggestionService {
     this.graph = graph;
     this.userProfile = this.loadUserProfile();
   }
+
+  public getUserProfile(): UserProfile {
+    return this.userProfile;
+  }
   
   // Get current recommendation
   getCurrentRecommendation(): NodeRecommendation | null {
@@ -176,84 +211,65 @@ export class SuggestionService {
   
   // Generate a new recommendation based on user profile and graph
   generateRecommendation(): NodeRecommendation | null {
-    // Update user profile first
-    this.userProfile = this.loadUserProfile();
+    const bracket = getUserBracket();
+    const visitedIds = new Set(Array.from(this.userProfile.visitedNodes));
+    const currentRec = this.getCurrentRecommendation();
+    const currentId = currentRec?.node?.id;
 
-    // --- ELO/Bracket progression based on visited nodes ---
-    const visitedCount = this.userProfile.visitedNodes.size;
-    let newBracket: UserBracket = 'beginner';
-    if (visitedCount >= 15) newBracket = 'expert';
-    else if (visitedCount >= 10) newBracket = 'advanced';
-    else if (visitedCount >= 5) newBracket = 'intermediate';
-    // else remains beginner
-    this.userProfile.bracket = newBracket;
-    this.saveUserProfile();
-    // --- End ELO/Bracket progression ---
-
-    // --- Onboarding integration: check for onboardingRecommendedNode ---
-    if (typeof localStorage !== 'undefined') {
-      const onboardingNodeStr = localStorage.getItem('onboardingRecommendedNode');
-      if (onboardingNodeStr) {
-        try {
-          const onboardingNode = JSON.parse(onboardingNodeStr);
-          // Set as recommendation and clear the key
-          const recommendation: NodeRecommendation = {
-            node: onboardingNode,
-            confidence: 1.0,
-            reason: 'next_in_path',
-            reasonText: REASON_EXPLANATIONS['next_in_path'],
-            timestamp: new Date()
-          };
-          recommendedNodeStore.set(recommendation);
-          const history = get(recommendationHistoryStore);
-          recommendationHistoryStore.set([...history, recommendation]);
-          saveRecommendationsToLocalStorage();
-          localStorage.removeItem('onboardingRecommendedNode');
-          return recommendation;
-        } catch (e) {
-          // If parsing fails, just remove the key and continue
-          localStorage.removeItem('onboardingRecommendedNode');
-        }
-      }
-    }
-    // --- End onboarding integration ---
-
-    // Get candidate nodes
-    const candidates = this.getCandidateNodes();
-    if (candidates.length === 0) {
-      console.log('No candidate nodes found for recommendation');
-      return null;
-    }
-    
-    // Score candidates
-    const scoredCandidates = this.scoreCandidateNodes(candidates);
-    
-    // Sort by score (descending)
-    scoredCandidates.sort((a, b) => b.score - a.score);
-    
-    // Select top candidate
-    const topCandidate = scoredCandidates[0];
-    
-    // Create recommendation
-    const recommendation: NodeRecommendation = {
-      node: topCandidate.node,
-      confidence: Math.min(1, Math.max(0.5, topCandidate.score / 100)),
-      reason: this.determineRecommendationReason(topCandidate),
-      reasonText: this.generateReasonText(topCandidate),
-      timestamp: new Date()
+    // Curated node ID groups by bracket
+    const bracketNodeGroups: Record<UserBracket, number[]> = {
+      beginner: [40, 33, 31, 32, 43], // Mean, Vector Ops, Matrix Mult, Dot Product, Weighted Sum, Softmax, Derivative
+      intermediate: [1, 14, 16, 5, 19, 21, 22], // Neural Nets, Embedding, Convolution, RNN, Seq Modeling, Lang Modeling, Hidden States, Training, GPU, Batching, Variance
+      advanced: [3, 4, 6, 7, 8, 9, 10], // Seq Transduction, Attention, Encoder, Decoder, Multi-Head, Self-Attn, Transformer, Positional, FFN, CNN, LSTM, GRU, Machine Translation, Auto-Regressive, Dependencies, ConvS2S, ByteNet, Gradient, Chain Rule, Partial Deriv, Trig, Linear Transform
+      expert: [0] // Attention Is All You Need
     };
-    
-    // Update store
-    recommendedNodeStore.set(recommendation);
-    
-    // Add to history
-    const history = get(recommendationHistoryStore);
-    recommendationHistoryStore.set([...history, recommendation]);
-    
-    // Save to localStorage
-    saveRecommendationsToLocalStorage();
-    
-    return recommendation;
+
+    // Try to recommend from the user's bracket, fallback to easier brackets
+    const bracketOrder: UserBracket[] =
+      bracket === 'expert' ? ['expert', 'advanced', 'intermediate', 'beginner'] :
+      bracket === 'advanced' ? ['advanced', 'intermediate', 'beginner'] :
+      bracket === 'intermediate' ? ['intermediate', 'beginner'] :
+      ['beginner'];
+
+    let candidates: any[] = [];
+    for (const b of bracketOrder) {
+      candidates = this.graph.nodes.filter((n: any) =>
+        bracketNodeGroups[b].includes(n.id) &&
+        !visitedIds.has(n.id) &&
+        n.id !== currentId
+      );
+      if (candidates.length > 0) break;
+    }
+    // If still none, fallback to any unvisited node
+    if (candidates.length === 0) {
+      candidates = this.graph.nodes.filter((n: any) => !visitedIds.has(n.id) && n.id !== currentId);
+    }
+    // If still none, fallback to expert node
+    if (candidates.length === 0) {
+      candidates = [this.graph.nodes.find((n: any) => n.id === 0)];
+    }
+    // Pick random from candidates
+    if (candidates.length > 0) {
+      const idx = Math.floor(Math.random() * candidates.length);
+      const node = candidates[idx];
+      const recommendation: NodeRecommendation = {
+        node,
+        confidence: 1.0,
+        timestamp: new Date()
+      };
+      console.log('[DEBUG] generateRecommendation: bracketed candidate node:', node.id, node.label);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('currentRecommendation', JSON.stringify({
+          ...recommendation,
+          node: node,
+          confidence: 1.0,
+          timestamp: recommendation.timestamp.toISOString()
+        }));
+      }
+      recommendedNodeStore.set(recommendation);
+      return recommendation;
+    }
+    return null;
   }
   
   // Update recommendation after quiz completion
@@ -274,8 +290,29 @@ export class SuggestionService {
   updateAfterNodeVisit(nodeId: string): void {
     // Add to visited nodes
     this.userProfile.visitedNodes.add(nodeId);
+
+    // Bracket rank up logic based on visited nodes
+    const visitedCount = this.userProfile.visitedNodes.size;
+    let newBracket = this.userProfile.bracket;
+    console.log(`[DEBUG] Visited nodes count: ${visitedCount}, current bracket: ${this.userProfile.bracket}`);
+    if (visitedCount === 5 || visitedCount === 10 || visitedCount === 20) {
+      console.log(`[DEBUG] Visited nodes reached threshold: ${visitedCount}`);
+    }
+    if (visitedCount >= 20) {
+      newBracket = 'expert';
+    } else if (visitedCount >= 10) {
+      newBracket = 'advanced';
+    } else if (visitedCount >= 5) {
+      newBracket = 'intermediate';
+    } else {
+      newBracket = 'beginner';
+    }
+    if (newBracket !== this.userProfile.bracket) {
+      console.log(`[DEBUG] Bracket changing from ${this.userProfile.bracket} to ${newBracket}`);
+      this.userProfile.bracket = newBracket;
+    }
+
     this.saveUserProfile();
-    
     // Only generate new recommendation if current one is stale or for the visited node
     const currentRecommendation = this.getCurrentRecommendation();
     if (!currentRecommendation || currentRecommendation.node.id === nodeId) {
@@ -611,7 +648,7 @@ export class SuggestionService {
     return 0.5;
   }
   
-  private determineRecommendationReason(scoredCandidate: { node: any, score: number, factors: Record<string, number> }): RecommendationReason {
+  private determineRecommendationReason(scoredCandidate: { node: any, score: number, factors: Record<string, number> }): string {
     const { factors } = scoredCandidate;
     const { node } = scoredCandidate;
     
@@ -620,37 +657,37 @@ export class SuggestionService {
     
     // If user is on a winning streak, prioritize challenge progression
     if (this.userProfile.learningStreak >= 3 && factors.difficultyMatch > 0.6) {
-      return 'challenge_progression';
+      return 'This will challenge you to advance your skills';
     }
     
     // If user is struggling, prioritize prerequisites or review
     if (performanceTrend === 'declining' && factors.prerequisiteCompletion < 0.7) {
-      return 'prerequisite_needed';
+      return 'You need to understand this concept before moving forward';
     }
     
     // If user is a beginner, prioritize foundational content
     if (this.userProfile.bracket === 'beginner' && (node.foundational || node.difficulty === 1)) {
-      return 'next_in_path';
+      return 'This is the next logical step in your learning path';
     }
     
     // Standard logic as fallback
     if (factors.prerequisiteCompletion < 0.5) {
-      return 'prerequisite_needed';
+      return 'You need to understand this concept before moving forward';
     }
     
     if (factors.difficultyMatch > 0.8) {
-      return 'next_in_path';
+      return 'This is the next logical step in your learning path';
     }
     
     if (factors.difficultyMatch > 0.6) {
-      return 'challenge_progression';
+      return 'This will challenge you to advance your skills';
     }
     
     if (factors.domainDiversity > 0.8) {
-      return 'knowledge_gap';
+      return 'This will help fill a gap in your knowledge';
     }
     
-    return 'review_recommended';
+    return 'Reviewing this will strengthen your understanding';
   }
   
   // Analyze recent performance trend to determine if user is improving or struggling
@@ -681,7 +718,7 @@ export class SuggestionService {
   
   private generateReasonText(scoredCandidate: { node: any, score: number, factors: Record<string, number> }): string {
     const reason = this.determineRecommendationReason(scoredCandidate);
-    return REASON_EXPLANATIONS[reason];
+    return reason;
   }
 }
 
