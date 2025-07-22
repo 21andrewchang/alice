@@ -1320,11 +1320,20 @@
 	}
 </script>
 
-{#if recommendedNode && recommendedNode.node}
-	<div class="absolute top-4 left-46 z-50">
+<div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
+	<div
+		class="user-profile-debug {userProfileClicked
+			? 'clicked'
+			: ''} flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2 text-xs text-white shadow"
+		style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
+		on:click={handleUserProfileClick}
+	>
+		<p><b>User Bracket:</b> {$userProfileStore.bracket}</p>
+	</div>
+	{#if recommendedNode && recommendedNode.node}
 		<div
 			class="next-step-glow flex items-center gap-2 rounded-sm px-4 py-2 text-xs shadow"
-			style="background-color: rgba(0, 0, 0, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px); min-height: unset;"
+			style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
 		>
 			<span class="font-semibold text-white">Next Step:</span>
 			<span
@@ -1334,21 +1343,12 @@
 					? '#BFCAF3'
 					: getNodeDomainColor(
 							recommendedNode.node.domain
-						)}; font-weight: 500; text-decoration: underline;"
+						)}; font-weight:500; text-decoration:underline;"
 			>
 				{recommendedNode.node.label}
 			</span>
 		</div>
-	</div>
-{/if}
-<div
-	class="user-profile-debug {userProfileClicked
-		? 'clicked'
-		: ''} flex items-center gap-2 rounded-sm px-4 py-2 text-xs text-[#FFF] shadow"
-	style="position: absolute; top: 1rem; left: 1rem; z-index: 1000; background-color: rgba(0, 0, 0, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px); min-height: unset;"
-	on:click={handleUserProfileClick}
->
-	<p><b>User Bracket:</b> {$userProfileStore.bracket}</p>
+	{/if}
 </div>
 
 <main class="relative flex h-screen w-screen" style="background-color: #080808; color: #B3B3B3;">
