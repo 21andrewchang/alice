@@ -23,11 +23,15 @@
 
 	// Helper to get visited nodes from nodeStatusService
 	function getVisitedNodes(): string[] {
-		if (typeof window !== 'undefined' && nodeStatusService && typeof nodeStatusService.getAllStatuses === 'function') {
+		if (
+			typeof window !== 'undefined' &&
+			nodeStatusService &&
+			typeof nodeStatusService.getAllStatuses === 'function'
+		) {
 			const statuses = nodeStatusService.getAllStatuses();
 			return Array.from(statuses.values())
-				.filter(s => s.status === 'visited' || s.status === 'mastered')
-				.map(s => s.nodeId);
+				.filter((s) => s.status === 'visited' || s.status === 'mastered')
+				.map((s) => s.nodeId);
 		}
 		return [];
 	}
@@ -298,8 +302,12 @@
 				})
 				.style('filter', (d: any) => {
 					// Use new link visual state calculation functions
-					const sourceNode = graphData?.nodes?.find((n: { id: string | number }) => n.id === (d.source.id || d.source));
-					const targetNode = graphData?.nodes?.find((n: { id: string | number }) => n.id === (d.target.id || d.target));
+					const sourceNode = graphData?.nodes?.find(
+						(n: { id: string | number }) => n.id === (d.source.id || d.source)
+					);
+					const targetNode = graphData?.nodes?.find(
+						(n: { id: string | number }) => n.id === (d.target.id || d.target)
+					);
 
 					const linkState = calculateLinkVisualState(
 						d.source.id || d.source,
@@ -317,7 +325,9 @@
 				})
 				.attr('stroke-width', (d: any) => {
 					// Use new link visual state calculation functions
-					const sourceNode = graphData?.nodes?.find((n: { id: string | number }) => n.id === (d.source.id || d.source));
+					const sourceNode = graphData?.nodes?.find(
+						(n: { id: string | number }) => n.id === (d.source.id || d.source)
+					);
 					const linkState = calculateLinkVisualState(
 						d.source.id || d.source,
 						d.target.id || d.target,
@@ -1067,7 +1077,10 @@
 				// --- MVP Recommendation Logic ---
 				if (recommendedNode && recommendedNode.node && nodeId === recommendedNode.node.id) {
 					console.log('[DEBUG] Clicked recommended node:', nodeId);
-					if (window.suggestionService && typeof window.suggestionService.generateRecommendation === 'function') {
+					if (
+						window.suggestionService &&
+						typeof window.suggestionService.generateRecommendation === 'function'
+					) {
 						console.log('[DEBUG] Generating new recommendation...');
 						window.suggestionService.generateRecommendation();
 					}
@@ -1307,27 +1320,37 @@
 	}
 </script>
 
-<!-- Debug overlay: show session object -->
-{#if sessionObj}
+<div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
 	<div
-		class="bg-opacity-80 fixed top-4 left-4 z-50 rounded bg-black p-2 text-xs shadow"
-		style="max-width: 400px; max-height: 200px; overflow: auto; color: #BFCAF3;"
+		class="user-profile-debug {userProfileClicked
+			? 'clicked'
+			: ''} flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2 text-xs text-white shadow"
+		style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
+		on:click={handleUserProfileClick}
 	>
-		<strong>Supabase session:</strong>
-		<pre>{JSON.stringify(sessionObj, null, 2)}</pre>
+		<p><b>User Bracket:</b> {$userProfileStore.bracket}</p>
 	</div>
-{/if}
-
-<!-- USER PROFILE DEBUG PANEL (ALWAYS VISIBLE, NO LOGOUT BUTTON) -->
-<div
-	class="user-profile-debug {userProfileClicked ? 'clicked' : ''} flex items-center gap-2 rounded-lg px-4 py-2 shadow text-[#A3B4FF]"
-	style="position: absolute; bottom: 1rem; left: 1rem; z-index: 1000; background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px); padding: 8px; min-height: unset;"
-	on:click={handleUserProfileClick}
->
-	<p><b>User Bracket:</b> {$userProfileStore.bracket}</p>
+	{#if recommendedNode && recommendedNode.node}
+		<div
+			class="next-step-glow flex items-center gap-2 rounded-sm px-4 py-2 text-xs shadow"
+			style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
+		>
+			<span class="font-semibold text-white">Next Step:</span>
+			<span
+				class="node-link cursor-pointer transition-all duration-200 hover:opacity-80"
+				data-node-id={recommendedNode.node.id}
+				style="color: {recommendedNode.node.type === 'paper'
+					? '#BFCAF3'
+					: getNodeDomainColor(
+							recommendedNode.node.domain
+						)}; font-weight:500; text-decoration:underline;"
+			>
+				{recommendedNode.node.label}
+			</span>
+		</div>
+	{/if}
 </div>
 
-<!-- Cyberpunk theme main container with side-by-side layout -->
 <main class="relative flex h-screen w-screen" style="background-color: #080808; color: #B3B3B3;">
 	<RankRevealModal
 		show={showRankModal}
@@ -1337,35 +1360,33 @@
 			showRankModal = false;
 		}}
 	/>
-	<!-- Tooltip -->
 	<div
 		bind:this={tooltipEl}
 		class="pointer-events-none absolute z-50 hidden rounded p-2 text-sm shadow-lg"
 		style="background-color: #080808; border: 1px solid #333333;"
 	></div>
 
-	<!-- Navigation Breadcrumb - top left corner -->
-	{#if navigationHistory.length > 0}
-		<div class="absolute top-4 left-4 z-50">
-			<div
-				class="flex items-center gap-2 rounded-lg px-4 py-2"
-				style="background-color: rgba(17, 17, 17, 0.9); border: 1px solid #333333; backdrop-filter: blur(10px);"
-			>
-				{#each navigationHistory as node, index (node.id)}
-					{#if index > 0}
-						<span class="text-sm" style="color: #666666;">→</span>
-					{/if}
-					<button
-						on:click={() => navigateToStackIndex(index)}
-						class="cursor-pointer text-sm font-medium transition-colors hover:underline"
-						style="color: {node.type === 'paper' ? '#BFCAF3' : getNodeDomainColor(node.domain)};"
-					>
-						{node.label}
-					</button>
-				{/each}
-			</div>
-		</div>
-	{/if}
+	<!-- {#if navigationHistory.length > 0} -->
+	<!-- 	<div class="absolute top-4 left-4 z-50"> -->
+	<!-- 		<div -->
+	<!-- 			class="flex items-center gap-2 rounded-lg px-4 py-2" -->
+	<!-- 			style="background-color: rgba(17, 17, 17, 0.9); border: 1px solid #333333; backdrop-filter: blur(10px);" -->
+	<!-- 		> -->
+	<!-- 			{#each navigationHistory as node, index (node.id)} -->
+	<!-- 				{#if index > 0} -->
+	<!-- 					<span class="text-sm" style="color: #666666;">→</span> -->
+	<!-- 				{/if} -->
+	<!-- 				<button -->
+	<!-- 					on:click={() => navigateToStackIndex(index)} -->
+	<!-- 					class="cursor-pointer text-sm font-medium transition-colors hover:underline" -->
+	<!-- 					style="color: {node.type === 'paper' ? '#BFCAF3' : getNodeDomainColor(node.domain)};" -->
+	<!-- 				> -->
+	<!-- 					{node.label} -->
+	<!-- 				</button> -->
+	<!-- 			{/each} -->
+	<!-- 		</div> -->
+	<!-- 	</div> -->
+	<!-- {/if} -->
 
 	{#if typeof window !== 'undefined'}
 		<!-- Graph container - always full width -->
@@ -1373,32 +1394,7 @@
 			<div bind:this={element} class="h-full w-full"></div>
 		</div>
 	{:else}
-		<div class="flex items-center justify-center h-full w-full text-gray-500">
-			Loading graph...
-		</div>
-	{/if}
-
-	<!-- Next Step UI: Only render if recommendedNode and recommendedNode.node are defined -->
-	{#if recommendedNode && recommendedNode.node}
-		<div class="absolute bottom-4 left-56 z-50">
-			<div
-				class="flex items-center gap-2 rounded-lg px-4 py-2 shadow next-step-glow"
-				style="background-color: rgba(17, 17, 17, 0.95); border: 1px solid #333333; backdrop-filter: blur(10px); min-height: unset;"
-			>
-				<span class="font-semibold text-indigo-300">Next Step:</span>
-				<span
-					class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link"
-					data-node-id="{recommendedNode.node.id}"
-					style="color: {recommendedNode.node.type === 'paper'
-						? '#BFCAF3'
-						: getNodeDomainColor(
-							recommendedNode.node.domain
-						)}; font-weight: 500; text-decoration: underline;"
-				>
-					{recommendedNode.node.label}
-				</span>
-			</div>
-		</div>
+		<div class="flex h-full w-full items-center justify-center text-gray-500">Loading graph...</div>
 	{/if}
 
 	<!-- Modal Node Preview panels - overlay on top of graph -->
@@ -1410,53 +1406,27 @@
 					out:fly={{ x: 300, duration: 200, easing: cubicIn }}
 					class="node-view-panel pointer-events-auto absolute transition-all duration-300"
 					style="
-						top: 2.75rem;
+						top: 0;
 						right: 0;
 						bottom: 0;
 						width: 50%;
-						max-height: calc(100vh - 2.75rem);
 						z-index: {10 + index};
 						background-color: transparent;
 					"
 				>
-					<div class="h-full p-5">
+					<div class="h-full p-4">
 						<div
-							class="h-full overflow-auto rounded-lg shadow-lg"
-							style="background-color: #111; border: 1px solid #333333;"
+							class="h-full overflow-auto rounded-sm shadow-lg"
+							style="background-color: #000; border: 1px solid #333333;"
 						>
 							<div class="h-full overflow-hidden">
-								{#if node.type === 'paper' && node.url && !node.content}
-									<!-- PDF display for papers without formatted content -->
-									<div class="flex h-full flex-col">
-										<div class="flex items-center justify-between p-6">
-											<h2 class="text-2xl font-bold" style="color: #BFCAF3;">{node.label}</h2>
-											<button
-												on:click={() => removeFromStack(node.id)}
-												class="flex h-8 w-8 items-center justify-center rounded-full text-[#333333] transition-colors hover:text-[#3F3F3F] hover:text-white"
-												aria-label="Close"
-											>
-												✕
-											</button>
-										</div>
-
-										<div class="flex-1">
-											<iframe
-												src="{node.url}#navpanes=0&scrollbar=0"
-												class="h-full w-full border-0"
-												title="PDF Viewer"
-											></iframe>
-										</div>
-									</div>
-								{:else}
-									<!-- Use PaginatedContent for all other nodes -->
-									<PaginatedContent
-										{node}
-										{parseNodeLinks}
-										onClose={() => removeFromStack(node.id)}
-										nodesVisited={nodeStatusService.getAllStatuses().size}
-										onFinishReading={handleFinishReading}
-									/>
-								{/if}
+								<PaginatedContent
+									{node}
+									{parseNodeLinks}
+									onClose={() => removeFromStack(node.id)}
+									nodesVisited={nodeStatusService.getAllStatuses().size}
+									onFinishReading={handleFinishReading}
+								/>
 							</div>
 						</div>
 					</div>
@@ -1514,13 +1484,21 @@
 
 	/* Glow animation for Next Step box */
 	.next-step-glow {
-	  animation: nextStepGlow 1s;
+		animation: nextStepGlow 1s;
 	}
 	@keyframes nextStepGlow {
-	  0% { box-shadow: 0 0 0px 0px #7f9cf5; }
-	  20% { box-shadow: 0 0 16px 6px #7f9cf5; }
-	  60% { box-shadow: 0 0 16px 6px #7f9cf5; }
-	  100% { box-shadow: 0 0 0px 0px #7f9cf5; }
+		0% {
+			box-shadow: 0 0 0px 0px #7f9cf5;
+		}
+		20% {
+			box-shadow: 0 0 16px 6px #7f9cf5;
+		}
+		60% {
+			box-shadow: 0 0 16px 6px #7f9cf5;
+		}
+		100% {
+			box-shadow: 0 0 0px 0px #7f9cf5;
+		}
 	}
 
 	.user-profile-debug.clicked {
