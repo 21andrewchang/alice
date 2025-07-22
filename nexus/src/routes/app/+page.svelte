@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fly } from 'svelte/transition';
+	import { fade, fly, scale } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import * as d3 from 'd3';
 	import PaginatedContent from '../../components/PaginatedContent.svelte';
@@ -21,6 +21,9 @@
 	// REMOVE: import mergedGraph from '../merged_graph.json' assert { type: 'json' };
 	import { writable } from 'svelte/store';
 
+	let challengeOpen = false;
+	const openChallenge = () => (challengeOpen = true);
+	const closeChallenge = () => (challengeOpen = false);
 	// Helper to get visited nodes from nodeStatusService
 	function getVisitedNodes(): string[] {
 		if (
@@ -1417,7 +1420,7 @@
 					<div class="h-full p-4">
 						<div
 							class="h-full overflow-auto rounded-sm shadow-lg"
-							style="background-color: #000; border: 1px solid #333333;"
+							style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(16px); border: 1px solid #222;"
 						>
 							<div class="h-full overflow-hidden">
 								<PaginatedContent
@@ -1426,12 +1429,51 @@
 									onClose={() => removeFromStack(node.id)}
 									nodesVisited={nodeStatusService.getAllStatuses().size}
 									onFinishReading={handleFinishReading}
+									on:challenge={openChallenge}
 								/>
 							</div>
 						</div>
 					</div>
 				</div>
 			{/each}
+		</div>
+	{/if}
+	{#if challengeOpen}
+		<div class="fixed inset-0 z-[999] flex items-center justify-center p-4">
+			<!-- overlay -->
+			<div
+				class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+				on:click={closeChallenge}
+				in:fade={{ duration: 180, easing: cubicOut }}
+				out:fade={{ duration: 140, easing: cubicIn }}
+			></div>
+
+			<!-- modal card -->
+			<div
+				class="relative z-10 h-full max-h-[80vh] w-full max-w-3xl overflow-auto rounded-md border border-white/20
+             bg-black/70 p-6 text-white backdrop-blur-2xl"
+				style="-webkit-backdrop-filter: blur(24px);"
+				transition:scale={{ start: 0.9, duration: 200, easing: cubicOut }}
+			>
+				<h2 class="mb-4 text-xl font-semibold">Mastery Challenge</h2>
+
+				<!-- Put your challenge UI / quiz etc. here -->
+				<!-- … -->
+
+				<div class="mt-6 flex justify-end gap-2">
+					<button
+						class="rounded-sm bg-white/10 px-3 py-2 text-xs hover:bg-white/20"
+						on:click={closeChallenge}
+					>
+						Close
+					</button>
+					<button
+						class="rounded-sm bg-white px-3 py-2 text-xs font-medium text-black hover:bg-white/90"
+					>
+						Start
+					</button>
+				</div>
+			</div>
 		</div>
 	{/if}
 </main>
