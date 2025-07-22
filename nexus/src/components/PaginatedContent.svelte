@@ -4,6 +4,7 @@
 	import { onMount, onDestroy, afterUpdate } from 'svelte';
 	import { nodeStatusService } from '$lib/nodeStatus';
 	import { writable } from 'svelte/store';
+	import { createEventDispatcher } from 'svelte';
 
 	export let node: any;
 	export let parseNodeLinks: (content: string) => string;
@@ -11,6 +12,15 @@
 	export let nodesVisited: number = 0;
 	export let onFinishReading: (nodesVisited: number) => void = () => {};
 
+	const dispatch = createEventDispatcher();
+	let challenge = false;
+
+	function openChallenge(e: MouseEvent) {
+		e.stopPropagation;
+		console.log('pressed');
+		challenge = !challenge;
+		dispatch('challenge');
+	}
 	// Create a reactive store to track node status changes
 	const nodeStatusVersion = writable(0);
 
@@ -193,19 +203,45 @@
 	});
 </script>
 
-<div class="flex h-full flex-col" style="background-color: #020202;">
+<div class="flex h-full flex-col bg-transparent">
 	<!-- Header -->
-	<div class="flex items-center justify-between p-6">
-		<h2
-			class="text-2xl font-bold"
+	<div class="mb-4 flex items-center justify-between border-b border-[#222] p-2">
+		<div class="flex items-center gap-2">
+			<button
+				><svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="1.5"
+					stroke="currentColor"
+					class="size-4"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+				</svg>
+			</button>
+			<button>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="1.5"
+					stroke="currentColor"
+					class="size-4 stroke-[#222]"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+				</svg>
+			</button>
+		</div>
+		<p
+			class="text-sm"
 			style="color: {node.type === 'paper' ? '#BFCAF3' : getDomainColor(node.domain || 'tech')};"
 		>
 			{node.label}
-		</h2>
+		</p>
 		<button
 			on:click={onClose}
-			class="flex h-8 w-8 items-center justify-center rounded-full transition-colors"
-			style="color: #777777;"
+			class="flex h-8 w-8 items-center justify-center rounded-full text-xs transition-colors"
+			style="color: #AAA;"
 			on:mouseenter={handleMouseEnter}
 			on:mouseleave={handleMouseLeave}
 			aria-label="Close"
@@ -219,19 +255,16 @@
 		<div class="px-6 pb-6">
 			<!-- Link to original paper -->
 			{#if node.content?.original_paper_url}
-				<div
-					class="mb-6 rounded-lg p-4"
-					style="background-color: #1a1a1a; border: 1px solid #333333;"
-				>
+				<div class="mb-6 rounded-lg">
 					<div class="flex items-center gap-3">
 						<div
-							class="flex h-8 w-8 items-center justify-center rounded-full"
+							class="flex h-6 w-6 items-center justify-center rounded-full text-xs"
 							style="background-color: #BFCAF3; color: #111111;"
 						>
 							📄
 						</div>
-						<div>
-							<div class="font-medium" style="color: #BFCAF3;">Original Paper</div>
+						<div class="flex w-full flex-row items-center justify-between">
+							<div class="text-sm font-medium" style="color: #BFCAF3;">Original Paper</div>
 							<a
 								href={node.content.original_paper_url}
 								target="_blank"
@@ -252,111 +285,29 @@
 					<h3 class="mb-3 text-lg font-semibold" style="color: #BFCAF3;">
 						{pages[currentPage].title}
 					</h3>
-					<div class="whitespace-pre-line leading-relaxed" style="color: #B3B3B3;">
+					<div class="text-sm leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
 						{#key $nodeStatusVersion}
 							{@html parseNodeLinks(pages[currentPage].content || '')}
 						{/key}
 					</div>
 				</div>
-				{#if currentPage === totalPages - 1 && !node.quiz}
-					<div class="mb-6 mt-8 text-center">
-						<button
-							on:click={finishReading}
-							class="rounded-lg px-8 py-4 font-semibold transition-all duration-200"
-							style="background-color: #BFCAF3; color: #111111;"
-							on:mouseenter={handleFinishButtonHover}
-							on:mouseleave={handleFinishButtonLeave}
-						>
-							🏆 Finish Reading & Get Rank
-						</button>
-					</div>
-				{/if}
-			{:else if pages[currentPage].type === 'quiz'}
-				<div class="mb-6">
-					<h3 class="mb-3 text-lg font-semibold" style="color: #BFCAF3;">Checkpoint Quiz</h3>
-					{#each node.quiz as q, i}
-						<div class="mb-4">
-							<div class="mb-2 font-medium">{i + 1}. {q.question}</div>
-							<div class="flex flex-col gap-2">
-								{#each q.options as opt, j}
-									<label class="flex items-center gap-2">
-										<input
-											type="radio"
-											name={`quiz-q${i}`}
-											value={j}
-											checked={quizAnswers[i] === j}
-											disabled={quizSubmitted}
-											on:change={() => handleQuizSelect(i, j)}
-										/>
-										<span>{opt}</span>
-									</label>
-								{/each}
-							</div>
-							{#if quizSubmitted}
-								<div
-									class="mt-1 text-sm"
-									style="color: {quizAnswers[i] === q.answerIndex ? '#73DACA' : '#F7768E'};"
-								>
-									{quizAnswers[i] === q.answerIndex ? 'Correct!' : 'Incorrect.'}
-								</div>
-							{/if}
-						</div>
-					{/each}
-					{#if !quizSubmitted}
-						<button
-							class="mt-4 rounded-lg px-6 py-2 font-semibold transition-all duration-200"
-							style="background-color: #BFCAF3; color: #111111;"
-							on:click={handleQuizSubmit}
-							disabled={quizAnswers.some((a) => a === -1)}
-						>
-							Submit Quiz
-						</button>
-					{:else}
-						<div class="mt-4 text-center">
-							<div class="font-semibold" style="color: #BFCAF3;">
-								You scored {quizScore} / {node.quiz.length}
-							</div>
-
-							<!-- Show mastery status -->
-							{#if (quizScore / node.quiz.length) * 100 >= 80}
-								<div class="mt-2 text-sm" style="color: #73DACA;">
-									🎉 Congratulations! You've mastered this node.
-								</div>
-							{:else}
-								<div class="mt-2 text-sm" style="color: #F7768E;">
-									You need 80% to master this node. Try again later!
-								</div>
-							{/if}
-						</div>
-					{/if}
-				</div>
 			{/if}
 		</div>
-	</div>
 
-	<!-- Navigation dots and page info -->
-	<div
-		class="flex items-center justify-center gap-4 p-4"
-		style="background-color: #111111; border-top: 1px solid #333333;"
-	>
-		<!-- Page info -->
-		<div class="text-sm" style="color: #888888;">
-			Page {currentPage + 1} of {totalPages}
-		</div>
-		<!-- Navigation dots -->
-		<div class="flex items-center justify-center gap-2">
-			{#each Array(totalPages) as _, i}
+		<!-- Footer card over the veil -->
+		<div class="sticky bottom-0 z-20 bg-transparent p-4">
+			<div
+				class="flex items-center justify-between gap-4 rounded-md border border-white/20 bg-black px-4 py-3 backdrop-blur-2xl"
+			>
+				<div class="text-xs font-semibold text-white/80">Mastery 2</div>
 				<button
-					class="h-2 w-2 rounded-full transition-all duration-200"
-					style="background-color: {currentPage === i ? '#BFCAF3' : '#333333'};"
-					on:click={() => setPage(i)}
-					title={`Go to page ${i + 1}`}
-					aria-label={`Go to page ${i + 1}`}
-				></button>
-			{/each}
+					class="rounded-sm bg-white px-3 py-2 text-xs font-medium text-black transition hover:bg-white/80"
+					on:click={openChallenge}
+				>
+					Start Challenge
+				</button>
+			</div>
 		</div>
-		<!-- Keyboard shortcuts hint -->
-		<div class="text-xs" style="color: #666666;">Use ← → or h l to navigate</div>
 	</div>
 </div>
 
