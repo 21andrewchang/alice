@@ -295,7 +295,7 @@
 		</div>
 
 		<!-- Footer card over the veil -->
-		<div class="sticky bottom-0 z-20 bg-transparent p-4">
+		<div class="absolute bottom-0 z-20 w-full bg-transparent p-4">
 			<div
 				class="flex items-center justify-between gap-4 rounded-md border border-white/20 bg-black px-4 py-3 backdrop-blur-2xl"
 			>
