@@ -67,13 +67,31 @@
 			elapsedMs = performance.now() - startMs; // reactive var → UI can show it
 		}, 1000);
 	}
+	async function updateNode(nodeId: string, exp: number) {
+		const { data: session } = await supabase.auth.getSession();
+		let user = session.session?.user;
+		if (!user) throw new Error('Not signed in');
+		const payload = {
+			node_id: nodeId,
+			exp: exp,
+			user_id: user.id
+		};
+		const { data, error } = await supabase.functions.invoke('updateNodeProgress', {
+			body: {
+				node_id: nodeId,
+				exp: exp,
+				user_id: user.id
+			}
+		});
+		if (error) console.error(error);
+		return !error;
+	}
 
-	function closeChallenge(e) {
+	async function closeChallenge(e) {
+		updateNode(challengeNode.id, e.expEarned);
 		challengeOpen = false;
-
 		if (ticker) clearInterval(ticker);
 		const total = performance.now() - startMs;
-
 		console.log('Updating mastery for: ', challengeNode.label);
 		console.log('Exp Earned: ', e.expEarned);
 		console.log('Challenge time (hh:mm:ss):', formatTime(total));
