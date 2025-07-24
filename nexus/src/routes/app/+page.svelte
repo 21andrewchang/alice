@@ -1,4 +1,5 @@
 <script lang="ts">
+	import OnboardingOverlay from '$lib/OnboardingOverlay.svelte';
 	import Challenge from '../../components/Challenge.svelte';
 	import { onMount } from 'svelte';
 	import { fade, fly, scale } from 'svelte/transition';
@@ -21,9 +22,13 @@
 	// Import mergedGraph with type assertion for JSON
 	// REMOVE: import mergedGraph from '../merged_graph.json' assert { type: 'json' };
 	import { writable } from 'svelte/store';
+	function handleSetRecommendation(node: any) {
+		recommendedNodeStore.set(node);
+	}
 
 	let challengeOpen = false;
 	let challengeNode;
+	let shouldShowOnboarding = false;
 
 	async function isNewUser(uid: string) {
 		const { count, error } = await supabase
@@ -1295,6 +1300,7 @@
 	});
 
 	onMount(() => {
+		shouldShowOnboarding = true;
 		initializeSuggestionSystem();
 		loadMergedGraph();
 		updateUserProfileDebug();
@@ -1366,10 +1372,6 @@
 		}, 100);
 	}
 </script>
-
-{#if shouldShowOnboarding}
-	<OnboardingOverlay onSetRecommendation={handleSetRecommendation} />
-{/if}
 
 <div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
 	<div
@@ -1445,10 +1447,9 @@
 			<div bind:this={element} class="h-full w-full"></div>
 		</div>
 	{:else}
-		<div class="flex h-full w-full items-center justify-center text-gray-500">Loading graph...</div>
+		<div class="flex h-full w-full items-center justify-center text-gray-500"></div>
 	{/if}
 
-	<!-- Modal Node Preview panels - overlay on top of graph -->
 	{#if nodeStack.length > 0}
 		<div class="pointer-events-none fixed inset-0" style="z-index: 50;">
 			{#each nodeStack as node, index (node.id)}
