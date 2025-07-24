@@ -25,6 +25,19 @@
 	let challengeOpen = false;
 	let challengeNode;
 
+	async function isNewUser(uid: string) {
+		const { count, error } = await supabase
+			.from('users')
+			.select('id', { count: 'exact', head: true })
+			.eq('id', uid);
+
+		if (error) {
+			console.error('Onboarding check error', error);
+			return false;
+		}
+		return count === 0;
+	}
+
 	let startMs = 0;
 	let elapsedMs = 0;
 	let ticker: number | undefined;
@@ -244,9 +257,6 @@
 		}
 	}
 	if (!userEmail) userEmail = 'user@email.com'; // fallback placeholder
-
-	console.log('Supabase sessionObj:', sessionObj);
-	console.log('userEmail:', userEmail);
 
 	async function handleLogout() {
 		await supabase.auth.signOut();
@@ -1356,6 +1366,10 @@
 		}, 100);
 	}
 </script>
+
+{#if shouldShowOnboarding}
+	<OnboardingOverlay onSetRecommendation={handleSetRecommendation} />
+{/if}
 
 <div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
 	<div

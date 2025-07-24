@@ -2,7 +2,7 @@ import { writable, derived } from 'svelte/store';
 import { supabase } from './supabaseClient';
 
 // Dev mode - set to true to bypass onboarding localStorage check
-const DEV_MODE = import.meta.env.DEV && import.meta.env.VITE_DEV_ONBOARDING === 'true';
+const DEV_MODE = false;
 
 // Guest progress tracking
 export interface GuestProgress {
@@ -39,7 +39,7 @@ function initOnboardingComplete(): boolean {
     console.log('🔧 DEV MODE: Onboarding bypassed');
     return false; // Always show onboarding in dev mode
   }
-  
+
   if (typeof localStorage !== 'undefined') {
     return localStorage.getItem('onboardingComplete') === 'true';
   }
@@ -68,9 +68,9 @@ export const shouldShowOnboarding = derived(
     set(null);
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
-        set(false);
+        set(true);
       } else {
-        set(!($complete));
+        set(true);
       }
     });
   },
