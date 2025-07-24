@@ -1,8 +1,7 @@
 <script lang="ts">
-	import OnboardingOverlay from '$lib/OnboardingOverlay.svelte';
 	import Challenge from '../../components/Challenge.svelte';
 	import { onMount } from 'svelte';
-	import { fade, fly, scale } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import * as d3 from 'd3';
 	import PaginatedContent from '../../components/PaginatedContent.svelte';
@@ -14,38 +13,50 @@
 		nodeStatusService,
 		getNodeVisualState,
 		calculateLinkVisualState,
-		shouldEnhanceLink,
-		getDomainColor as getNodeDomainColor,
-		dimColor as dimNodeColor
+		getDomainColor as getNodeDomainColor
 	} from '$lib/nodeStatus';
-	import { getSuggestionService, SuggestionService } from '$lib/suggestionSystem';
-	// Import mergedGraph with type assertion for JSON
-	// REMOVE: import mergedGraph from '../merged_graph.json' assert { type: 'json' };
+	import { getSuggestionService } from '$lib/suggestionSystem';
 	import { writable } from 'svelte/store';
-	function handleSetRecommendation(node: any) {
-		recommendedNodeStore.set(node);
-	}
 
 	let challengeOpen = false;
 	let challengeNode;
 	let shouldShowOnboarding = false;
 
-	async function isNewUser(uid: string) {
-		const { count, error } = await supabase
-			.from('users')
-			.select('id', { count: 'exact', head: true })
-			.eq('id', uid);
-
-		if (error) {
-			console.error('Onboarding check error', error);
-			return false;
-		}
-		return count === 0;
-	}
-
 	let startMs = 0;
 	let elapsedMs = 0;
 	let ticker: number | undefined;
+
+	async function loadVisitedFromDb() {
+		const { data: sessionData } = await supabase.auth.getSession();
+		let user = sessionData.session?.user;
+		if (user) {
+			const { data, error } = await supabase
+				.from('user_nodes')
+				.select('node_id')
+				.eq('user_id', user?.id);
+
+			if (error) {
+				console.error('Error loading visited nodes:', error);
+			} else {
+				data.forEach((r) => nodeStatusService.markAsVisited(r.node_id));
+			}
+		}
+	}
+	async function addNodeToDB(nodeId: string) {
+		const { data: sessionData } = await supabase.auth.getSession();
+		let user = sessionData.session?.user;
+		console.log(user);
+		if (!user) throw new Error('Not signed in');
+
+		const { error } = await supabase.from('user_nodes').upsert({
+			user_id: user.id,
+			node_id: nodeId,
+			exp: 0,
+			mastery: 0
+		});
+		if (error) console.error(error);
+		return !error;
+	}
 
 	function openChallenge(node: Node) {
 		challengeOpen = true;
@@ -76,20 +87,6 @@
 		const sec = s % 60;
 		return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
 	}
-	// Helper to get visited nodes from nodeStatusService
-	function getVisitedNodes(): string[] {
-		if (
-			typeof window !== 'undefined' &&
-			nodeStatusService &&
-			typeof nodeStatusService.getAllStatuses === 'function'
-		) {
-			const statuses = nodeStatusService.getAllStatuses();
-			return Array.from(statuses.values())
-				.filter((s) => s.status === 'visited' || s.status === 'mastered')
-				.map((s) => s.nodeId);
-		}
-		return [];
-	}
 
 	// User profile store for reactivity
 	const userProfileStore = writable(getSuggestionService().getUserProfile());
@@ -104,6 +101,7 @@
 	}
 
 	// Listen for node visit events (assuming you have a function or event for this)
+	//SUGGESTIONS
 	function onNodeVisited(nodeId: string) {
 		const suggestionService = getSuggestionService();
 		suggestionService.updateAfterNodeVisit(nodeId);
@@ -137,25 +135,6 @@
 
 	let element: any;
 	let tooltipEl: any;
-	// selectedNode replaced with nodeStack system
-	// pdfLoading and showPdfFrame removed - handled per node now
-	// DEPRECATED: Old learnedNodes Set - kept for backward compatibility during migration
-	// New code should use nodeStatusService instead
-	let learnedNodes = (() => {
-		if (typeof window !== 'undefined' && (window as any).persistentLearnedNodes) {
-			return (window as any).persistentLearnedNodes;
-		}
-		const set = new Set();
-		if (typeof window !== 'undefined') {
-			(window as any).persistentLearnedNodes = set;
-		}
-		return set;
-	})();
-
-	// Idle animation variables
-	let simulation;
-	let idleTime = 0;
-	let idleAnimationId;
 
 	async function loadData() {
 		return fetch('/merged_graph.json').then((r) => r.json());
@@ -164,24 +143,8 @@
 	function selectNode(node: any) {
 		// Add to stack instead of setting selectedNode
 		addToNodeStack(node);
-
 		// Center the graph on the selected node
 		centerGraphOnNode(node);
-	}
-
-	function toggleLearned(nodeId: any) {
-		// Toggle between not_visited and visited states
-		const currentStatus = nodeStatusService.getNodeStatus(nodeId);
-		if (currentStatus.status === 'not_visited') {
-			nodeStatusService.markAsVisited(nodeId);
-			onNodeVisited(nodeId); // Call SuggestionService logic
-			window.dispatchEvent(new Event('nodeVisited'));
-		} else {
-			// Reset to not_visited (remove from status tracking)
-			nodeStatusService.updateNodeStatus(nodeId, { status: 'not_visited' });
-			updateUserProfileDebug();
-		}
-		updateNodeStyles();
 	}
 
 	let nodeSel: any; // Store node selection for updates
@@ -195,7 +158,6 @@
 	let nodeStack: any[] = []; // Stack of open nodes for layered interface
 	let navigationHistory: any[] = []; // Chronological order of node clicks (for breadcrumb)
 
-	let activeSectionId = null;
 	// Always use sequential shooting stars
 	const useSequentialShootingStars = true;
 
@@ -204,46 +166,6 @@
 
 	// Store last calculated rank for inline display
 	let userRank: { tier: string; division: number | null } = { tier: '', division: null };
-
-	function getRankForNodesVisited(n: number) {
-		/*
-		 * Placement logic capped at Platinum IV.
-		 * TODO: incorporate hidden MMR so that 0-3 clicks still grant higher unseen rating.
-		 */
-		let tier = 'Iron';
-		let division: number | null = 4;
-
-		if (n <= 3) {
-			tier = 'Platinum';
-			division = 4;
-		} else if (n <= 6) {
-			// 7‒10 → Gold IV-I
-			tier = 'Gold';
-			division = 4; // 7→4 … 10→1
-		} else if (n <= 8) {
-			// 11‒14 → Silver IV-I
-			tier = 'Silver';
-			division = 4; // 11→4 … 14→1
-		} else if (n <= 12) {
-			// 15‒18 → Bronze IV-I
-			tier = 'Bronze';
-			division = 4; // 15→4 … 18→1
-		} else {
-			tier = 'Iron';
-			division = 4; // 19→4, 20→3, 21→2, 22+→1
-		}
-
-		return { tier, division };
-	}
-
-	// Show the rank modal when the user finishes reading
-	function handleFinishReading(count: number) {
-		rankNodesVisited = count;
-		userRank = getRankForNodesVisited(count);
-		console.log('Visited nodes:', count, '=> Rank:', userRank);
-		console.log('calculatedRank', userRank);
-		showRankModal = true;
-	}
 
 	let userEmail = '';
 	let sessionObj = null;
@@ -266,24 +188,6 @@
 	async function handleLogout() {
 		await supabase.auth.signOut();
 		window.location.href = '/';
-	}
-
-	function getBackwardNodes(node: any) {
-		if (!graphData) return [];
-		return (graphData as any).links
-			.filter((l: any) => l.target === node.id && l.relation === 'prerequisite')
-			.map((l: any) =>
-				(graphData as any).nodes.find((n: any) => n.id === (l.source.id ?? l.source))
-			);
-	}
-
-	function getForwardNodes(node: any) {
-		if (!graphData) return [];
-		return (graphData as any).links
-			.filter((l: any) => l.source === node.id && l.relation === 'prerequisite')
-			.map((l: any) =>
-				(graphData as any).nodes.find((n: any) => n.id === (l.target.id ?? l.target))
-			);
 	}
 
 	function updateNodeStyles() {
@@ -833,7 +737,6 @@
 			const fundamentalNodes = new Set();
 			prerequisiteLinks.forEach((link: any) => {
 				const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-				const targetId = typeof link.target === 'object' ? link.target.id : link.target;
 
 				// If source has no dependencies, it's fundamental
 				if (!nodeDependencies.has(sourceId)) {
@@ -1187,25 +1090,22 @@
 			});
 		}
 
-		// Mark as visited using new status system
+		//TODO :: Instead of using existing node status service, migrate to supabase
+		addNodeToDB(node.id);
 		nodeStatusService.markAsVisited(node.id);
 		onNodeVisited(node.id); // Call SuggestionService logic
 
-		// Add to navigation history (chronological order)
+		// HISTORY
 		const existingIndex = navigationHistory.findIndex((n) => n.id === node.id);
 		if (existingIndex !== -1) {
-			// If node already exists in history, truncate to that point
 			navigationHistory = navigationHistory.slice(0, existingIndex + 1);
 		} else {
-			// Add new node to history
 			navigationHistory = [...navigationHistory, node];
 		}
 
-		// Add to stack (remove if already exists to avoid duplicates)
 		nodeStack = nodeStack.filter((n) => n.id !== node.id);
 		nodeStack = [...nodeStack, node];
 
-		// Update node styles
 		updateNodeStyles();
 	}
 
@@ -1299,10 +1199,11 @@
 		recommendedNode = node;
 	});
 
-	onMount(() => {
-		shouldShowOnboarding = true;
+	onMount(async () => {
+		await loadVisitedFromDb();
 		initializeSuggestionSystem();
 		loadMergedGraph();
+		updateNodeStyles();
 		updateUserProfileDebug();
 		window.addEventListener('nodeVisited', updateUserProfileDebug);
 		return () => {
@@ -1477,7 +1378,6 @@
 									{parseNodeLinks}
 									onClose={() => removeFromStack(node.id)}
 									nodesVisited={nodeStatusService.getAllStatuses().size}
-									onFinishReading={handleFinishReading}
 									on:challenge={(e) => openChallenge(e.detail.node)}
 								/>
 							</div>

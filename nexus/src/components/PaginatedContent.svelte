@@ -10,7 +10,6 @@
 	export let parseNodeLinks: (content: string) => string;
 	export let onClose: () => void;
 	export let nodesVisited: number = 0;
-	export let onFinishReading: (nodesVisited: number) => void = () => {};
 
 	let mastery = 0;
 
@@ -136,13 +135,6 @@
 		}
 	}
 
-	function finishReading() {
-		const learnedNodesCount = nodeStatusService.getAllStatuses().size;
-		const adjustedCount = Math.max(0, learnedNodesCount - 1);
-		onFinishReading(adjustedCount);
-	}
-
-	// Define handleNodeStatusUpdate outside of onMount to make it accessible in onDestroy
 	function handleNodeStatusUpdate() {
 		// Force re-render of content with updated node statuses
 		updateContentWithLatestNodeStatus();
@@ -249,7 +241,7 @@
 					<h3 class="mb-3 text-lg font-semibold" style="color: #BFCAF3;">
 						{pages[currentPage].title}
 					</h3>
-					<div class="whitespace-pre-line text-sm leading-relaxed" style="color: #B3B3B3;">
+					<div class="text-sm leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
 						{#key $nodeStatusVersion}
 							{@html parseNodeLinks(pages[currentPage].content || '')}
 						{/key}
