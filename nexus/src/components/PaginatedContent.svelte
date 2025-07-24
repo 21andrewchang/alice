@@ -12,14 +12,14 @@
 	export let nodesVisited: number = 0;
 	export let onFinishReading: (nodesVisited: number) => void = () => {};
 
+	let mastery = 0;
+
 	const dispatch = createEventDispatcher();
-	let challenge = false;
 
 	function openChallenge(e: MouseEvent) {
 		e.stopPropagation;
-		console.log('pressed');
-		challenge = !challenge;
-		dispatch('challenge');
+		console.log('starting challenge for node: ', node.id);
+		dispatch('challenge', { node: node });
 	}
 	// Create a reactive store to track node status changes
 	const nodeStatusVersion = writable(0);
@@ -66,10 +66,6 @@
 	}
 
 	console.log(node);
-	// Add quiz page if quiz exists
-	if (node.quiz && Array.isArray(node.quiz) && node.quiz.length > 0) {
-		pages.push({ title: 'Checkpoint Quiz', content: null, type: 'quiz' });
-	}
 
 	const totalPages = pages.length;
 
@@ -146,33 +142,6 @@
 		onFinishReading(adjustedCount);
 	}
 
-	// Quiz state
-	let quizAnswers: number[] = [];
-	let quizSubmitted = false;
-	let quizScore = 0;
-	function handleQuizSelect(qIdx: number, optIdx: number) {
-		if (quizSubmitted) return;
-		quizAnswers[qIdx] = optIdx;
-	}
-	function handleQuizSubmit() {
-		quizSubmitted = true;
-		quizScore = node.quiz.reduce(
-			(score: number, q: any, i: number) => (quizAnswers[i] === q.answerIndex ? score + 1 : score),
-			0
-		);
-
-		// Update node status based on quiz result
-		const scorePercentage = (quizScore / node.quiz.length) * 100;
-		nodeStatusService.updateFromQuizResult(node.id, scorePercentage);
-
-		// Trigger visual updates by dispatching a custom event
-		window.dispatchEvent(
-			new CustomEvent('nodeStatusUpdated', {
-				detail: { nodeId: node.id, score: scorePercentage }
-			})
-		);
-	}
-
 	// Define handleNodeStatusUpdate outside of onMount to make it accessible in onDestroy
 	function handleNodeStatusUpdate() {
 		// Force re-render of content with updated node statuses
@@ -188,11 +157,6 @@
 		// Also listen for focus/blur events to catch when user returns to the page
 		window.addEventListener('focus', handleNodeStatusUpdate);
 
-		quizAnswers = node.quiz ? Array(node.quiz.length).fill(-1) : [];
-		quizSubmitted = false;
-		quizScore = 0;
-
-		// Initial update to ensure content reflects current status
 		updateContentWithLatestNodeStatus();
 	});
 
@@ -285,7 +249,7 @@
 					<h3 class="mb-3 text-lg font-semibold" style="color: #BFCAF3;">
 						{pages[currentPage].title}
 					</h3>
-					<div class="text-sm leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
+					<div class="whitespace-pre-line text-sm leading-relaxed" style="color: #B3B3B3;">
 						{#key $nodeStatusVersion}
 							{@html parseNodeLinks(pages[currentPage].content || '')}
 						{/key}
@@ -293,20 +257,19 @@
 				</div>
 			{/if}
 		</div>
-
-		<!-- Footer card over the veil -->
-		<div class="absolute bottom-0 z-20 w-full bg-transparent p-4">
-			<div
-				class="flex items-center justify-between gap-4 rounded-md border border-white/20 bg-black px-4 py-3 backdrop-blur-2xl"
+	</div>
+	<div class="pointer-events-auto relative">
+		<div
+			class="relative flex items-center justify-between gap-4
+             border-t border-white/10 bg-black/80 px-4 py-3 backdrop-blur-2xl"
+		>
+			<div class="text-xs font-semibold text-white/80">No Mastery</div>
+			<button
+				class="rounded-sm bg-white px-3 py-2 text-xs font-medium text-black transition hover:bg-white/50"
+				on:click={openChallenge}
 			>
-				<div class="text-xs font-semibold text-white/80">Mastery 2</div>
-				<button
-					class="rounded-sm bg-white px-3 py-2 text-xs font-medium text-black transition hover:bg-white/80"
-					on:click={openChallenge}
-				>
-					Start Challenge
-				</button>
-			</div>
+				Start Challenge
+			</button>
 		</div>
 	</div>
 </div>
@@ -315,5 +278,14 @@
 	:global(.onboarding-content),
 	:global(.onboarding-content *) {
 		color: #fff !important;
+	}
+	@keyframes glowPulse {
+		0%,
+		100% {
+			box-shadow: 0 0 18px 2px rgba(191, 202, 243, 0.18);
+		}
+		50% {
+			box-shadow: 0 0 28px 8px rgba(191, 202, 243, 0.35);
+		}
 	}
 </style>
