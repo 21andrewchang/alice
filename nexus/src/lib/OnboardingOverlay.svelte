@@ -4,30 +4,23 @@
 	import { onboardingComplete } from '$lib/onboarding';
 	import OnboardingSlideshow from '$lib/OnboardingSlideshow.svelte';
 	import { onDestroy } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	export let onSetRecommendation;
 	let show = false;
+	let dispatch = createEventDispatcher();
 	// const unsub = onboardingComplete.subscribe((val) => {
 	// 	show = !val;
 	// });
-	onDestroy(() => {
-		document.body.style.overflow = '';
-	});
-	$: {
-		if (show === true) {
-			document.body.style.overflow = 'hidden';
-		} else if (show === false) {
-			document.body.style.overflow = '';
-		}
+	function finishOnboarding(e: CustomEvent<{ recommendation: string; bracket: string }>) {
+		dispatch('finish', e);
 	}
 </script>
 
-{#if show}
-	<div class="onboarding-bg fixed inset-0 z-50 flex items-center justify-center p-4 text-white">
-		<div class="onboarding-panel w-full max-w-2xl space-y-6">
-			<OnboardingSlideshow {onSetRecommendation} />
-		</div>
+<div class="onboarding-bg fixed inset-0 z-50 flex items-center justify-center p-4 text-white">
+	<div class="onboarding-panel w-full max-w-2xl space-y-6">
+		<OnboardingSlideshow {onSetRecommendation} on:finish={(e) => finishOnboarding(e.detail)} />
 	</div>
-{/if}
+</div>
 
 <style>
 	.onboarding-bg {
