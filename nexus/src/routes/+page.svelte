@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy, tick } from 'svelte';
-	import { cubicOut } from 'svelte/easing';
+	import { cubicOut, cubicIn } from 'svelte/easing';
+	import { scale, fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
 
@@ -478,23 +479,33 @@
 		on:mousemove={handleBtnMouseMove}
 		on:mouseleave={handleBtnMouseLeave}
 		on:mouseenter={handleBtnMouseMove}
-		on:click={() => goto('/app')}
+		on:click={() => {
+			showLoginModal = true;
+		}}
 	>
 		Start learning
 	</button>
 </div>
 
 {#if showLoginModal}
-	<div class="login-modal-bg flex items-center justify-center">
-		<div class="login-modal">
+	<div class="fixed inset-0 z-[999] flex items-center justify-center p-4">
+		<div
+			class="absolute inset-0 bg-black/60"
+			in:fade={{ duration: 180, easing: cubicOut }}
+			out:fade={{ duration: 140, easing: cubicIn }}
+		/>
+
+		<div
+			class="relative z-10 h-full max-h-[80vh] w-full max-w-3xl overflow-auto rounded-md border border-white/20
+		       bg-black/70 p-6 text-white backdrop-blur-2xl"
+			style="-webkit-backdrop-filter: blur(24px);"
+			transition:scale={{ start: 0.9, duration: 200, easing: cubicOut }}
+		>
 			<button class="login-close" aria-label="Close" on:click={() => (showLoginModal = false)}
 				>×</button
 			>
 			<h1 class="mb-6 text-center text-3xl font-bold">Sign in to Alice</h1>
-			<button
-				class="mb-4 w-full rounded-lg bg-red-500 px-6 py-3 font-semibold hover:bg-red-600"
-				on:click={signInWithGoogle}
-			>
+			<button class="mb-4 w-full rounded-lg px-6 py-3 font-semibold" on:click={signInWithGoogle}>
 				Continue with Google
 			</button>
 			<div class="mb-4 flex items-center gap-2 opacity-70">
@@ -519,10 +530,6 @@
 					>Send magic link</button
 				>
 			</form>
-			<button
-				class="mt-8 w-full text-sm underline opacity-80"
-				on:click={() => (showLoginModal = false)}>Back to landing</button
-			>
 		</div>
 	</div>
 {/if}
@@ -626,10 +633,10 @@
 		background: rgba(30, 30, 30, 0.9);
 	}
 	.login-modal-bg {
-		position: fixed;
+		position: absolute;
 		inset: 0;
 		z-index: 50;
-		background: rgba(255, 255, 255, 0.18);
+		background: rgba(0, 0, 0, 0.18);
 		backdrop-filter: blur(16px);
 	}
 	.login-modal {
