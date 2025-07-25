@@ -43,7 +43,8 @@ Deno.serve(async (req) => {
           node_id,
           exp: remainingExp,
           mastery: newMastery,
-        }
+        },
+        { onConflict: 'user_id,node_id' }
       ).single();
     console.log("data from function: ", row);
     console.log("data from function: ", remainingExp, newMastery);

@@ -38,7 +38,9 @@
 			if (error) {
 				console.error('Error loading visited nodes:', error);
 			} else {
-				data.forEach((r) => nodeStatusService.markAsVisited(r.node_id, r.exp, r.mastery));
+				data.forEach((r) =>
+					nodeStatusService.markAsVisited({ nodeId: r.node_id, mastery: r.mastery, exp: r.exp })
+				);
 			}
 		}
 	}
@@ -75,22 +77,22 @@
 		const { data: session } = await supabase.auth.getSession();
 		let user = session.session?.user;
 		if (!user) throw new Error('Not signed in');
-		const payload = {
-			node_id: nodeId,
-			exp: exp,
-			user_id: user.id
-		};
-		const { data: updatedRow, error } = await supabase.functions.invoke('updateNodeProgress', {
+		// const payload = {
+		// 	node_id: nodeId,
+		// 	exp: exp,
+		// 	user_id: user.id
+		// };
+		const { data, error } = await supabase.functions.invoke('updateNodeProgress', {
 			body: {
 				node_id: nodeId,
 				exp: exp,
 				user_id: user.id
 			}
 		});
-		console.log('update node: ', updatedRow.newExp, updatedRow.newMastery);
 		nodeStack = nodeStack.map((n) =>
-			n.id === nodeId ? { ...n, exp: updatedRow.newExp, mastery: updatedRow.newMastery } : n
+			n.id === nodeId ? { ...n, exp: data.newExp, mastery: data.newMastery } : n
 		);
+		console.log(nodeStack);
 		updateNodeStyles();
 		if (error) console.error(error);
 		return !error;
