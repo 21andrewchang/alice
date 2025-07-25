@@ -51,8 +51,11 @@ export class NodeStatusService {
   /**
    * Mark a node as visited (when user clicks on it)
    */
-  markAsVisited(nodeId: string, mastery: number, exp: number): void {
-    this.updateNodeStatus(nodeId, { mastery: mastery, exp: exp });
+  markAsVisited(payload: { nodeId: string; mastery: number; exp: number }) {
+    this.updateNodeStatus(payload.nodeId, {
+      mastery: payload.mastery,
+      exp: payload.exp
+    });
   }
 
 
@@ -146,7 +149,6 @@ export function calculateVisualState(
       opacity: 1,
     };
   } else {
-    // visited but not yet mastered (mastery === 0)
     return {
       baseColor: base,
       strokeColor: base,
