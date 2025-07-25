@@ -272,6 +272,12 @@
 
 	onMount(() => {
 		(async () => {
+			const {
+				data: { session }
+			} = await supabase.auth.getSession();
+			if (session) {
+				goto('/app');
+			}
 			ctx = canvasEl.getContext('2d');
 			glowCtx = glowCanvasEl.getContext('2d');
 			cursorCtx = cursorCanvasEl.getContext('2d');
@@ -415,10 +421,7 @@
 
 	async function signInWithGoogle() {
 		const { error } = await supabase.auth.signInWithOAuth({
-			provider: 'google',
-			options: {
-				redirectTo: `${window.location.origin}/app`
-			}
+			provider: 'google'
 		});
 		if (error) alert(error.message);
 	}
