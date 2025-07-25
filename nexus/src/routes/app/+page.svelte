@@ -45,9 +45,17 @@
 		}
 	}
 	async function addNodeToDB(node) {
+		const existingStatus = nodeStatusService.getNodeStatus(node.id);
+		if (existingStatus.mastery !== null) {
+			// already visited (or inserted), just return the enriched node
+			return {
+				...node,
+				exp: existingStatus.exp,
+				mastery: existingStatus.mastery
+			};
+		}
 		const { data: sessionData } = await supabase.auth.getSession();
 		let user = sessionData.session?.user;
-		console.log(user);
 		if (!user) throw new Error('Not signed in');
 
 		const { data: row, error } = await supabase.from('user_nodes').insert({
@@ -57,6 +65,11 @@
 			mastery: 0
 		});
 		if (error) console.error(error);
+
+		nodeStatusService.updateNodeStatus(node.id, {
+			exp: row?.exp ?? 0,
+			mastery: row?.mastery ?? 0
+		});
 		return {
 			...node,
 			exp: row?.exp ?? 0,
