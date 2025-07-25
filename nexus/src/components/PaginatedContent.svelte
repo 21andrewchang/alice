@@ -255,7 +255,9 @@
 			class="relative flex items-center justify-between gap-4
              border-t border-white/10 bg-black/80 px-4 py-3 backdrop-blur-2xl"
 		>
-			<div class="text-xs font-semibold text-white/80">{node.mastery}</div>
+			<div class="text-xs font-semibold text-white/80">
+				{node.mastery !== null ? `Mastery ${node.mastery}` : 'No Mastery'}
+			</div>
 			<button
 				class="rounded-sm bg-white px-3 py-2 text-xs font-medium text-black transition hover:bg-white/50"
 				on:click={openChallenge}
