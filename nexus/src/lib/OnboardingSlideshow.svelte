@@ -17,9 +17,11 @@
 	);
 	import { writable, derived } from 'svelte/store';
 	import mergedGraph from '../merged_graph.json';
+	import { createEventDispatcher } from 'svelte';
 
 	export let onSetRecommendation;
 
+	let dispatch = createEventDispatcher();
 	let step: 'goal' | 'quiz' | 'complete' = 'goal';
 	let goalInput = '';
 	let showSuccess = false;
@@ -376,7 +378,8 @@
 	}
 
 	function finishOnboarding() {
-		onboardingComplete.set(true);
+		const payload = { recommendation: staticRecommendations[finalBracket], bracket: finalBracket };
+		dispatch('finish', payload);
 	}
 
 	function launchConfetti() {
@@ -616,4 +619,3 @@
 		{/if}
 	{/key}
 </div>
-

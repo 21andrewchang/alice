@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Challenge from '../../components/Challenge.svelte';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
@@ -12,28 +13,125 @@
 		nodeStatusService,
 		getNodeVisualState,
 		calculateLinkVisualState,
-		shouldEnhanceLink,
-		getDomainColor as getNodeDomainColor,
-		dimColor as dimNodeColor
+		getDomainColor as getNodeDomainColor
 	} from '$lib/nodeStatus';
-	import { getSuggestionService, SuggestionService } from '$lib/suggestionSystem';
-	// Import mergedGraph with type assertion for JSON
-	// REMOVE: import mergedGraph from '../merged_graph.json' assert { type: 'json' };
+	import { getSuggestionService } from '$lib/suggestionSystem';
 	import { writable } from 'svelte/store';
 
-	// Helper to get visited nodes from nodeStatusService
-	function getVisitedNodes(): string[] {
-		if (
-			typeof window !== 'undefined' &&
-			nodeStatusService &&
-			typeof nodeStatusService.getAllStatuses === 'function'
-		) {
-			const statuses = nodeStatusService.getAllStatuses();
-			return Array.from(statuses.values())
-				.filter((s) => s.status === 'visited' || s.status === 'mastered')
-				.map((s) => s.nodeId);
+	let challengeOpen = false;
+	let challengeNode;
+	let shouldShowOnboarding = false;
+
+	let startMs = 0;
+	let elapsedMs = 0;
+	let ticker: number | undefined;
+
+	async function loadVisitedFromDb() {
+		const { data: sessionData } = await supabase.auth.getSession();
+		let user = sessionData.session?.user;
+		if (user) {
+			const { data, error } = await supabase
+				.from('user_nodes')
+				.select('node_id, exp, mastery')
+				.eq('user_id', user?.id);
+
+			if (error) {
+				console.error('Error loading visited nodes:', error);
+			} else {
+				data.forEach((r) =>
+					nodeStatusService.markAsVisited({ nodeId: r.node_id, mastery: r.mastery, exp: r.exp })
+				);
+			}
 		}
-		return [];
+	}
+	async function addNodeToDB(node) {
+		const existingStatus = nodeStatusService.getNodeStatus(node.id);
+		if (existingStatus.mastery !== null) {
+			// already visited (or inserted), just return the enriched node
+			return {
+				...node,
+				exp: existingStatus.exp,
+				mastery: existingStatus.mastery
+			};
+		}
+		const { data: sessionData } = await supabase.auth.getSession();
+		let user = sessionData.session?.user;
+		if (!user) throw new Error('Not signed in');
+
+		const { data: row, error } = await supabase.from('user_nodes').insert({
+			user_id: user.id,
+			node_id: node.id,
+			exp: 0,
+			mastery: 0
+		});
+		if (error) console.error(error);
+
+		nodeStatusService.updateNodeStatus(node.id, {
+			exp: row?.exp ?? 0,
+			mastery: row?.mastery ?? 0
+		});
+		return {
+			...node,
+			exp: row?.exp ?? 0,
+			mastery: row?.mastery ?? 0
+		};
+	}
+
+	function openChallenge(node: Node) {
+		challengeOpen = true;
+		challengeNode = node;
+		startMs = performance.now();
+		elapsedMs = 0;
+		ticker = window.setInterval(() => {
+			elapsedMs = performance.now() - startMs; // reactive var → UI can show it
+		}, 1000);
+	}
+	async function updateNode(nodeId: string, exp: number) {
+		const { data: session } = await supabase.auth.getSession();
+		let user = session.session?.user;
+		if (!user) throw new Error('Not signed in');
+		// const payload = {
+		// 	node_id: nodeId,
+		// 	exp: exp,
+		// 	user_id: user.id
+		// };
+		const { data, error } = await supabase.functions.invoke('updateNodeProgress', {
+			body: {
+				node_id: nodeId,
+				exp: exp,
+				user_id: user.id
+			}
+		});
+		nodeStatusService.updateNodeStatus(nodeId, {
+			exp: data.newExp,
+			mastery: data.newMastery
+		});
+
+		nodeStack = nodeStack.map((n) =>
+			n.id === nodeId ? { ...n, exp: data.newExp, mastery: data.newMastery } : n
+		);
+		updateNodeStyles();
+		if (error) console.error(error);
+		return !error;
+	}
+
+	async function closeChallenge(e) {
+		updateNode(challengeNode.id, e.expEarned);
+		challengeOpen = false;
+		if (ticker) clearInterval(ticker);
+		const total = performance.now() - startMs;
+		console.log('Updating mastery for: ', challengeNode.label);
+		console.log('Exp Earned: ', e.expEarned);
+		console.log('Challenge time (hh:mm:ss):', formatTime(total));
+	}
+
+	// helper
+	function formatTime(ms: number) {
+		const s = Math.floor(ms / 1000);
+		const h = Math.floor(s / 3600);
+		const m = Math.floor((s % 3600) / 60);
+		const sec = s % 60;
+		return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
 	}
 
 	// User profile store for reactivity
@@ -49,22 +147,10 @@
 	}
 
 	// Listen for node visit events (assuming you have a function or event for this)
+	//SUGGESTIONS
 	function onNodeVisited(nodeId: string) {
 		const suggestionService = getSuggestionService();
 		suggestionService.updateAfterNodeVisit(nodeId);
-		updateUserProfileDebug();
-	}
-
-	// Reset button logic
-	function resetProgress() {
-		localStorage.removeItem('userProfile');
-		localStorage.removeItem('visitedNodes');
-		localStorage.removeItem('masteredNodes');
-		localStorage.removeItem('userBracket');
-		localStorage.removeItem('onboardingRecommendedNode');
-		if (nodeStatusService && typeof nodeStatusService.clearAll === 'function') {
-			nodeStatusService.clearAll();
-		}
 		updateUserProfileDebug();
 	}
 
@@ -82,25 +168,6 @@
 
 	let element: any;
 	let tooltipEl: any;
-	// selectedNode replaced with nodeStack system
-	// pdfLoading and showPdfFrame removed - handled per node now
-	// DEPRECATED: Old learnedNodes Set - kept for backward compatibility during migration
-	// New code should use nodeStatusService instead
-	let learnedNodes = (() => {
-		if (typeof window !== 'undefined' && (window as any).persistentLearnedNodes) {
-			return (window as any).persistentLearnedNodes;
-		}
-		const set = new Set();
-		if (typeof window !== 'undefined') {
-			(window as any).persistentLearnedNodes = set;
-		}
-		return set;
-	})();
-
-	// Idle animation variables
-	let simulation;
-	let idleTime = 0;
-	let idleAnimationId;
 
 	async function loadData() {
 		return fetch('/merged_graph.json').then((r) => r.json());
@@ -109,24 +176,8 @@
 	function selectNode(node: any) {
 		// Add to stack instead of setting selectedNode
 		addToNodeStack(node);
-
 		// Center the graph on the selected node
 		centerGraphOnNode(node);
-	}
-
-	function toggleLearned(nodeId: any) {
-		// Toggle between not_visited and visited states
-		const currentStatus = nodeStatusService.getNodeStatus(nodeId);
-		if (currentStatus.status === 'not_visited') {
-			nodeStatusService.markAsVisited(nodeId);
-			onNodeVisited(nodeId); // Call SuggestionService logic
-			window.dispatchEvent(new Event('nodeVisited'));
-		} else {
-			// Reset to not_visited (remove from status tracking)
-			nodeStatusService.updateNodeStatus(nodeId, { status: 'not_visited' });
-			updateUserProfileDebug();
-		}
-		updateNodeStyles();
 	}
 
 	let nodeSel: any; // Store node selection for updates
@@ -140,7 +191,6 @@
 	let nodeStack: any[] = []; // Stack of open nodes for layered interface
 	let navigationHistory: any[] = []; // Chronological order of node clicks (for breadcrumb)
 
-	let activeSectionId = null;
 	// Always use sequential shooting stars
 	const useSequentialShootingStars = true;
 
@@ -149,46 +199,6 @@
 
 	// Store last calculated rank for inline display
 	let userRank: { tier: string; division: number | null } = { tier: '', division: null };
-
-	function getRankForNodesVisited(n: number) {
-		/*
-		 * Placement logic capped at Platinum IV.
-		 * TODO: incorporate hidden MMR so that 0-3 clicks still grant higher unseen rating.
-		 */
-		let tier = 'Iron';
-		let division: number | null = 4;
-
-		if (n <= 3) {
-			tier = 'Platinum';
-			division = 4;
-		} else if (n <= 6) {
-			// 7‒10 → Gold IV-I
-			tier = 'Gold';
-			division = 4; // 7→4 … 10→1
-		} else if (n <= 8) {
-			// 11‒14 → Silver IV-I
-			tier = 'Silver';
-			division = 4; // 11→4 … 14→1
-		} else if (n <= 12) {
-			// 15‒18 → Bronze IV-I
-			tier = 'Bronze';
-			division = 4; // 15→4 … 18→1
-		} else {
-			tier = 'Iron';
-			division = 4; // 19→4, 20→3, 21→2, 22+→1
-		}
-
-		return { tier, division };
-	}
-
-	// Show the rank modal when the user finishes reading
-	function handleFinishReading(count: number) {
-		rankNodesVisited = count;
-		userRank = getRankForNodesVisited(count);
-		console.log('Visited nodes:', count, '=> Rank:', userRank);
-		console.log('calculatedRank', userRank);
-		showRankModal = true;
-	}
 
 	let userEmail = '';
 	let sessionObj = null;
@@ -208,30 +218,9 @@
 	}
 	if (!userEmail) userEmail = 'user@email.com'; // fallback placeholder
 
-	console.log('Supabase sessionObj:', sessionObj);
-	console.log('userEmail:', userEmail);
-
 	async function handleLogout() {
 		await supabase.auth.signOut();
 		window.location.href = '/';
-	}
-
-	function getBackwardNodes(node: any) {
-		if (!graphData) return [];
-		return (graphData as any).links
-			.filter((l: any) => l.target === node.id && l.relation === 'prerequisite')
-			.map((l: any) =>
-				(graphData as any).nodes.find((n: any) => n.id === (l.source.id ?? l.source))
-			);
-	}
-
-	function getForwardNodes(node: any) {
-		if (!graphData) return [];
-		return (graphData as any).links
-			.filter((l: any) => l.source === node.id && l.relation === 'prerequisite')
-			.map((l: any) =>
-				(graphData as any).nodes.find((n: any) => n.id === (l.target.id ?? l.target))
-			);
 	}
 
 	function updateNodeStyles() {
@@ -401,6 +390,7 @@
 
 		// Clone data
 		const nodes = data.nodes.map((d: any) => ({ ...d }));
+		console.log('nodes: ', nodes);
 		const links = data.links.map((d: any) => ({ ...d }));
 
 		// Map central relations
@@ -781,7 +771,6 @@
 			const fundamentalNodes = new Set();
 			prerequisiteLinks.forEach((link: any) => {
 				const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-				const targetId = typeof link.target === 'object' ? link.target.id : link.target;
 
 				// If source has no dependencies, it's fundamental
 				if (!nodeDependencies.has(sourceId)) {
@@ -1116,9 +1105,10 @@
 		}
 	}
 
-	// Function to add a node to the stack
-	function addToNodeStack(node: any) {
-		// Focus on the node for graph effects
+	async function addToNodeStack(node: any) {
+		nodeStatusService.markAsVisited({ nodeId: node.id, exp: 0, mastery: 0 });
+		updateNodeStyles();
+		console.log('from add to node stack: ', node);
 		focusedNode = node;
 		connectedNodes.clear();
 		connectedNodes.add(node.id);
@@ -1135,26 +1125,20 @@
 			});
 		}
 
-		// Mark as visited using new status system
-		nodeStatusService.markAsVisited(node.id);
+		//TODO :: Instead of using existing node status service, migrate to supabase
+		let formattedNode = await addNodeToDB(node);
 		onNodeVisited(node.id); // Call SuggestionService logic
 
-		// Add to navigation history (chronological order)
+		// HISTORY
 		const existingIndex = navigationHistory.findIndex((n) => n.id === node.id);
 		if (existingIndex !== -1) {
-			// If node already exists in history, truncate to that point
 			navigationHistory = navigationHistory.slice(0, existingIndex + 1);
 		} else {
-			// Add new node to history
 			navigationHistory = [...navigationHistory, node];
 		}
 
-		// Add to stack (remove if already exists to avoid duplicates)
 		nodeStack = nodeStack.filter((n) => n.id !== node.id);
-		nodeStack = [...nodeStack, node];
-
-		// Update node styles
-		updateNodeStyles();
+		nodeStack = [...nodeStack, formattedNode];
 	}
 
 	// Function to remove a node from the stack
@@ -1247,9 +1231,11 @@
 		recommendedNode = node;
 	});
 
-	onMount(() => {
+	onMount(async () => {
+		await loadVisitedFromDb();
 		initializeSuggestionSystem();
 		loadMergedGraph();
+		updateNodeStyles();
 		updateUserProfileDebug();
 		window.addEventListener('nodeVisited', updateUserProfileDebug);
 		return () => {
@@ -1394,10 +1380,9 @@
 			<div bind:this={element} class="h-full w-full"></div>
 		</div>
 	{:else}
-		<div class="flex h-full w-full items-center justify-center text-gray-500">Loading graph...</div>
+		<div class="flex h-full w-full items-center justify-center text-gray-500"></div>
 	{/if}
 
-	<!-- Modal Node Preview panels - overlay on top of graph -->
 	{#if nodeStack.length > 0}
 		<div class="pointer-events-none fixed inset-0" style="z-index: 50;">
 			{#each nodeStack as node, index (node.id)}
@@ -1417,7 +1402,7 @@
 					<div class="h-full p-4">
 						<div
 							class="h-full overflow-auto rounded-sm shadow-lg"
-							style="background-color: #000; border: 1px solid #333333;"
+							style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(16px); border: 1px solid #222;"
 						>
 							<div class="h-full overflow-hidden">
 								<PaginatedContent
@@ -1425,7 +1410,7 @@
 									{parseNodeLinks}
 									onClose={() => removeFromStack(node.id)}
 									nodesVisited={nodeStatusService.getAllStatuses().size}
-									onFinishReading={handleFinishReading}
+									on:challenge={(e) => openChallenge(e.detail.node)}
 								/>
 							</div>
 						</div>
@@ -1433,6 +1418,9 @@
 				</div>
 			{/each}
 		</div>
+	{/if}
+	{#if challengeOpen}
+		<Challenge on:finish={(e) => closeChallenge(e.detail)} {challengeNode} />
 	{/if}
 </main>
 
