@@ -1,8 +1,8 @@
 export interface NodeStatus {
   nodeId: string;
-  status: 'not_visited' | 'visited' | 'mastered';
+  mastery: number | null;
+  exp: number;
   lastUpdated: Date;
-  quizScore?: number;
 }
 
 export interface NodeVisualState {
@@ -26,7 +26,8 @@ export class NodeStatusService {
     // Return default status
     return {
       nodeId,
-      status: 'not_visited',
+      mastery: null,
+      exp: 0,
       lastUpdated: new Date(),
     };
   }
@@ -50,11 +51,8 @@ export class NodeStatusService {
   /**
    * Mark a node as visited (when user clicks on it)
    */
-  markAsVisited(nodeId: string): void {
-    const current = this.getNodeStatus(nodeId);
-    if (current.status === 'not_visited') {
-      this.updateNodeStatus(nodeId, { status: 'visited' });
-    }
+  markAsVisited(nodeId: string, mastery: number, exp: number): void {
+    this.updateNodeStatus(nodeId, { mastery: mastery, exp: exp });
   }
 
 
@@ -70,7 +68,7 @@ export class NodeStatusService {
    */
   isVisited(nodeId: string): boolean {
     const status = this.getNodeStatus(nodeId);
-    return status.status === 'visited' || status.status === 'mastered';
+    return status.mastery >= 0;
   }
 
   /**
@@ -78,7 +76,7 @@ export class NodeStatusService {
    */
   isMastered(nodeId: string): boolean {
     const status = this.getNodeStatus(nodeId);
-    return status.status === 'mastered';
+    return status.mastery >= 1;
   }
 
 
@@ -122,46 +120,40 @@ export function dimColor(color: string): string {
 /**
  * Calculate visual state properties based on NodeStatus
  */
-export function calculateVisualState(nodeStatus: NodeStatus, domain: string = 'tech', nodeType: string = 'concept'): NodeVisualState {
-  const baseColor = nodeType === 'paper' ? '#BFCAF3' : getDomainColor(domain);
+export function calculateVisualState(
+  status: NodeStatus,
+  domain = 'tech',
+  type = 'concept'
+): NodeVisualState {
+  const base = type === 'paper' ? '#BFCAF3' : getDomainColor(domain);
 
-  switch (nodeStatus.status) {
-    case 'not_visited':
-      return {
-        baseColor: nodeType === 'paper' ? '#8A9BB8' : dimColor(baseColor),
-        strokeColor: nodeType === 'paper' ? '#8A9BB8' : dimColor(baseColor),
-        strokeWidth: 1.5,
-        glowEffect: null,
-        opacity: 1.0
-      };
-
-    case 'visited':
-      return {
-        baseColor: baseColor,
-        strokeColor: baseColor,
-        strokeWidth: 3,
-        glowEffect: null,
-        opacity: 1.0
-      };
-
-    case 'mastered':
-      return {
-        baseColor: baseColor,
-        strokeColor: baseColor,
-        strokeWidth: 3,
-        glowEffect: `drop-shadow(0 0 6px ${baseColor})`,
-        opacity: 1.0
-      };
-
-    default:
-      // Fallback to not_visited
-      return {
-        baseColor: nodeType === 'paper' ? '#8A9BB8' : dimColor(baseColor),
-        strokeColor: nodeType === 'paper' ? '#8A9BB8' : dimColor(baseColor),
-        strokeWidth: 1.5,
-        glowEffect: null,
-        opacity: 1.0
-      };
+  if (status.mastery === null) {
+    // never visited
+    return {
+      baseColor: dimColor(base),
+      strokeColor: dimColor(base),
+      strokeWidth: 1.5,
+      glowEffect: null,
+      opacity: 1,
+    };
+  } else if (status.mastery >= 1) {
+    // mastered (level 1 or above)
+    return {
+      baseColor: base,
+      strokeColor: base,
+      strokeWidth: 3,
+      glowEffect: `drop-shadow(0 0 6px ${base})`,
+      opacity: 1,
+    };
+  } else {
+    // visited but not yet mastered (mastery === 0)
+    return {
+      baseColor: base,
+      strokeColor: base,
+      strokeWidth: 3,
+      glowEffect: null,
+      opacity: 1,
+    };
   }
 }
 
@@ -180,7 +172,7 @@ export function shouldEnhanceLink(sourceNodeId: string, targetNodeId: string, st
   const sourceStatus = statusService.getNodeStatus(sourceNodeId);
   const targetStatus = statusService.getNodeStatus(targetNodeId);
 
-  return sourceStatus.status === 'mastered' || targetStatus.status === 'mastered';
+  return sourceStatus.mastery >= 1 || targetStatus.mastery >= 1;
 }
 
 /**
@@ -194,7 +186,7 @@ export function calculateLinkVisualState(sourceNodeId: string, targetNodeId: str
   const targetStatus = statusService.getNodeStatus(targetNodeId);
 
   // Enhanced styling if either node is mastered
-  if (sourceStatus.status === 'mastered' || targetStatus.status === 'mastered') {
+  if (sourceStatus.mastery >= 1 || sourceStatus.mastery >= 1) {
     const glowColor = sourceType === 'paper' ? '#BFCAF3' : getDomainColor(sourceDomain);
 
     return {

@@ -35,24 +35,24 @@ Deno.serve(async (req) => {
     const newMastery = Math.min(currentMastery + gainLevels, 3)
     const remainingExp = totalExp % 100
 
-    const { data, error } = await supabase
+    const { data: row, error } = await supabase
       .from("user_nodes")
       .upsert(
         {
           user_id,
           node_id,
-          exp: remainingExp,            // you’ll replace this with your sum/overflow logic
+          exp: remainingExp,
           mastery: newMastery,
-        },
-        { onConflict: ["user_id", "node_id"] }
-      );
-
+        }
+      ).single();
+    console.log("data from function: ", row);
+    console.log("data from function: ", remainingExp, newMastery);
     if (error) {
       console.error("upsert failed:", error);
       throw error;
     }
 
-    return new Response(JSON.stringify({ data }), {
+    return new Response(JSON.stringify({ newExp: remainingExp, newMastery: newMastery }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
