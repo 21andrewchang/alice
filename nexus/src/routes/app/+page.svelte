@@ -32,30 +32,34 @@
 		if (user) {
 			const { data, error } = await supabase
 				.from('user_nodes')
-				.select('node_id')
+				.select('node_id, exp, mastery')
 				.eq('user_id', user?.id);
 
 			if (error) {
 				console.error('Error loading visited nodes:', error);
 			} else {
-				data.forEach((r) => nodeStatusService.markAsVisited(r.node_id));
+				data.forEach((r) => nodeStatusService.markAsVisited(r.node_id, r.exp, r.mastery));
 			}
 		}
 	}
-	async function addNodeToDB(nodeId: string) {
+	async function addNodeToDB(node) {
 		const { data: sessionData } = await supabase.auth.getSession();
 		let user = sessionData.session?.user;
 		console.log(user);
 		if (!user) throw new Error('Not signed in');
 
-		const { error } = await supabase.from('user_nodes').upsert({
+		const { data: row, error } = await supabase.from('user_nodes').insert({
 			user_id: user.id,
-			node_id: nodeId,
+			node_id: node.id,
 			exp: 0,
 			mastery: 0
 		});
 		if (error) console.error(error);
-		return !error;
+		return {
+			...node,
+			exp: row?.exp ?? 0,
+			mastery: row?.mastery ?? 0
+		};
 	}
 
 	function openChallenge(node: Node) {
@@ -76,13 +80,18 @@
 			exp: exp,
 			user_id: user.id
 		};
-		const { data, error } = await supabase.functions.invoke('updateNodeProgress', {
+		const { data: updatedRow, error } = await supabase.functions.invoke('updateNodeProgress', {
 			body: {
 				node_id: nodeId,
 				exp: exp,
 				user_id: user.id
 			}
 		});
+		console.log('update node: ', updatedRow.newExp, updatedRow.newMastery);
+		nodeStack = nodeStack.map((n) =>
+			n.id === nodeId ? { ...n, exp: updatedRow.newExp, mastery: updatedRow.newMastery } : n
+		);
+		updateNodeStyles();
 		if (error) console.error(error);
 		return !error;
 	}
@@ -123,19 +132,6 @@
 	function onNodeVisited(nodeId: string) {
 		const suggestionService = getSuggestionService();
 		suggestionService.updateAfterNodeVisit(nodeId);
-		updateUserProfileDebug();
-	}
-
-	// Reset button logic
-	function resetProgress() {
-		localStorage.removeItem('userProfile');
-		localStorage.removeItem('visitedNodes');
-		localStorage.removeItem('masteredNodes');
-		localStorage.removeItem('userBracket');
-		localStorage.removeItem('onboardingRecommendedNode');
-		if (nodeStatusService && typeof nodeStatusService.clearAll === 'function') {
-			nodeStatusService.clearAll();
-		}
 		updateUserProfileDebug();
 	}
 
@@ -375,6 +371,7 @@
 
 		// Clone data
 		const nodes = data.nodes.map((d: any) => ({ ...d }));
+		console.log('nodes: ', nodes);
 		const links = data.links.map((d: any) => ({ ...d }));
 
 		// Map central relations
@@ -1090,8 +1087,11 @@
 	}
 
 	// Function to add a node to the stack
-	function addToNodeStack(node: any) {
+	async function addToNodeStack(node: any) {
 		// Focus on the node for graph effects
+		nodeStatusService.markAsVisited(node.id, 0, 0);
+		updateNodeStyles();
+		console.log('from add to node stack: ', node);
 		focusedNode = node;
 		connectedNodes.clear();
 		connectedNodes.add(node.id);
@@ -1109,8 +1109,7 @@
 		}
 
 		//TODO :: Instead of using existing node status service, migrate to supabase
-		addNodeToDB(node.id);
-		nodeStatusService.markAsVisited(node.id);
+		let formattedNode = await addNodeToDB(node);
 		onNodeVisited(node.id); // Call SuggestionService logic
 
 		// HISTORY
@@ -1122,9 +1121,7 @@
 		}
 
 		nodeStack = nodeStack.filter((n) => n.id !== node.id);
-		nodeStack = [...nodeStack, node];
-
-		updateNodeStyles();
+		nodeStack = [...nodeStack, formattedNode];
 	}
 
 	// Function to remove a node from the stack
