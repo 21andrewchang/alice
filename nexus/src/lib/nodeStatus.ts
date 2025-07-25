@@ -32,9 +32,6 @@ export class NodeStatusService {
     };
   }
 
-  /**
-   * Update node status (visited/mastered)
-   */
   updateNodeStatus(nodeId: string, updates: Partial<Omit<NodeStatus, 'nodeId'>>): void {
     const current = this.getNodeStatus(nodeId);
 
@@ -52,10 +49,14 @@ export class NodeStatusService {
    * Mark a node as visited (when user clicks on it)
    */
   markAsVisited(payload: { nodeId: string; mastery: number; exp: number }) {
-    this.updateNodeStatus(payload.nodeId, {
-      mastery: payload.mastery,
-      exp: payload.exp
-    });
+    const existing = this.getNodeStatus(payload.nodeId);
+
+    if (existing.mastery === null) {
+      this.updateNodeStatus(payload.nodeId, {
+        mastery: payload.mastery,
+        exp: payload.exp
+      });
+    }
   }
 
 

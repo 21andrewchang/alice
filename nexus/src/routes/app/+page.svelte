@@ -89,10 +89,14 @@
 				user_id: user.id
 			}
 		});
+		nodeStatusService.updateNodeStatus(nodeId, {
+			exp: data.newExp,
+			mastery: data.newMastery
+		});
+
 		nodeStack = nodeStack.map((n) =>
 			n.id === nodeId ? { ...n, exp: data.newExp, mastery: data.newMastery } : n
 		);
-		console.log(nodeStack);
 		updateNodeStyles();
 		if (error) console.error(error);
 		return !error;
@@ -1088,10 +1092,8 @@
 		}
 	}
 
-	// Function to add a node to the stack
 	async function addToNodeStack(node: any) {
-		// Focus on the node for graph effects
-		nodeStatusService.markAsVisited(node.id, 0, 0);
+		nodeStatusService.markAsVisited({ nodeId: node.id, exp: 0, mastery: 0 });
 		updateNodeStyles();
 		console.log('from add to node stack: ', node);
 		focusedNode = node;
