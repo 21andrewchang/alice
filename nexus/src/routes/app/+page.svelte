@@ -54,26 +54,26 @@
 				mastery: existingStatus.mastery
 			};
 		}
+		nodeStatusService.updateNodeStatus(node.id, {
+			exp: 0,
+			mastery: 0
+		});
+		updateNodeStyles();
 		const { data: sessionData } = await supabase.auth.getSession();
 		let user = sessionData.session?.user;
 		if (!user) throw new Error('Not signed in');
 
-		const { data: row, error } = await supabase.from('user_nodes').insert({
+		const { data, error } = await supabase.from('user_nodes').insert({
 			user_id: user.id,
 			node_id: node.id,
 			exp: 0,
 			mastery: 0
 		});
 		if (error) console.error(error);
-
-		nodeStatusService.updateNodeStatus(node.id, {
-			exp: row?.exp ?? 0,
-			mastery: row?.mastery ?? 0
-		});
 		return {
 			...node,
-			exp: row?.exp ?? 0,
-			mastery: row?.mastery ?? 0
+			exp: 0,
+			mastery: 0
 		};
 	}
 
@@ -1106,9 +1106,6 @@
 	}
 
 	async function addToNodeStack(node: any) {
-		nodeStatusService.markAsVisited({ nodeId: node.id, exp: 0, mastery: 0 });
-		updateNodeStyles();
-		console.log('from add to node stack: ', node);
 		focusedNode = node;
 		connectedNodes.clear();
 		connectedNodes.add(node.id);
@@ -1127,7 +1124,7 @@
 
 		//TODO :: Instead of using existing node status service, migrate to supabase
 		let formattedNode = await addNodeToDB(node);
-		onNodeVisited(node.id); // Call SuggestionService logic
+		onNodeVisited(node.id);
 
 		// HISTORY
 		const existingIndex = navigationHistory.findIndex((n) => n.id === node.id);
