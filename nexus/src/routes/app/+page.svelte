@@ -1296,7 +1296,7 @@
 	let userProfileClicked = false;
 	function handleUserProfileClick() {
 		userProfileClicked = true;
-		resetProgress();
+		handleLogout();
 		setTimeout(() => {
 			userProfileClicked = false;
 		}, 100);
