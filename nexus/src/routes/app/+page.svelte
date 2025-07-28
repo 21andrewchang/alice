@@ -21,11 +21,29 @@
 	let challengeOpen = false;
 	let challengeNode;
 	let shouldShowOnboarding = false;
+	let userBracket: string = '–';
 
 	let startMs = 0;
 	let elapsedMs = 0;
 	let ticker: number | undefined;
 
+	async function loadUserFromDb() {
+		const { data: sessionData } = await supabase.auth.getSession();
+		let user = sessionData.session?.user;
+		console.log('user session', user);
+		if (user) {
+			const { data: userData, error } = await supabase
+				.from('users')
+				.select('bracket, recommendation')
+				.eq('id', user?.id);
+			console.log('user data', userData);
+			if (error) {
+				console.error('Error loading profile:', error);
+			} else {
+				userBracket = userData[0]?.bracket;
+			}
+		}
+	}
 	async function loadVisitedFromDb() {
 		const { data: sessionData } = await supabase.auth.getSession();
 		let user = sessionData.session?.user;
@@ -98,6 +116,9 @@
 			}
 		});
 		console.log('data from edge function: ', data);
+		if (data?.newBracket) {
+			userBracket = data.newBracket;
+		}
 		nodeStatusService.updateNodeStatus(nodeId, {
 			exp: data.newExp,
 			mastery: data.newMastery
@@ -1227,6 +1248,7 @@
 
 	onMount(async () => {
 		await loadVisitedFromDb();
+		await loadUserFromDb();
 		initializeSuggestionSystem();
 		loadMergedGraph();
 		updateNodeStyles();
@@ -1308,7 +1330,7 @@
 		style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
 		on:click={handleUserProfileClick}
 	>
-		<p><b>User Bracket:</b> {$userProfileStore.bracket}</p>
+		<p><b>User Bracket:</b>{userBracket}</p>
 	</div>
 	{#if recommendedNode && recommendedNode.node}
 		<div
