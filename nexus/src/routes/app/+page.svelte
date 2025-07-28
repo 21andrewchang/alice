@@ -134,7 +134,6 @@
 		return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
 	}
 
-	// User profile store for reactivity
 	const userProfileStore = writable(getSuggestionService().getUserProfile());
 
 	let mergedGraph: { nodes: any[]; links: any[] } = { nodes: [], links: [] };
@@ -1105,6 +1104,8 @@
 		}
 	}
 
+	//TODO :: Nodes are just not adding in at all anymore
+	//MARKED NODES AS VISIT -> AddNodeToDB IS NOT ADDING IT IN
 	async function addToNodeStack(node: any) {
 		focusedNode = node;
 		connectedNodes.clear();
@@ -1295,19 +1296,19 @@
 
 	let userProfileClicked = false;
 	function handleUserProfileClick() {
-		userProfileClicked = true;
 		handleLogout();
+		userProfileClicked = true;
 		setTimeout(() => {
 			userProfileClicked = false;
 		}, 100);
 	}
 </script>
 
-<div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
+<div class="fixed left-4 top-4 z-50 flex flex-row gap-2">
 	<div
 		class="user-profile-debug {userProfileClicked
 			? 'clicked'
-			: ''} flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2 text-xs text-white shadow"
+			: ''} flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2 text-xs text-neutral-50 shadow"
 		style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
 		on:click={handleUserProfileClick}
 	>
@@ -1318,7 +1319,7 @@
 			class="next-step-glow flex items-center gap-2 rounded-sm px-4 py-2 text-xs shadow"
 			style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
 		>
-			<span class="font-semibold text-white">Next Step:</span>
+			<span class="font-semibold text-neutral-50">Next Step:</span>
 			<span
 				class="node-link cursor-pointer transition-all duration-200 hover:opacity-80"
 				data-node-id={recommendedNode.node.id}

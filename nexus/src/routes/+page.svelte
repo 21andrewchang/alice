@@ -499,40 +499,19 @@
 		/>
 
 		<div
-			class="relative z-10 h-full max-h-[80vh] w-full max-w-3xl overflow-auto rounded-md border border-white/20
-		       bg-black/70 p-6 text-white backdrop-blur-2xl"
+			class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border-[2px] border-white/10 bg-black/70 p-6 backdrop-blur-2xl"
 			style="-webkit-backdrop-filter: blur(24px);"
 			transition:scale={{ start: 0.9, duration: 200, easing: cubicOut }}
 		>
-			<button class="login-close" aria-label="Close" on:click={() => (showLoginModal = false)}
-				>×</button
+			<h1 class="mb-6 self-start text-center text-xl font-semibold text-neutral-50">
+				Login to your account
+			</h1>
+			<button
+				class=" mb-4 rounded-lg bg-[#E5E5E5] px-4 py-2 font-semibold text-black"
+				on:click={signInWithGoogle}
 			>
-			<h1 class="mb-6 text-center text-3xl font-bold">Sign in to Alice</h1>
-			<button class="mb-4 w-full rounded-lg px-6 py-3 font-semibold" on:click={signInWithGoogle}>
 				Continue with Google
 			</button>
-			<div class="mb-4 flex items-center gap-2 opacity-70">
-				<span class="w-20 border-t border-gray-600"></span>
-				or
-				<span class="w-20 border-t border-gray-600"></span>
-			</div>
-			<form
-				class="mx-auto flex w-full max-w-sm flex-col gap-2"
-				on:submit|preventDefault={signInWithMagicLink}
-			>
-				<input
-					type="email"
-					placeholder="you@example.com"
-					bind:value={email}
-					class="rounded border border-gray-700 bg-gray-800 px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-					required
-				/>
-				<button
-					type="submit"
-					class="rounded bg-indigo-500 px-4 py-2 font-semibold hover:bg-indigo-600"
-					>Send magic link</button
-				>
-			</form>
 		</div>
 	</div>
 {/if}
