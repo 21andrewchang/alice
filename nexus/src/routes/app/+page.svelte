@@ -90,11 +90,6 @@
 		const { data: session } = await supabase.auth.getSession();
 		let user = session.session?.user;
 		if (!user) throw new Error('Not signed in');
-		// const payload = {
-		// 	node_id: nodeId,
-		// 	exp: exp,
-		// 	user_id: user.id
-		// };
 		const { data, error } = await supabase.functions.invoke('updateNodeProgress', {
 			body: {
 				node_id: nodeId,
@@ -102,6 +97,7 @@
 				user_id: user.id
 			}
 		});
+		console.log('data from edge function: ', data);
 		nodeStatusService.updateNodeStatus(nodeId, {
 			exp: data.newExp,
 			mastery: data.newMastery
@@ -1304,7 +1300,7 @@
 	}
 </script>
 
-<div class="fixed left-4 top-4 z-50 flex flex-row gap-2">
+<div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
 	<div
 		class="user-profile-debug {userProfileClicked
 			? 'clicked'
