@@ -46,8 +46,9 @@ async function recalcSkillBracket(
       .update({ bracket: rule.next })
       .eq('id', userId)
     if (upErr) { console.log(upErr) }
+    return rule.next;
   }
-  return rule.next;
+  return current;
 }
 
 Deno.serve(async (req) => {
