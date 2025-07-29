@@ -2,19 +2,11 @@
   "nodes": [
     {
       "id": 0,
-      "label": "Summary",
-      "type": "concept",
-      "description": "Paired comparison data in which the abilities or merits of the objects being compared may be changing over time can be modeled as a non-linear state space model. When the population of objects being compared is large, likelihood-based analyses can be too computationally cumbersome to carry out regularly. This presents a problem for rating populations of chess players and other large groups which often consist of tens of thousands of competitors. This problem is overcome through a computationally simple non-iterative algorithm for fitting a particular dynamic paired comparison model. The algorithm, which improves over the commonly used algorithm of Elo by incorporating the variability in parameter estimates, can be performed regularly even for large populations of competitors. The method is evaluated on simulated data and is applied to ranking the best chess players of all time, and to ranking the top current tennis-players.",
-      "difficulty": 3,
-      "domain": "tech"
-    },
-    {
-      "id": 1,
-      "label": "Introduction",
-      "type": "concept",
-      "description": "Paired comparison models address data that arise when two objects or treatments are compared simultaneously to determine a degree of preference. Examples include modeling choice behavior (e.g., preferring one soft drink over another or choosing the Democratic presidential candidate over the Republican candidate), assessing competitive ability in sports (e.g., determining team strengths in basketball or baseball), and many other settings. David (1988) and Bradley (1984) review key examples and issues in paired comparison modeling.\n\nRecent work by Fahrmeir and Tutz (1994) and Glickman (1993) extends the traditional (static) paired comparison models by incorporating time-varying parameters. These \"dynamic\" paired comparison models are well suited for contexts—such as competitive sports—where player or team abilities evolve over time. When the population of competitors is relatively small, the methodologies in these papers pose no computational difficulties. However, with very large populations (for example, the United States Chess Federation's more than 30,000 players playing over 450,000 games each year), likelihood-based fitting of dynamic models becomes computationally intractable, and more efficient methods are required.\n\nThis paper presents a non-iterative method for fitting dynamic paired comparison models that remains feasible even for large populations and can be run on an ongoing basis. While measuring chess players' abilities motivates our development, the approach applies directly to any paired comparison setting with time-varying merits. Section 2 introduces our dynamic paired comparison model. Section 3 presents the non-iterative parameter-updating algorithm. Because certain hyperparameters must be estimated before applying the update, Section 4 describes their estimation. Section 5 evaluates the algorithm on simulated data, and Section 6 applies the method to two real datasets: all known games among the greatest chess players of all time, and matches between current top tennis players.",
-      "difficulty": 3,
-      "domain": "tech"
+      "label": "Parameter Estimation in Dynamic Paired Comparison",
+      "type": "paper",
+      "description": "<node id=\"4\">Paired comparison data</node> in which the abilities or merits of the objects being compared may be changing over time can be modelled as a <node id=\"5\">non‑linear state space model</node>. When the population of objects being compared is large, <node id=\"6\">likelihood‑based analyses</node> can be too computationally cumbersome to carry out regularly. This problem is overcome through a computationally simple non‑iterative algorithm for fitting a particular dynamic paired comparison model. The algorithm, which improves over the commonly used algorithm of <node id=\"10\">Elo</node> by incorporating the variability in parameter estimates, can be performed regularly even for large populations of competitors. The method is evaluated on simulated data and is applied to ranking the best chess players of all time, and to ranking the top current tennis‑players.\n\nKey Contributions:\n- Introduces a non‑iterative, approximate Bayesian updating algorithm for dynamic paired comparison models that scales to tens of thousands of competitors.\n- Extends the Bradley–Terry framework by integrating state‑space modelling to allow abilities to evolve over time (static vs. dynamic models).\n- Derives closed‑form updates for posterior means and variances (connecting to and generalizing Elo’s K‑factor approach).\n- Presents a smoothing (backward‑filtering) procedure to refine early‑period ability estimates using future data.\n- Provides extensive simulation studies validating coverage and accuracy across varying population sizes and game counts.\n- Demonstrates practical utility on large real‑world data sets: historical chess results (1857–1991) and ATP tennis matches (1986–1995).",
+      "difficulty": 5,
+      "domain": "statistics"
     },
     {
       "id": 2,
@@ -36,7 +28,7 @@
       "id": 4,
       "label": "Paired-Comparison Data",
       "type": "concept",
-      "description": "Paired‐comparison data consist of observations in which two items (or “objects”) are presented together and one must choose which is preferred (or “wins”) over the other. Each record in the dataset is a triple `(i, j, outcome)` where `i` and `j` are the two items being compared, and `outcome` indicates which item was preferred (for instance, a binary 1/0 if ties aren’t allowed, or 1/0.5/0 if ties are recorded).\n\nCommon settings include:\n- **Sports**: every game between team A and team B gives one win and one loss;\n- **Consumer choice**: a survey respondent chooses their favorite of two brands;\n- **Psychophysics**: subjects say which of two stimuli is stronger or clearer.\n\nStatistical models for paired‐comparison data (e.g. Bradley–Terry or Thurstone–Mosteller) estimate each item’s “strength” or “ability” so that the probability item i beats item j is modeled as a function of their strengths.",
+      "description": "Observations in which two items (or “objects”) are presented together and one must choose which is preferred (or “wins”) over the other. Each record in the dataset is a triple `(i, j, outcome)` where `i` and `j` are the two items being compared, and `outcome` indicates which item was preferred (for instance, a binary 1/0 if ties aren’t allowed, or 1/0.5/0 if ties are recorded).\n\nCommon settings include:\n- **Sports**: every game between team A and team B gives one win and one loss;\n- **Consumer choice**: a survey respondent chooses their favorite of two brands;\n- **Psychophysics**: subjects say which of two stimuli is stronger or clearer.\n\nStatistical models for paired‐comparison data (e.g. Bradley–Terry or Thurstone–Mosteller) estimate each item’s “strength” or “ability” so that the probability item i beats item j is modeled as a function of their strengths.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -60,7 +52,7 @@
       "id": 7,
       "label": "Non-iterative algorithm",
       "type": "concept",
-      "description": "**What it is**\nA non-iterative algorithm updates model parameters in a single pass, using a closed-form or direct formula, rather than looping until convergence.  Each new datum produces exactly one update step and then the algorithm moves on.\n\n**Example (Elo)**\nThe Elo rating system is non-iterative: after each game you compute the new ratings for the two players with a single formula—no loops, no repeated passes over past games.\n\n**When to use**\nOn-line, live systems where you need an instant update per observation (e.g. real-time sports ratings, streaming recommendation scores).\n\n**Contrast with iterative**\nIterative algorithms (e.g. EM, gradient descent) refine estimates by cycling over the whole dataset (or batches) multiple times until a convergence criterion is met.  Non-iterative methods sacrifice some statistical efficiency for speed and simplicity.\n\n**Prerequisites**\n<node id=\"12\">Algorithm</node> — the general notion of a step-by-step procedure.\n<node id=\"13\">Iterative algorithm</node> — methods that loop repeatedly to refine estimates.\n<node id=\"14\">Closed-form solution</node> — a direct mathematical formula for the update.\n<node id=\"8\">Elo algorithm</node> — a concrete non-iterative rating update rule.\n",
+      "description": "**What it is**\nA non-iterative algorithm updates model parameters in a single pass, using a closed-form or direct formula, rather than looping until convergence.  Each new datum produces exactly one update step and then the algorithm moves on.\n\n**Example (Elo)**\nThe Elo rating system is non-iterative: after each game you compute the new ratings for the two players with a single formula—no loops, no repeated passes over past games.\n\n**When to use**\nOn-line, live systems where you need an instant update per observation (e.g. real-time sports ratings, streaming recommendation scores).\n\n**Contrast with iterative**\nIterative algorithms (e.g. EM, gradient descent) refine estimates by cycling over the whole dataset (or batches) multiple times until a convergence criterion is met.  Non-iterative methods sacrifice some statistical efficiency for speed and simplicity.",
       "difficulty": 3,
       "domain": "tech"
     },
@@ -70,14 +62,6 @@
       "type": "concept",
       "description": "Fitting refers to the process of estimating model parameters so that the model best explains observed data. In paired comparison settings, fitting a model involves choosing strength or merit parameters that maximize agreement between predicted and actual outcomes.",
       "difficulty": 2,
-      "domain": "tech"
-    },
-    {
-      "id": 9,
-      "label": "Dynamic Paired Comparison Model",
-      "type": "concept",
-      "description": "A dynamic paired comparison model extends static paired comparison frameworks by allowing object or competitor merits to change over time. It uses time-indexed parameters and state-space or other time-series structures to capture evolving strengths.",
-      "difficulty": 3,
       "domain": "tech"
     },
     {
@@ -94,14 +78,6 @@
       "type": "concept",
       "description": "Variability in parameter estimates refers to the uncertainty or spread in estimated values of model parameters, arising from limited or noisy data. In dynamic paired comparison models, accounting for this variability (e.g., via prior variances) improves the accuracy and stability of rating updates.",
       "difficulty": 3,
-      "domain": "tech"
-    },
-    {
-      "id": 12,
-      "label": "Simulated Data",
-      "type": "concept",
-      "description": "Simulated data consists of artificially generated datasets created using known models or assumptions. In the context of dynamic paired comparison models, simulated games are produced with pre-specified player strengths and variance parameters to evaluate the accuracy and behavior of the rating algorithm.",
-      "difficulty": 2,
       "domain": "tech"
     },
     {
@@ -135,12 +111,123 @@
       "description": "A hyperparameter is a configuration setting of a statistical or machine learning model that is set _before_ the training or fitting process begins. Unlike model parameters (which are learned from data), hyperparameters control **how** the model learns or its overall structure. Common examples include learning rate, regularization strength, number of hidden layers, batch size, and time‐step variance in state‐space models.\n\n**Why It Matters**\n- Proper hyperparameter choice can dramatically affect model performance and convergence speed.\n- Tuning hyperparameters (via grid search, random search, or Bayesian optimization) is essential for achieving good generalization.\n\n**Prerequisites**\n- <node id=\"16\">Parameter</node>: you must understand what model parameters are before grasping how hyperparameters govern their learning.\n\n**How It Powers Downstream**\n- Hyperparameters determine training dynamics (e.g., stepsize, overfitting control) and model capacity.\n- Automated tuning workflows (cross-validation, Bayesian optimization) rely on systematically adjusting hyperparameters to find optimal settings.",
       "difficulty": 2,
       "domain": "tech"
-    }
+    },
+    {
+      "id": 17,
+      "label": "Linear State-Space Model",
+      "type": "concept",
+      "description": "A linear state-space model is a way to describe how a system evolves over discrete steps and how we observe it. The system has an internal state (like a hidden score or rating) that updates by combining the previous state with some noise, and we make measurements of that state through a simple linear transformation plus observation noise.  \n\n**Simple Explanation**  \n- Think of it as tracking a hidden value (the “state”) over time, where each step you predict the new state from the old one, then correct it using a noisy measurement.  \n- Because everything is linear and Gaussian, you can update your estimates efficiently and optimally using the Kalman filter.\n\n**Why It Matters**  \nProvides a mathematically tractable framework for prediction and filtering in many engineering and time-series applications.\n\n**How It Powers Downstream**  \n- **Kalman Filter**: Rapid, recursive estimation of the hidden state.  \n- **Control & Signal Processing**: Foundation for designing optimal controllers and filters.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 18,
+      "label": "The Glicko rating system",
+      "type": "paper",
+      "description": "Arguably one of the greatest fascinations of tournament chess players and competitors of other games is the measurement of playing strength. The Elo rating system, developed by Arpad Elo in the early 1960’s, was the first chess rating system that had probabilistic underpinnings, and was then adopted by many chess federations, and eventually by organizations for other games (e.g., Scrabble, table tennis, etc.). While Elo’s system is a great improvement over earlier systems, it too has its problems. In 1995, I created the Glicko rating system in response to a particular deficiency in the Elo system which I describe below. My system was derived by considering a statistical model for chess game outcomes, and then making mathematical approximations that would enable simple computation. The Elo system, coincidentally, turns out to be a special case of my system. <br><br>Key takeaways:<ul><li>The Glicko system introduces a <node id=\"302\">ratings deviation (RD)</node> to quantify uncertainty in a player’s rating based on play frequency.</li><li>Extends the <node id=\"301\">Elo rating system</node> by updating both rating and <node id=\"302\">RD</node> over discrete <node id=\"303\">rating periods</node> via a two-step process.</li><li>Pre-period RD increases during inactivity controlled by constant <node id=\"308\">c</node>, and decreases with game results to reflect gained information.</li><li>Rating updates use a <node id=\"304\">Bayesian-inspired formula</node> incorporating opponents’ ratings, RD, the <node id=\"305\">g(RD)</node> function, and <node id=\"306\">expected outcome E(s)</node>.</li><li>Permits calculation of a <node id=\"306\">game outcome expectation</node> accounting for both players’ RD, enhancing match predictions.</li><li>Provides a <node id=\"307\">95% confidence interval</node> (r ± 1.96·RD) to express uncertainty in true skill.</li><li>Recommends implementation guidelines: cap RD minimum threshold and choose <node id=\"308\">c</node> based on predictive accuracy or idle-time uncertainty criteria.</li></ul>",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 19,
+      "label": "TrueSkill2: An improved Bayesian skill rating system",
+      "type": "paper",
+      "description": "Online multiplayer games, such as Gears of War and Halo, use <node id=\"102\">skill-based matchmaking</node> to give players fair and enjoyable matches. They depend on a <node id=\"103\">skill rating system</node> to infer accurate player skills from historical data. <node id=\"104\">TrueSkill</node> is a popular and effective skill rating system, working from only the <node id=\"105\">winner and loser</node> of each game. This paper presents an extension to TrueSkill that incorporates additional information that is readily available in online shooters, such as <node id=\"106\">player experience</node>, membership in a <node id=\"107\">squad</node>, the number of <node id=\"108\">kills</node> a player scored, tendency to <node id=\"109\">quit</node>, and skill in <node id=\"110\">other game modes</node>. This extension, which we call <node id=\"111\">TrueSkill2</node>, is shown to significantly improve the accuracy of skill ratings computed from <node id=\"112\">Halo 5 matches</node>. TrueSkill2 predicts historical <node id=\"113\">match outcomes</node> with <node id=\"114\">68% accuracy</node>, compared to <node id=\"115\">52% accuracy</node> for TrueSkill.<br><br>Key takeaways:<ul><li>TrueSkill2 preserves core TrueSkill properties—support for <node id=\"201\">team games</node>, <node id=\"202\">changeable skill ratings</node>, and compatibility with existing matchmakers—while extending the model.</li><li>Uses a <node id=\"203\">probabilistic generative model</node> and <node id=\"204\">Bayesian inference</node> (via Expectation Propagation and Rprop) to update skills in both <node id=\"205\">online and batch modes</node>.</li><li>Introduces a <node id=\"207\">biased random walk</node> for skill evolution based on <node id=\"209\">player experience</node> and an explicit <node id=\"208\">squad offset</node> to model group effects.</li><li>Integrates <node id=\"210\">individual statistics</node> (kills, deaths) and applies a <node id=\"211\">quit penalty</node> to better align skill updates with actual performance.</li><li>Models cross‐mode borrowing through <node id=\"212\">mode correlation</node>, improving convergence and accuracy across game modes.</li><li>Maintains <node id=\"213\">computational efficiency</node> with <node id=\"214\">minimal tuning</node>, making it practical for large‐scale, real‐time matchmaking systems.</li></ul>",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 20,
+      "label": "Segment Anything",
+      "type": "paper",
+      "description": "We introduce the Segment Anything (SA) project: a new <node id=\"401\">promptable segmentation task</node> accepting points, boxes, masks or text to produce valid object masks; a <node id=\"402\">Segment Anything Model (SAM)</node> comprising an image encoder, prompt encoder and lightweight mask decoder with <node id=\"403\">ambiguity-aware multi-mask output</node> and real-time inference; and a <node id=\"404\">data engine</node> that iteratively annotated and automatically generated SA-1B, a dataset of over 1 billion masks on 11 million high‐res images. We demonstrate <node id=\"405\">strong zero-shot transfer</node> to 23 diverse segmentation benchmarks, edge detection, object proposals, instance segmentation, and initial text-to-mask, and perform <node id=\"406\">RAI analyses</node> showing geographic diversity and fair performance across demographic groups.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 21,
+      "label": "SAM 2: Segment Anything in Images and Videos",
+      "type": "paper",
+      "description": "We present Segment Anything Model 2 (SAM 2), a foundation model towards solving promptable visual segmentation in images and videos. We build a data engine, which improves model and data via user interaction, to collect the largest video segmentation dataset to date. Our model is a simple transformer architecture with streaming memory for real-time video processing. SAM 2 trained on our data provides strong performance across a wide range of tasks. In video segmentation, we observe better accuracy, using 3× fewer interactions than prior approaches. In image segmentation, our model is more accurate and 6× faster than the Segment Anything Model (SAM). We believe that our data, model, and insights will serve as a significant milestone for video segmentation and related perception tasks. We are releasing our main model, dataset, as well as code for model training and our demo. Key contributions include a <node id=\"501\">Promptable Visual Segmentation (PVS) task</node>; a <node id=\"502\">streaming-memory transformer architecture</node>; a <node id=\"503\">three-phase human-in-the-loop data engine and SA-V dataset</node>; and extensive <node id=\"504\">zero-shot experiments across 54 benchmarks</node> demonstrating state-of-the-art performance.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 22,
+      "label": "SmolVLA Model",
+      "type": "paper",
+      "description": "We present SmolVLA, a compact, efficient vision-language-action model designed to train on a single GPU and deploy on consumer-grade hardware for real-time robotic manipulation. SmolVLA leverages a pruned vision-language backbone with skipped transformer layers, minimal visual tokens, and an interleaved self- and cross-attention action expert trained via flow matching. We introduce a community-driven pretraining dataset of 22.9K episodes across 481 open-source robotics tasks, and an asynchronous inference stack that decouples perception from action execution to achieve higher control rates. Despite being up to 10× smaller, SmolVLA matches or surpasses much larger VLAs on both simulated benchmarks (LIBERO, Meta-World) and real-world low-cost robot arms, and is fully open-sourced.",
+      "difficulty": 5,
+      "domain": "tech"
+    },
+    {
+      "id": 23,
+      "label": "Image Encoder",
+      "type": "component",
+      "description": "An image encoder is a neural network module that converts raw image data into a compact, fixed-size embedding or set of feature tokens. It processes an RGB frame through convolutional or transformer-based layers, applies spatial down‑sampling (e.g., pooling or patch projection), and outputs a sequence of feature vectors capturing semantic and structural information. Typically pretrained via supervised classification (e.g., ImageNet) or self‑supervised objectives (e.g., contrastive learning in CLIP or masked autoencoding), it provides transferable visual representations for downstream tasks such as vision‑language modeling, object detection, and robotic perception.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 24,
+      "label": "Maximum Likelihood Estimation (MLE)",
+      "type": "concept",
+      "description": "A method for estimating model parameters that finds the values which maximize the likelihood function, i.e., the probability of observing the given data under the model.\n\nExample: Given data assumed to follow a normal distribution with unknown mean μ and known variance σ², MLE selects μ̂ as the sample average, because that choice makes the observed samples most probable under the model.",
+      "difficulty": 1,
+      "domain": "tech"
+    },
+    {
+      "id": 25,
+      "label": "Bayesian Inference",
+      "type": "concept",
+      "description": "An approach that updates prior beliefs about parameters into a posterior distribution by multiplying the prior by the likelihood of the observed data and normalizing.\n\nExample: To estimate a coin’s bias p, start with a Beta(2,2) prior; after observing 8 heads and 4 tails, the posterior is Beta(10,6), giving a full distribution over p rather than a single point estimate.",
+      "difficulty": 1,
+      "domain": "statistics"
+    },
+    {
+    "id": 26,
+    "label": "Vision-Language-Action (VLA) Model",
+    "type": "concept",
+    "description": "A neural architecture that jointly processes visual inputs and natural language instructions to generate action trajectories or control signals. It combines a <node id=\"23\">vision encoder</node>, a language encoder, and an action decoder or policy network, enabling end-to-end grounding of language in perception and motion.\n\nExample: Given an image of a cluttered table and the instruction “pick up the red block,” a VLA model encodes the scene into visual tokens, encodes the command via a language encoder, fuses both representations in a cross-attention module, and outputs motor commands that guide a robot arm to grasp the red block.",
+    "difficulty": 3,
+    "domain": "tech"
+  }
+
   ],
   "links": [
     {
-      "source": 12,
-      "target": 0,
+      "source": 6,
+      "target": 25,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 24,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 23,
+      "target": 21,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 23,
+      "target": 20,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 23,
+      "target": 26,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 26,
+      "target": 22,
       "relation": "prerequisite",
       "value": 1
     },
@@ -152,12 +239,6 @@
     },
     {
       "source": 10,
-      "target": 0,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 9,
       "target": 0,
       "relation": "prerequisite",
       "value": 1
@@ -189,18 +270,6 @@
     {
       "source": 4,
       "target": 0,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 0,
-      "target": 1,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 1,
-      "target": 2,
       "relation": "prerequisite",
       "value": 1
     },
