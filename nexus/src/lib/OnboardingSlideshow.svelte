@@ -16,7 +16,6 @@
 		(q: any) => ({ ...q, bracket: q.bracket as Bracket })
 	);
 	import { writable, derived } from 'svelte/store';
-	import mergedGraph from '../merged_graph.json';
 	import { createEventDispatcher } from 'svelte';
 
 	export let onSetRecommendation;
@@ -142,9 +141,14 @@
 		expert:
 			'You’re ready for the cutting edge! Dive straight into the Transformer paper that revolutionized deep learning.'
 	};
+	onMount(async () => {
+		const res = await fetch('/merged_graph.json');
+		if (!res.ok) throw new Error('could not load graph');
+		const mergedGraph = await res.json();
+	});
 
 	$: if (step === 'complete') {
-		const bracket = currentBracket; // This is the user's bracket after quiz
+		const bracket = currentBracket;
 		const nodeId = staticRecommendations[bracket] ?? staticRecommendations['beginner'];
 		const node = mergedGraph.nodes.find((n: any) => n.id === nodeId);
 		staticRecommendation = node;

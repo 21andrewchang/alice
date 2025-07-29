@@ -170,10 +170,9 @@
 		updateUserProfileDebug();
 	}
 
-	// Load mergedGraph dynamically
 	async function loadMergedGraph() {
 		try {
-			const res = await fetch('/merged_graph.json');
+			const res = await fetch('/parameter_graph.json');
 			if (res.ok) {
 				mergedGraph = await res.json();
 				mergedGraphLoaded = true;
@@ -184,10 +183,6 @@
 
 	let element: any;
 	let tooltipEl: any;
-
-	async function loadData() {
-		return fetch('/merged_graph.json').then((r) => r.json());
-	}
 
 	function selectNode(node: any) {
 		// Add to stack instead of setting selectedNode
@@ -425,7 +420,7 @@
 				d3
 					.forceLink(links)
 					.id((d: any) => d.id)
-					.distance(100)
+					.distance(150)
 			)
 			.force('charge', d3.forceManyBody().strength(-200))
 			.force('center', d3.forceCenter(0, 0))
@@ -467,6 +462,16 @@
 					.strength((d: any) => {
 						return d.domain === 'math' ? 0.12 : 0.1;
 					})
+			)
+			.force(
+				'collide',
+				d3
+					.forceCollide()
+					.radius((d: any) => {
+						const base = d.type === 'paper' ? 12 : 8;
+						return base + 20;
+					})
+					.strength(0.8)
 			);
 
 		// Create SVG with zoom behavior
@@ -1249,13 +1254,34 @@
 	onMount(async () => {
 		await loadVisitedFromDb();
 		await loadUserFromDb();
+		await loadMergedGraph();
 		initializeSuggestionSystem();
-		loadMergedGraph();
+
+		element.innerHTML = '';
+		element.appendChild(chart(mergedGraph));
+
 		updateNodeStyles();
 		updateUserProfileDebug();
+
+		const handleNodeLinkClick = (event: MouseEvent) => {
+			const target = (event.target as HTMLElement).closest('.node-link');
+			if (target?.dataset.nodeId) {
+				selectNodeById(parseInt(target.dataset.nodeId));
+			}
+		};
+		document.addEventListener('click', handleNodeLinkClick);
+
+		// 6. Any other broadcast listeners
 		window.addEventListener('nodeVisited', updateUserProfileDebug);
+		window.addEventListener('nodeStatusUpdated', updateUserProfileDebug);
+		const unsubRec = recommendedNodeStore.subscribe(updateUserProfileDebug);
+
+		// Cleanup all listeners when component unmounts
 		return () => {
+			document.removeEventListener('click', handleNodeLinkClick);
 			window.removeEventListener('nodeVisited', updateUserProfileDebug);
+			window.removeEventListener('nodeStatusUpdated', updateUserProfileDebug);
+			unsubRec();
 		};
 	});
 
@@ -1269,49 +1295,6 @@
 		}
 	}
 
-	onMount(async () => {
-		const data = await loadData();
-		element.innerHTML = '';
-		element.appendChild(chart(data));
-
-		// Ensure global function is available after mount
-		window.selectNodeById = selectNodeById;
-
-		// Add click listener for node links
-		const handleNodeLinkClick = (event: any) => {
-			const target = event.target.closest('.node-link');
-			if (target && target.dataset.nodeId) {
-				const nodeId = parseInt(target.dataset.nodeId);
-				selectNodeById(nodeId);
-			}
-		};
-
-		document.addEventListener('click', handleNodeLinkClick);
-
-		// Cleanup function
-		return () => {
-			document.removeEventListener('click', handleNodeLinkClick);
-		};
-	});
-
-	// Update debug panel on mount and whenever a node is visited or recommendedNode changes
-	onMount(async () => {
-		// Load mergedGraph dynamically
-		try {
-			const res = await fetch('/merged_graph.json');
-			mergedGraph = await res.json();
-			mergedGraphLoaded = true;
-			updateUserProfileDebug();
-		} catch (e) {
-			console.error('Failed to load merged_graph.json', e);
-		}
-		window.addEventListener('nodeStatusUpdated', updateUserProfileDebug);
-		recommendedNodeStore.subscribe(() => updateUserProfileDebug());
-		return () => {
-			window.removeEventListener('nodeStatusUpdated', updateUserProfileDebug);
-		};
-	});
-
 	let userProfileClicked = false;
 	function handleUserProfileClick() {
 		handleLogout();
@@ -1320,22 +1303,52 @@
 			userProfileClicked = false;
 		}, 100);
 	}
+	const bracketColors = {
+		beginner: '#9CA3AF',
+		intermediate: '#E0AF67',
+		advanced: '#BA9AF7',
+		expert: '#F7768E'
+	};
+
+	// whenever userBracket changes, this will update
+	$: borderColor = bracketColors[userBracket] || '#333333';
+	$: currentHistoryIndex = navigationHistory.findIndex((n) => n.id === focusedNode?.id);
+
+	function prevStack() {
+		if (currentHistoryIndex > 0) {
+			navigateToStackIndex(currentHistoryIndex - 1);
+		}
+	}
+	function nextStack() {
+		if (currentHistoryIndex < navigationHistory.length - 1) {
+			navigateToStackIndex(currentHistoryIndex + 1);
+		}
+	}
+	$: canGoPrev = currentHistoryIndex > 0;
+	$: canGoNext = currentHistoryIndex < navigationHistory.length - 1;
 </script>
 
 <div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
 	<div
-		class="user-profile-debug {userProfileClicked
-			? 'clicked'
-			: ''} flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2 text-xs text-neutral-50 shadow"
-		style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
+		class="user-profile-debug flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
+		style="
+    background-color: rgba(0,0,0,.95);
+    border: 2px solid {borderColor};
+    backdrop-filter: blur(10px);
+  "
 		on:click={handleUserProfileClick}
 	>
-		<p><b>User Bracket:</b>{userBracket}</p>
+		<p
+			class="flex items-center gap-x-2 text-xs font-semibold capitalize"
+			style="color: {borderColor};"
+		>
+			{userBracket}
+		</p>
 	</div>
 	{#if recommendedNode && recommendedNode.node}
 		<div
-			class="next-step-glow flex items-center gap-2 rounded-sm px-4 py-2 text-xs shadow"
-			style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
+			class="next-step-glow flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
+			style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
 		>
 			<span class="font-semibold text-neutral-50">Next Step:</span>
 			<span
@@ -1424,9 +1437,13 @@
 								<PaginatedContent
 									{node}
 									{parseNodeLinks}
+									{canGoPrev}
+									{canGoNext}
 									onClose={() => removeFromStack(node.id)}
 									nodesVisited={nodeStatusService.getAllStatuses().size}
 									on:challenge={(e) => openChallenge(e.detail.node)}
+									on:prevNode={prevStack}
+									on:nextNode={nextStack}
 								/>
 							</div>
 						</div>
