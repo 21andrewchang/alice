@@ -1,0 +1,232 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "Summary",
+      "type": "concept",
+      "description": "Paired comparison data in which the abilities or merits of the objects being compared may be changing over time can be modeled as a non-linear state space model. When the population of objects being compared is large, likelihood-based analyses can be too computationally cumbersome to carry out regularly. This presents a problem for rating populations of chess players and other large groups which often consist of tens of thousands of competitors. This problem is overcome through a computationally simple non-iterative algorithm for fitting a particular dynamic paired comparison model. The algorithm, which improves over the commonly used algorithm of Elo by incorporating the variability in parameter estimates, can be performed regularly even for large populations of competitors. The method is evaluated on simulated data and is applied to ranking the best chess players of all time, and to ranking the top current tennis-players.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 1,
+      "label": "Introduction",
+      "type": "concept",
+      "description": "Paired comparison models address data that arise when two objects or treatments are compared simultaneously to determine a degree of preference. Examples include modeling choice behavior (e.g., preferring one soft drink over another or choosing the Democratic presidential candidate over the Republican candidate), assessing competitive ability in sports (e.g., determining team strengths in basketball or baseball), and many other settings. David (1988) and Bradley (1984) review key examples and issues in paired comparison modeling.\n\nRecent work by Fahrmeir and Tutz (1994) and Glickman (1993) extends the traditional (static) paired comparison models by incorporating time-varying parameters. These \"dynamic\" paired comparison models are well suited for contexts—such as competitive sports—where player or team abilities evolve over time. When the population of competitors is relatively small, the methodologies in these papers pose no computational difficulties. However, with very large populations (for example, the United States Chess Federation's more than 30,000 players playing over 450,000 games each year), likelihood-based fitting of dynamic models becomes computationally intractable, and more efficient methods are required.\n\nThis paper presents a non-iterative method for fitting dynamic paired comparison models that remains feasible even for large populations and can be run on an ongoing basis. While measuring chess players' abilities motivates our development, the approach applies directly to any paired comparison setting with time-varying merits. Section 2 introduces our dynamic paired comparison model. Section 3 presents the non-iterative parameter-updating algorithm. Because certain hyperparameters must be estimated before applying the update, Section 4 describes their estimation. Section 5 evaluates the algorithm on simulated data, and Section 6 applies the method to two real datasets: all known games among the greatest chess players of all time, and matches between current top tennis players.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 2,
+      "label": "Dynamic paired comparison model",
+      "type": "concept",
+      "description": "The model that we assume for competitor ability is closely related to the Bradley–Terry model for paired comparisons (Bradley and Terry, 1952). The Bradley–Terry model asserts that, for two objects with merit parameters θ₁ and θ₂, object 1 is preferred to object 2 with probability θ₁/(θ₁+θ₂). For our specific problem, let θᵢ and θⱼ be the unknown strengths for players i and j at a fixed point in time. Assume first that a game results in only two outcomes: a win or a loss. Let sᵢⱼₖ be the outcome of the kᵗʰ game between players i and j, where sᵢⱼₖ = 1 when player i wins and sᵢⱼₖ = 0 when player j wins. We reparameterize so that\n\nPr(sᵢⱼₖ = 1) = 10^{(θᵢ–θⱼ)/400}/(1+10^{(θᵢ–θⱼ)/400}),\n\nand Pr(sᵢⱼₖ = 0) = 1–Pr(sᵢⱼₖ = 1). This produces strength estimates on the USCF rating scale (roughly 0–3000).\n\nSeveral extensions incorporate ties (Davidson, 1970; Rao & Kupper, 1967), but we treat a tie as halfway between a win and a loss—i.e. s = 0.5—so as to avoid introducing extra parameters. Other order‐effect terms (e.g. home‐ground or first‐move advantages) could be added but are omitted here.\n\nTo allow strengths to change over time, we group games into \"rating periods.\" If θᵢ(t₀) is player i’s strength at time t₀, then after an interval of length t we assume\n\nθᵢ(t₀+t) | θᵢ(t₀) ∼ N(θᵢ(t₀), σ² · t),\n\nso that our uncertainty grows with inactivity. Here σ² is a hyperparameter to be estimated.\n\nLikelihood‐based fitting of the full state‐space model can be done via empirical Bayes (Fahrmeir & Tutz, 1994) or MCMC (Glickman, 1993), but joint estimation is computationally infeasible for very large populations (e.g. tens of thousands of chess players). In the next section we introduce a non‐iterative updating algorithm that remains practical for large datasets.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 3,
+      "label": "An approximate Bayesian updating algorithm",
+      "type": "concept",
+      "description": "The model that we assume for competitor ability is closely related to the Bradley–Terry model for paired comparisons (Bradley and Terry, 1952). The Bradley–Terry model asserts that, for two objects with merit parameters θ₁ and θ₂, object 1 is preferred to object 2 with probability θ₁/(θ₁+θ₂). For our specific problem, let θᵢ and θⱼ be the unknown strengths for players i and j at a fixed point in time. Assume first that a game results in only two outcomes: a win or a loss. Let sᵢⱼₖ be the outcome of the kᵗʰ game between players i and j, where sᵢⱼₖ = 1 when player i wins and sᵢⱼₖ = 0 when player j wins. We reparameterize so that\n\nPr(sᵢⱼₖ = 1) = 10^{(θᵢ–θⱼ)/400}/(1+10^{(θᵢ–θⱼ)/400}),\n\nand Pr(sᵢⱼₖ = 0) = 1–Pr(sᵢⱼₖ = 1). This produces strength estimates on the USCF rating scale (roughly 0–3000).\n\nSeveral extensions incorporate ties (Davidson, 1970; Rao & Kupper, 1967), but we treat a tie as halfway between a win and a loss—i.e. s = 0.5—so as to avoid introducing extra parameters. Other order‐effect terms (e.g. home‐ground or first‐move advantages) could be added but are omitted here.\n\nTo allow strengths to change over time, we group games into \"rating periods.\" If θᵢ(t₀) is player i’s strength at time t₀, then after an interval of length t we assume\n\nθᵢ(t₀+t) | θᵢ(t₀) ∼ N(θᵢ(t₀), σ² · t),\n\nso that our uncertainty grows with inactivity. Here σ² is a hyperparameter to be estimated.\n\nLikelihood‐based fitting of the full state‐space model can be done via empirical Bayes (Fahrmeir & Tutz, 1994) or MCMC (Glickman, 1993), but joint estimation is computationally infeasible for very large populations (e.g. tens of thousands of chess players). In the next section we introduce a non‐iterative updating algorithm that remains practical for large datasets.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 4,
+      "label": "Paired-Comparison Data",
+      "type": "concept",
+      "description": "Paired‐comparison data consist of observations in which two items (or “objects”) are presented together and one must choose which is preferred (or “wins”) over the other. Each record in the dataset is a triple `(i, j, outcome)` where `i` and `j` are the two items being compared, and `outcome` indicates which item was preferred (for instance, a binary 1/0 if ties aren’t allowed, or 1/0.5/0 if ties are recorded).\n\nCommon settings include:\n- **Sports**: every game between team A and team B gives one win and one loss;\n- **Consumer choice**: a survey respondent chooses their favorite of two brands;\n- **Psychophysics**: subjects say which of two stimuli is stronger or clearer.\n\nStatistical models for paired‐comparison data (e.g. Bradley–Terry or Thurstone–Mosteller) estimate each item’s “strength” or “ability” so that the probability item i beats item j is modeled as a function of their strengths.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 5,
+      "label": "Non-linear State Space Model",
+      "type": "concept",
+      "description": "A non-linear state space model represents a dynamic system in discrete time by two equations:\n\n1. **State (Transition) Equation**:  xₜ = f(xₜ₋₁) + wₜ,  where xₜ is the hidden state at time t, f(·) is a (possibly non-linear) transition function, and wₜ is process noise.\n\n2. **Observation (Measurement) Equation**:  yₜ = g(xₜ) + vₜ,  where yₜ is the observed data at time t, g(·) is a (possibly non-linear) measurement function, and vₜ is observation noise.\n\nSuch models track latent variables that evolve over time under non-linear dynamics and generate noisy observations. Inference (e.g., computing the posterior of xₜ) typically requires approximation methods like the Extended or Unscented Kalman Filter, Particle Filtering, or variational approaches.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 6,
+      "label": "Likelihood-Based Analyses",
+      "type": "concept",
+      "description": "Likelihood-based analyses estimate model parameters by maximizing the likelihood function, which measures the probability of the observed data given the parameters. Common approaches include:\n\n- **Maximum Likelihood Estimation (MLE)**: finding parameter values that maximize the likelihood.\n- **Bayesian Inference**: combining the likelihood with a prior distribution to obtain a posterior distribution over parameters.\n- **Empirical Bayes**: estimating hyperparameters by maximizing marginal likelihood, then performing Bayesian updates.\n\nThese methods provide principled parameter estimates and uncertainty quantification but can be computationally intensive for large or complex models.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 7,
+      "label": "Non-iterative algorithm",
+      "type": "concept",
+      "description": "**What it is**\nA non-iterative algorithm updates model parameters in a single pass, using a closed-form or direct formula, rather than looping until convergence.  Each new datum produces exactly one update step and then the algorithm moves on.\n\n**Example (Elo)**\nThe Elo rating system is non-iterative: after each game you compute the new ratings for the two players with a single formula—no loops, no repeated passes over past games.\n\n**When to use**\nOn-line, live systems where you need an instant update per observation (e.g. real-time sports ratings, streaming recommendation scores).\n\n**Contrast with iterative**\nIterative algorithms (e.g. EM, gradient descent) refine estimates by cycling over the whole dataset (or batches) multiple times until a convergence criterion is met.  Non-iterative methods sacrifice some statistical efficiency for speed and simplicity.\n\n**Prerequisites**\n<node id=\"12\">Algorithm</node> — the general notion of a step-by-step procedure.\n<node id=\"13\">Iterative algorithm</node> — methods that loop repeatedly to refine estimates.\n<node id=\"14\">Closed-form solution</node> — a direct mathematical formula for the update.\n<node id=\"8\">Elo algorithm</node> — a concrete non-iterative rating update rule.\n",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 8,
+      "label": "Fitting",
+      "type": "concept",
+      "description": "Fitting refers to the process of estimating model parameters so that the model best explains observed data. In paired comparison settings, fitting a model involves choosing strength or merit parameters that maximize agreement between predicted and actual outcomes.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 9,
+      "label": "Dynamic Paired Comparison Model",
+      "type": "concept",
+      "description": "A dynamic paired comparison model extends static paired comparison frameworks by allowing object or competitor merits to change over time. It uses time-indexed parameters and state-space or other time-series structures to capture evolving strengths.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 10,
+      "label": "Elo Algorithm",
+      "type": "concept",
+      "description": "The Elo algorithm updates a competitor’s rating after each game based on the difference between the actual game outcome and the expected outcome. The expected score against an opponent is calculated as 1 / (1 + 10^((opponent_rating – player_rating) / 400)). The new rating is then computed as: new_rating = old_rating + K × (actual_score – expected_score), where K is a tuning constant.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 11,
+      "label": "Variability in Parameter Estimates",
+      "type": "concept",
+      "description": "Variability in parameter estimates refers to the uncertainty or spread in estimated values of model parameters, arising from limited or noisy data. In dynamic paired comparison models, accounting for this variability (e.g., via prior variances) improves the accuracy and stability of rating updates.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 12,
+      "label": "Simulated Data",
+      "type": "concept",
+      "description": "Simulated data consists of artificially generated datasets created using known models or assumptions. In the context of dynamic paired comparison models, simulated games are produced with pre-specified player strengths and variance parameters to evaluate the accuracy and behavior of the rating algorithm.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 13,
+      "label": "State Space",
+      "type": "concept",
+      "description": "The state space of a dynamic system is the set of all possible values of its hidden (latent) variables, xₜ. Each point in this space represents a complete description of the system’s internal condition at a given time.\n\n**Example**\nIn the context of chess, the state space can be thought of as the range of possible player ratings (e.g., 0 – 3000); each rating value corresponds to a point in the state space describing a player’s skill level at a given moment.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 14,
+      "label": "Statistical Model",
+      "type": "concept",
+      "description": "**What it does**\nA statistical model defines a probabilistic relationship between unobserved (latent) parameters and the data we observe, so we can infer the hidden quantities from noisy measurements.\n\n**Key components**\n- **Parameters / latent state**: the unknown quantities we want to learn (e.g. a chess player’s true strength at each game).\n- **Data / observations**: what we actually measure (e.g. win/loss outcomes).\n- **Link / likelihood**: a function that gives the probability of each observation given the current parameters.\n\n**Chess example**\nUse a non-linear state-space statistical model:\n1. **Latent state xₜ**: player’s true rating before game _t_.\n2. **Transition**: xₜ = xₜ₋₁ + wₜ (Gaussian “drift” for improvement or fatigue).\n3. **Observation / likelihood**:\n   ```\n   Pr(i beats j at game t | xₜᵢ, xₜⱼ) = 1 / (1 + 10^((xₜⱼ − xₜᵢ)/400))\n   ```\n   Then the actual result yₜ ∈ {0,1} is drawn with that probability.\n\nThis statistical model lets us compute the likelihood of any sequence of game outcomes given a sequence of latent ratings, and then invert that relationship (via filtering or MCMC) to estimate each xₜ from the data.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 15,
+      "label": "Parameters",
+      "type": "concept",
+      "description": "Parameters are the (often unobserved) quantities in a statistical or mathematical model that determine its behavior. In paired-comparison or state-space models, parameters include:\n\n- **Static model parameters**: fixed values (e.g., each player’s constant strength).\n- **Dynamic model parameters**: time-varying quantities (e.g., a player’s rating before each game).\n- **Hyperparameters**: settings governing the model (e.g., process noise variance in a state transition).\n\n**Role in inference**: we choose parameters so that the model’s predicted data (via its likelihood) matches the observed data as closely as possible. Then we interpret those parameter estimates to understand the system.\n\n**Chess example**: in a non-linear state-space model, the player’s rating xₜ is a time-varying parameter, while the noise variance σ² in xₜ = xₜ₋₁ + wₜ is a hyperparameter.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 16,
+      "label": "Hyperparameter",
+      "type": "concept",
+      "description": "A hyperparameter is a configuration setting of a statistical or machine learning model that is set _before_ the training or fitting process begins. Unlike model parameters (which are learned from data), hyperparameters control **how** the model learns or its overall structure. Common examples include learning rate, regularization strength, number of hidden layers, batch size, and time‐step variance in state‐space models.\n\n**Why It Matters**\n- Proper hyperparameter choice can dramatically affect model performance and convergence speed.\n- Tuning hyperparameters (via grid search, random search, or Bayesian optimization) is essential for achieving good generalization.\n\n**Prerequisites**\n- <node id=\"16\">Parameter</node>: you must understand what model parameters are before grasping how hyperparameters govern their learning.\n\n**How It Powers Downstream**\n- Hyperparameters determine training dynamics (e.g., stepsize, overfitting control) and model capacity.\n- Automated tuning workflows (cross-validation, Bayesian optimization) rely on systematically adjusting hyperparameters to find optimal settings.",
+      "difficulty": 2,
+      "domain": "tech"
+    }
+  ],
+  "links": [
+    {
+      "source": 12,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 10,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 9,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 8,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 0,
+      "target": 1,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 13,
+      "target": 5,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 14,
+      "target": 5,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 15,
+      "target": 16,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 16,
+      "target": 14,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+} 

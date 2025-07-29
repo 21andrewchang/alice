@@ -2,7 +2,7 @@
   "nodes": [
     {
       "id": 0,
-      "label": "Attention Is All You Need",
+      "label": "Cock",
       "type": "paper",
       "description": "Introduces the Transformer architecture based entirely on attention mechanisms, dispensing with recurrence and convolutions. This paper revolutionized natural language processing and became the foundation for modern large language models.",
       "difficulty": 4,
