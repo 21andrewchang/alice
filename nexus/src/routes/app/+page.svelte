@@ -189,6 +189,7 @@
 		addToNodeStack(node);
 		// Center the graph on the selected node
 		centerGraphOnNode(node);
+		updateNodeStyles();
 	}
 
 	let nodeSel: any; // Store node selection for updates
@@ -420,7 +421,7 @@
 				d3
 					.forceLink(links)
 					.id((d: any) => d.id)
-					.distance(150)
+					.distance(100)
 			)
 			.force('charge', d3.forceManyBody().strength(-200))
 			.force('center', d3.forceCenter(0, 0))
@@ -694,12 +695,24 @@
 			.data(nodes)
 			.join('text')
 			.attr('text-anchor', 'middle')
-			.attr('dy', '0.35em')
-			.attr('font-size', '6px')
+			.attr('dy', '0.1em')
+			.attr('font-size', '4px')
 			.attr('font-family', 'Arial, sans-serif')
 			.attr('fill', '#CCCCCC') // Updated to match the new default color
 			.attr('pointer-events', 'none')
-			.style('opacity', 0) // Start hidden
+			.style('opacity', 0); // Start hidden
+
+		textSel = g
+			.selectAll('text')
+			.data(nodes)
+			.join('text')
+			/* …your attrs… */
+			.text((d) => {
+				const MAX = 30;
+				return d.label.length > MAX ? d.label.slice(0, MAX - 1) + '…' : d.label;
+			})
+			// then add a native SVG tooltip so the full title is on hover:
+			.append('title')
 			.text((d) => d.label);
 
 		// Tick update
@@ -1049,14 +1062,35 @@
 
 					// Get node status to determine visual representation
 					if (nodeStatusService.isMastered(nodeId)) {
-						// Mastered: colored text with glow effect and mastery indicator
-						return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="color: ${color}; font-weight: 600; text-shadow: 0 0 4px ${color}80;">${text} <span style="font-size: 0.8em; vertical-align: super;">✓</span></span>`;
+						// Mastered: plain text (no underline)
+						return `<span
+								class="cursor-pointer transition-all duration-200 node-link"
+								data-node-id="${nodeId}"
+								style="color: ${color}; font-weight: 500;"
+							  >${text}</span>`;
 					} else if (nodeStatusService.isVisited(nodeId)) {
-						// Visited: just colored text, no box
-						return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="color: ${color}; font-weight: 500;">${text}</span>`;
+						// Visited: underlined text
+						return `<span
+								class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link"
+								data-node-id="${nodeId}"
+								style="color: ${color}; font-weight: 500; text-decoration: underline;"
+							  >${text}</span>`;
 					} else {
-						// Not visited: box style with even padding
-						return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="display: inline-flex; align-items: center; background: ${color}18; border: 1px solid ${color}4D; border-radius: 5px; padding: 2px 3px; color: ${color}; font-weight: 500;">${text}</span>`;
+						// Not visited: boxed style
+						return `<span
+							class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link"
+							data-node-id="${nodeId}"
+							style="
+							  display: inline-flex;
+							  align-items: center;
+							  background: ${color}18;
+							  border: 1px solid ${color}4D;
+							  border-radius: 5px;
+							  padding: 2px 3px;
+							  color: ${color};
+							  font-weight: 500;
+							"
+						  >${text}</span>`;
 					}
 				}
 				return text;
@@ -1080,7 +1114,7 @@
 
 				// Add to the stack first (same order as selectNode)
 				addToNodeStack(liveNode);
-
+				updateNodeStyles();
 				// Then center the graph on the selected node
 				centerGraphOnNode(liveNode);
 
@@ -1104,7 +1138,7 @@
 	// Function to center the graph on a specific node (restored original logic)
 	function centerGraphOnNode(node: any) {
 		if (zoomBehavior && svgElement) {
-			const scale = 1.2; // Less zoom-in than before
+			const scale = 1.6;
 			const [x, y] = [node.x || 0, node.y || 0]; // Node position
 
 			// Get the current container dimensions
@@ -1198,7 +1232,6 @@
 		updateNodeStyles();
 	}
 
-	// Function to navigate to a specific index in the navigation history
 	function navigateToStackIndex(index: any) {
 		if (index >= 0 && index < navigationHistory.length) {
 			// Get the selected node from navigation history
@@ -1324,8 +1357,6 @@
 			navigateToStackIndex(currentHistoryIndex + 1);
 		}
 	}
-	$: canGoPrev = currentHistoryIndex > 0;
-	$: canGoNext = currentHistoryIndex < navigationHistory.length - 1;
 </script>
 
 <div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
@@ -1437,8 +1468,6 @@
 								<PaginatedContent
 									{node}
 									{parseNodeLinks}
-									{canGoPrev}
-									{canGoNext}
 									onClose={() => removeFromStack(node.id)}
 									nodesVisited={nodeStatusService.getAllStatuses().size}
 									on:challenge={(e) => openChallenge(e.detail.node)}
