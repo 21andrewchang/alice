@@ -1064,10 +1064,12 @@
 					if (nodeStatusService.isMastered(nodeId)) {
 						// Mastered: plain text (no underline)
 						return `<span
-								class="cursor-pointer transition-all duration-200 node-link"
-								data-node-id="${nodeId}"
-								style="color: ${color}; font-weight: 500;"
-							  >${text}</span>`;
+						  class="cursor-pointer transition-colors duration-200 node-link"
+						  data-node-id="${nodeId}"
+						  style="font-weight: 500; color: inherit;"
+						  onmouseover="this.style.color='${color}'"
+						  onmouseout="this.style.color='';"
+						>${text}</span>`;
 					} else if (nodeStatusService.isVisited(nodeId)) {
 						// Visited: underlined text
 						return `<span
@@ -1343,8 +1345,15 @@
 		expert: '#F7768E'
 	};
 
+	function hexToRgba(hex: string, alpha: number) {
+		const r = parseInt(hex.slice(1, 3), 16);
+		const g = parseInt(hex.slice(3, 5), 16);
+		const b = parseInt(hex.slice(5, 7), 16);
+		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+	}
 	// whenever userBracket changes, this will update
 	$: borderColor = bracketColors[userBracket] || '#333333';
+	$: borderColorAlpha = hexToRgba(borderColor, 0.3);
 	$: currentHistoryIndex = navigationHistory.findIndex((n) => n.id === focusedNode?.id);
 
 	function prevStack() {
@@ -1364,14 +1373,14 @@
 		class="user-profile-debug flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
 		style="
     background-color: rgba(0,0,0,.95);
-    border: 2px solid {borderColor};
+    border: 2px solid {borderColorAlpha};
     backdrop-filter: blur(10px);
   "
 		on:click={handleUserProfileClick}
 	>
 		<p
 			class="flex items-center gap-x-2 text-xs font-semibold capitalize"
-			style="color: {borderColor};"
+			style="color: {borderColor}; "
 		>
 			{userBracket}
 		</p>

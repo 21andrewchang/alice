@@ -88,7 +88,7 @@ export class NodeStatusService {
 
   /** Returns true if mastery >= 1. */
   isMastered(nodeId: string): boolean {
-    return (this.getNodeStatus(nodeId).mastery || 0) >= 1;
+    return (this.getNodeStatus(nodeId).mastery || 0) >= 3;
   }
 }
 
