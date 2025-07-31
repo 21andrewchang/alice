@@ -1,0 +1,406 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "Parameter Estimation in Dynamic Paired Comparison",
+      "type": "paper",
+      "description": "<node id=\"4\">Paired comparison data</node> in which the abilities or merits of the objects being compared may be changing over time can be modelled as a <node id=\"5\">non‑linear state space model</node>. When the population of objects being compared is large, <node id=\"6\">likelihood‑based analyses</node> can be too computationally cumbersome to carry out regularly. This problem is overcome through a computationally simple non‑iterative algorithm for fitting a particular dynamic paired comparison model. The algorithm, which improves over the commonly used algorithm of <node id=\"10\">Elo</node> by incorporating the variability in parameter estimates, can be performed regularly even for large populations of competitors. The method is evaluated on simulated data and is applied to ranking the best chess players of all time, and to ranking the top current tennis‑players.\n\nKey Contributions:\n- Introduces a non‑iterative, approximate Bayesian updating algorithm for dynamic paired comparison models that scales to tens of thousands of competitors.\n- Extends the Bradley–Terry framework by integrating state‑space modelling to allow abilities to evolve over time (static vs. dynamic models).\n- Derives closed‑form updates for posterior means and variances (connecting to and generalizing Elo’s K‑factor approach).\n- Presents a smoothing (backward‑filtering) procedure to refine early‑period ability estimates using future data.\n- Provides extensive simulation studies validating coverage and accuracy across varying population sizes and game counts.\n- Demonstrates practical utility on large real‑world data sets: historical chess results (1857–1991) and ATP tennis matches (1986–1995).",
+      "difficulty": 5,
+      "domain": "statistics"
+    },
+    {
+      "id": 2,
+      "label": "Dynamic paired comparison model",
+      "type": "concept",
+      "description": "The model that we assume for competitor ability is closely related to the Bradley–Terry model for paired comparisons (Bradley and Terry, 1952). The Bradley–Terry model asserts that, for two objects with merit parameters θ₁ and θ₂, object 1 is preferred to object 2 with probability θ₁/(θ₁+θ₂). For our specific problem, let θᵢ and θⱼ be the unknown strengths for players i and j at a fixed point in time. Assume first that a game results in only two outcomes: a win or a loss. Let sᵢⱼₖ be the outcome of the kᵗʰ game between players i and j, where sᵢⱼₖ = 1 when player i wins and sᵢⱼₖ = 0 when player j wins. We reparameterize so that\n\nPr(sᵢⱼₖ = 1) = 10^{(θᵢ–θⱼ)/400}/(1+10^{(θᵢ–θⱼ)/400}),\n\nand Pr(sᵢⱼₖ = 0) = 1–Pr(sᵢⱼₖ = 1). This produces strength estimates on the USCF rating scale (roughly 0–3000).\n\nSeveral extensions incorporate ties (Davidson, 1970; Rao & Kupper, 1967), but we treat a tie as halfway between a win and a loss—i.e. s = 0.5—so as to avoid introducing extra parameters. Other order‐effect terms (e.g. home‐ground or first‐move advantages) could be added but are omitted here.\n\nTo allow strengths to change over time, we group games into \"rating periods.\" If θᵢ(t₀) is player i’s strength at time t₀, then after an interval of length t we assume\n\nθᵢ(t₀+t) | θᵢ(t₀) ∼ N(θᵢ(t₀), σ² · t),\n\nso that our uncertainty grows with inactivity. Here σ² is a hyperparameter to be estimated.\n\nLikelihood‐based fitting of the full state‐space model can be done via empirical Bayes (Fahrmeir & Tutz, 1994) or MCMC (Glickman, 1993), but joint estimation is computationally infeasible for very large populations (e.g. tens of thousands of chess players). In the next section we introduce a non‐iterative updating algorithm that remains practical for large datasets.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 3,
+      "label": "An approximate Bayesian updating algorithm",
+      "type": "concept",
+      "description": "The model that we assume for competitor ability is closely related to the Bradley–Terry model for paired comparisons (Bradley and Terry, 1952). The Bradley–Terry model asserts that, for two objects with merit parameters θ₁ and θ₂, object 1 is preferred to object 2 with probability θ₁/(θ₁+θ₂). For our specific problem, let θᵢ and θⱼ be the unknown strengths for players i and j at a fixed point in time. Assume first that a game results in only two outcomes: a win or a loss. Let sᵢⱼₖ be the outcome of the kᵗʰ game between players i and j, where sᵢⱼₖ = 1 when player i wins and sᵢⱼₖ = 0 when player j wins. We reparameterize so that\n\nPr(sᵢⱼₖ = 1) = 10^{(θᵢ–θⱼ)/400}/(1+10^{(θᵢ–θⱼ)/400}),\n\nand Pr(sᵢⱼₖ = 0) = 1–Pr(sᵢⱼₖ = 1). This produces strength estimates on the USCF rating scale (roughly 0–3000).\n\nSeveral extensions incorporate ties (Davidson, 1970; Rao & Kupper, 1967), but we treat a tie as halfway between a win and a loss—i.e. s = 0.5—so as to avoid introducing extra parameters. Other order‐effect terms (e.g. home‐ground or first‐move advantages) could be added but are omitted here.\n\nTo allow strengths to change over time, we group games into \"rating periods.\" If θᵢ(t₀) is player i’s strength at time t₀, then after an interval of length t we assume\n\nθᵢ(t₀+t) | θᵢ(t₀) ∼ N(θᵢ(t₀), σ² · t),\n\nso that our uncertainty grows with inactivity. Here σ² is a hyperparameter to be estimated.\n\nLikelihood‐based fitting of the full state‐space model can be done via empirical Bayes (Fahrmeir & Tutz, 1994) or MCMC (Glickman, 1993), but joint estimation is computationally infeasible for very large populations (e.g. tens of thousands of chess players). In the next section we introduce a non‐iterative updating algorithm that remains practical for large datasets.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 4,
+      "label": "Paired-Comparison Data",
+      "type": "concept",
+      "description": "Observations in which two items (or “objects”) are presented together and one must choose which is preferred (or “wins”) over the other. Each record in the dataset is a triple `(i, j, outcome)` where `i` and `j` are the two items being compared, and `outcome` indicates which item was preferred (for instance, a binary 1/0 if ties aren’t allowed, or 1/0.5/0 if ties are recorded).\n\nCommon settings include:\n- **Sports**: every game between team A and team B gives one win and one loss;\n- **Consumer choice**: a survey respondent chooses their favorite of two brands;\n- **Psychophysics**: subjects say which of two stimuli is stronger or clearer.\n\nStatistical models for paired‐comparison data (e.g. Bradley–Terry or Thurstone–Mosteller) estimate each item’s “strength” or “ability” so that the probability item i beats item j is modeled as a function of their strengths.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 5,
+      "label": "Non-linear State Space Model",
+      "type": "concept",
+      "description": "A non-linear state space model represents a dynamic system in discrete time by two equations:\n\n1. **State (Transition) Equation**:  xₜ = f(xₜ₋₁) + wₜ,  where xₜ is the hidden state at time t, f(·) is a (possibly non-linear) transition function, and wₜ is process noise.\n\n2. **Observation (Measurement) Equation**:  yₜ = g(xₜ) + vₜ,  where yₜ is the observed data at time t, g(·) is a (possibly non-linear) measurement function, and vₜ is observation noise.\n\nSuch models track <node id=\"29\">latent variables</node> that evolve over time under non-linear dynamics and generate noisy observations. Inference (e.g., computing the posterior of xₜ) typically requires approximation methods like the Extended or Unscented Kalman Filter, Particle Filtering, or variational approaches.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 6,
+      "label": "Likelihood-Based Analyses",
+      "type": "concept",
+      "description": "Likelihood-based analyses estimate model parameters by maximizing the likelihood function, which measures the probability of the observed data given the parameters. Common approaches include:\n\n- **Maximum Likelihood Estimation (MLE)**: finding parameter values that maximize the likelihood.\n- **Bayesian Inference**: combining the likelihood with a prior distribution to obtain a posterior distribution over parameters.\n- **Empirical Bayes**: estimating hyperparameters by maximizing marginal likelihood, then performing Bayesian updates.\n\nThese methods provide principled parameter estimates and uncertainty quantification but can be computationally intensive for large or complex models.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 7,
+      "label": "Non-iterative algorithm",
+      "type": "concept",
+      "description": "**What it is**\nA non-iterative algorithm updates model parameters in a single pass, using a closed-form or direct formula, rather than looping until convergence.  Each new datum produces exactly one update step and then the algorithm moves on.\n\n**Example (Elo)**\nThe Elo rating system is non-iterative: after each game you compute the new ratings for the two players with a single formula—no loops, no repeated passes over past games.\n\n**When to use**\nOn-line, live systems where you need an instant update per observation (e.g. real-time sports ratings, streaming recommendation scores).\n\n**Contrast with iterative**\nIterative algorithms (e.g. EM, gradient descent) refine estimates by cycling over the whole dataset (or batches) multiple times until a convergence criterion is met.  Non-iterative methods sacrifice some statistical efficiency for speed and simplicity.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 8,
+      "label": "Fitting",
+      "type": "concept",
+      "description": "Fitting refers to the process of estimating <node id=\"14\">model</node> parameters so that the model best explains observed data. In paired comparison settings, fitting a model involves choosing strength or merit parameters that maximize agreement between predicted and actual outcomes.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 10,
+      "label": "Elo Algorithm",
+      "type": "concept",
+      "description": "The Elo algorithm updates a competitor’s rating after each game based on the difference between the actual game outcome and the expected outcome. The expected score against an opponent is calculated as 1 / (1 + 10^((opponent_rating – player_rating) / 400)). The new rating is then computed as: new_rating = old_rating + K × (actual_score – expected_score), where K is a tuning constant.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 11,
+      "label": "Variability in Parameter Estimates",
+      "type": "concept",
+      "description": "Variability in parameter estimates refers to the uncertainty or spread in estimated values of model parameters, arising from limited or noisy data. In dynamic paired comparison models, accounting for this variability (e.g., via prior variances) improves the accuracy and stability of rating updates.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 13,
+      "label": "State Space",
+      "type": "concept",
+      "description": "The state space of a dynamic system is the set of all possible values of its hidden (latent) variables, xₜ. Each point in this space represents a complete description of the system’s internal condition at a given time.\n\n**Example**\nIn the context of chess, the state space can be thought of as the range of possible player ratings (e.g., 0 – 3000); each rating value corresponds to a point in the state space describing a player’s skill level at a given moment.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 14,
+      "label": "Statistical Model",
+      "type": "concept",
+      "description": "**What it does**\nA statistical model defines a probabilistic relationship between unobserved (latent) parameters and the data we observe, so we can infer the hidden quantities from noisy measurements.\n\n**Key components**\n- **Parameters / latent state**: the unknown quantities we want to learn (e.g. a chess player’s true strength at each game).\n- **Data / observations**: what we actually measure (e.g. win/loss outcomes).\n- **Link / likelihood**: a function that gives the probability of each observation given the current parameters.\n\n**Chess example**\nUse a non-linear state-space statistical model:\n1. **Latent state xₜ**: player’s true rating before game _t_.\n2. **Transition**: xₜ = xₜ₋₁ + wₜ (Gaussian “drift” for improvement or fatigue).\n3. **Observation / likelihood**:\n   ```\n   Pr(i beats j at game t | xₜᵢ, xₜⱼ) = 1 / (1 + 10^((xₜⱼ − xₜᵢ)/400))\n   ```\n   Then the actual result yₜ ∈ {0,1} is drawn with that probability.\n\nThis statistical model lets us compute the likelihood of any sequence of game outcomes given a sequence of latent ratings, and then invert that relationship (via filtering or MCMC) to estimate each xₜ from the data.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 15,
+      "label": "Parameters",
+      "type": "concept",
+      "description": "Parameters are the (often unobserved) quantities in a statistical or mathematical model that determine its behavior. In paired-comparison or state-space models, parameters include:\n\n- **Static model parameters**: fixed values (e.g., each player’s constant strength).\n- **Dynamic model parameters**: time-varying quantities (e.g., a player’s rating before each game).\n- **Hyperparameters**: settings governing the model (e.g., process noise variance in a state transition).\n\n**Role in inference**: we choose parameters so that the model’s predicted data (via its likelihood) matches the observed data as closely as possible. Then we interpret those parameter estimates to understand the system.\n\n**Chess example**: in a non-linear state-space model, the player’s rating xₜ is a time-varying parameter, while the noise variance σ² in xₜ = xₜ₋₁ + wₜ is a hyperparameter.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 16,
+      "label": "Hyperparameter",
+      "type": "concept",
+      "description": "A hyperparameter is a configuration setting of a statistical or machine learning model that is set _before_ the training or fitting process begins. Unlike model parameters (which are learned from data), hyperparameters control **how** the model learns or its overall structure. Common examples include learning rate, regularization strength, number of hidden layers, batch size, and time‐step variance in state‐space models.\n\n**Why It Matters**\n- Proper hyperparameter choice can dramatically affect model performance and convergence speed.\n- Tuning hyperparameters (via grid search, random search, or Bayesian optimization) is essential for achieving good generalization.\n\n**Prerequisites**\n- <node id=\"16\">Parameter</node>: you must understand what model parameters are before grasping how hyperparameters govern their learning.\n\n**How It Powers Downstream**\n- Hyperparameters determine training dynamics (e.g., stepsize, overfitting control) and model capacity.\n- Automated tuning workflows (cross-validation, Bayesian optimization) rely on systematically adjusting hyperparameters to find optimal settings.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 17,
+      "label": "Linear State-Space Model",
+      "type": "concept",
+      "description": "A linear state-space model is a way to describe how a system evolves over discrete steps and how we observe it. The system has an internal state (like a hidden score or rating) that updates by combining the previous state with some noise, and we make measurements of that state through a simple linear transformation plus observation noise.  \n\n**Simple Explanation**  \n- Think of it as tracking a hidden value (the “state”) over time, where each step you predict the new state from the old one, then correct it using a noisy measurement.  \n- Because everything is linear and Gaussian, you can update your estimates efficiently and optimally using the Kalman filter.\n\n**Why It Matters**  \nProvides a mathematically tractable framework for prediction and filtering in many engineering and time-series applications.\n\n**How It Powers Downstream**  \n- **Kalman Filter**: Rapid, recursive estimation of the hidden state.  \n- **Control & Signal Processing**: Foundation for designing optimal controllers and filters.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 18,
+      "label": "The Glicko rating system",
+      "type": "paper",
+      "description": "Arguably one of the greatest fascinations of tournament chess players and competitors of other games is the measurement of playing strength. The Elo rating system, developed by Arpad Elo in the early 1960’s, was the first chess rating system that had probabilistic underpinnings, and was then adopted by many chess federations, and eventually by organizations for other games (e.g., Scrabble, table tennis, etc.). While Elo’s system is a great improvement over earlier systems, it too has its problems. In 1995, I created the Glicko rating system in response to a particular deficiency in the Elo system which I describe below. My system was derived by considering a statistical model for chess game outcomes, and then making mathematical approximations that would enable simple computation. The Elo system, coincidentally, turns out to be a special case of my system. <br><br>Key takeaways:<ul><li>The Glicko system introduces a <node id=\"302\">ratings deviation (RD)</node> to quantify uncertainty in a player’s rating based on play frequency.</li><li>Extends the <node id=\"301\">Elo rating system</node> by updating both rating and <node id=\"302\">RD</node> over discrete <node id=\"303\">rating periods</node> via a two-step process.</li><li>Pre-period RD increases during inactivity controlled by constant <node id=\"308\">c</node>, and decreases with game results to reflect gained information.</li><li>Rating updates use a <node id=\"304\">Bayesian-inspired formula</node> incorporating opponents’ ratings, RD, the <node id=\"305\">g(RD)</node> function, and <node id=\"306\">expected outcome E(s)</node>.</li><li>Permits calculation of a <node id=\"306\">game outcome expectation</node> accounting for both players’ RD, enhancing match predictions.</li><li>Provides a <node id=\"307\">95% confidence interval</node> (r ± 1.96·RD) to express uncertainty in true skill.</li><li>Recommends implementation guidelines: cap RD minimum threshold and choose <node id=\"308\">c</node> based on predictive accuracy or idle-time uncertainty criteria.</li></ul>",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 19,
+      "label": "TrueSkill2: An improved Bayesian skill rating system",
+      "type": "paper",
+      "description": "Online multiplayer games, such as Gears of War and Halo, use <node id=\"102\">skill-based matchmaking</node> to give players fair and enjoyable matches. They depend on a <node id=\"103\">skill rating system</node> to infer accurate player skills from historical data. <node id=\"104\">TrueSkill</node> is a popular and effective skill rating system, working from only the <node id=\"105\">winner and loser</node> of each game. This paper presents an extension to TrueSkill that incorporates additional information that is readily available in online shooters, such as <node id=\"106\">player experience</node>, membership in a <node id=\"107\">squad</node>, the number of <node id=\"108\">kills</node> a player scored, tendency to <node id=\"109\">quit</node>, and skill in <node id=\"110\">other game modes</node>. This extension, which we call <node id=\"111\">TrueSkill2</node>, is shown to significantly improve the accuracy of skill ratings computed from <node id=\"112\">Halo 5 matches</node>. TrueSkill2 predicts historical <node id=\"113\">match outcomes</node> with <node id=\"114\">68% accuracy</node>, compared to <node id=\"115\">52% accuracy</node> for TrueSkill.<br><br>Key takeaways:<ul><li>TrueSkill2 preserves core TrueSkill properties—support for <node id=\"201\">team games</node>, <node id=\"202\">changeable skill ratings</node>, and compatibility with existing matchmakers—while extending the model.</li><li>Uses a <node id=\"203\">probabilistic generative model</node> and <node id=\"204\">Bayesian inference</node> (via Expectation Propagation and Rprop) to update skills in both <node id=\"205\">online and batch modes</node>.</li><li>Introduces a <node id=\"207\">biased random walk</node> for skill evolution based on <node id=\"209\">player experience</node> and an explicit <node id=\"208\">squad offset</node> to model group effects.</li><li>Integrates <node id=\"210\">individual statistics</node> (kills, deaths) and applies a <node id=\"211\">quit penalty</node> to better align skill updates with actual performance.</li><li>Models cross‐mode borrowing through <node id=\"212\">mode correlation</node>, improving convergence and accuracy across game modes.</li><li>Maintains <node id=\"213\">computational efficiency</node> with <node id=\"214\">minimal tuning</node>, making it practical for large‐scale, real‐time matchmaking systems.</li></ul>",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 20,
+      "label": "Segment Anything",
+      "type": "paper",
+      "description": "We introduce the Segment Anything (SA) project: a new <node id=\"401\">promptable segmentation task</node> accepting points, boxes, masks or text to produce valid object masks; a <node id=\"402\">Segment Anything Model (SAM)</node> comprising an image encoder, prompt encoder and lightweight mask decoder with <node id=\"403\">ambiguity-aware multi-mask output</node> and real-time inference; and a <node id=\"404\">data engine</node> that iteratively annotated and automatically generated SA-1B, a dataset of over 1 billion masks on 11 million high‐res images. We demonstrate <node id=\"405\">strong zero-shot transfer</node> to 23 diverse segmentation benchmarks, edge detection, object proposals, instance segmentation, and initial text-to-mask, and perform <node id=\"406\">RAI analyses</node> showing geographic diversity and fair performance across demographic groups.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 21,
+      "label": "SAM 2: Segment Anything in Images and Videos",
+      "type": "paper",
+      "description": "We present Segment Anything Model 2 (SAM 2), a foundation model towards solving promptable visual segmentation in images and videos. We build a data engine, which improves model and data via user interaction, to collect the largest video segmentation dataset to date. Our model is a simple transformer architecture with streaming memory for real-time video processing. SAM 2 trained on our data provides strong performance across a wide range of tasks. In video segmentation, we observe better accuracy, using 3× fewer interactions than prior approaches. In image segmentation, our model is more accurate and 6× faster than the Segment Anything Model (SAM). We believe that our data, model, and insights will serve as a significant milestone for video segmentation and related perception tasks. We are releasing our main model, dataset, as well as code for model training and our demo. Key contributions include a <node id=\"501\">Promptable Visual Segmentation (PVS) task</node>; a <node id=\"502\">streaming-memory transformer architecture</node>; a <node id=\"503\">three-phase human-in-the-loop data engine and SA-V dataset</node>; and extensive <node id=\"504\">zero-shot experiments across 54 benchmarks</node> demonstrating state-of-the-art performance.",
+      "difficulty": 4,
+      "domain": "tech"
+    },
+    {
+      "id": 22,
+      "label": "SmolVLA Model",
+      "type": "paper",
+      "description": "We present SmolVLA, a compact, efficient vision-language-action model designed to train on a single GPU and deploy on consumer-grade hardware for real-time robotic manipulation. SmolVLA leverages a pruned vision-language backbone with skipped transformer layers, minimal visual tokens, and an interleaved self- and cross-attention action expert trained via flow matching. We introduce a community-driven pretraining dataset of 22.9K episodes across 481 open-source robotics tasks, and an asynchronous inference stack that decouples perception from action execution to achieve higher control rates. Despite being up to 10× smaller, SmolVLA matches or surpasses much larger VLAs on both simulated benchmarks (LIBERO, Meta-World) and real-world low-cost robot arms, and is fully open-sourced.",
+      "difficulty": 5,
+      "domain": "tech"
+    },
+    {
+      "id": 23,
+      "label": "Image Encoder",
+      "type": "component",
+      "description": "An image encoder is a neural network module that converts raw image data into a compact, fixed-size embedding or set of feature tokens. It processes an RGB frame through convolutional or transformer-based layers, applies spatial down‑sampling (e.g., pooling or patch projection), and outputs a sequence of feature vectors capturing semantic and structural information. Typically pretrained via supervised classification (e.g., ImageNet) or self‑supervised objectives (e.g., contrastive learning in CLIP or masked autoencoding), it provides transferable visual representations for downstream tasks such as vision‑language modeling, object detection, and robotic perception.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 24,
+      "label": "Maximum Likelihood Estimation (MLE)",
+      "type": "concept",
+      "description": "A method for estimating model parameters that finds the values which maximize the likelihood function, i.e., the probability of observing the given data under the model.\n\nExample: Given data assumed to follow a normal distribution with unknown mean μ and known variance σ², MLE selects μ̂ as the sample average, because that choice makes the observed samples most probable under the model.",
+      "difficulty": 1,
+      "domain": "tech"
+    },
+    {
+      "id": 25,
+      "label": "Bayesian Inference",
+      "type": "concept",
+      "description": "An approach that updates prior beliefs about parameters into a posterior distribution by multiplying the prior by the likelihood of the observed data and normalizing.\n\nExample: To estimate a coin’s bias p, start with a Beta(2,2) prior; after observing 8 heads and 4 tails, the posterior is Beta(10,6), giving a full distribution over p rather than a single point estimate.",
+      "difficulty": 1,
+      "domain": "statistics"
+    },
+    {
+      "id": 26,
+      "label": "Vision-Language-Action (VLA) Model",
+      "type": "concept",
+      "description": "A neural architecture that jointly processes visual inputs and natural language instructions to generate action trajectories or control signals. It combines a <node id=\"23\">vision encoder</node>, a language encoder, and an action decoder or policy network, enabling end-to-end grounding of language in perception and motion.\n\nExample: Given an image of a cluttered table and the instruction “pick up the red block,” a VLA model encodes the scene into visual tokens, encodes the command via a language encoder, fuses both representations in a cross-attention module, and outputs motor commands that guide a robot arm to grasp the red block.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 27,
+      "label": "Elo Rating System",
+      "type": "paper",
+      "description": "A simple, probabilistic method to rate players based on game results. Each player has a numeric rating; when two players meet, you compute an expected score E = 1 / (1 + 10^(–Δ/400)), where Δ = (your rating – opponent rating). After the game, you update your rating by ΔR = K × (S – E), where S is the actual score (1 for win, 0.5 draw, 0 loss) and K is a constant controlling sensitivity. Novel contributions: first system with clear probabilistic underpinnings, scalable to large federations, and easy to compute incrementally. Originally published by Arpad Elo in The Rating of Chessplayers, Past and Present (1978).",
+      "difficulty": 3,
+      "domain": "research-papers"
+    },
+    {
+      "id": 28,
+      "label": "Paired Comparison Model",
+      "type": "concept",
+      "description": "A method that estimates each competitor’s skill by analyzing outcomes of one-on-one contests. When two players face off, the model uses their win-loss record to adjust skill estimates. Example: if Alice wins 7 of 10 chess games against Bob, Alice’s skill rating increases above Bob’s.",
+      "difficulty": 2,
+      "domain": "statistics"
+    },
+    {
+      "id": 29,
+      "label": "Standard Deviation",
+      "type": "concept",
+      "description": "Measures how spread out values are around the mean. Calculated as:\n\nσ = √( (1/N) Σᵢ (xᵢ – μ)² )\n\nIn a Gaussian (normal) distribution, σ sets the scale: about 68% of values lie within ±1σ, 95% within ±2σ, and 99.7% within ±3σ. Saying “1 standard deviation away” means one σ unit from the mean, not a fixed number—it scales with the dataset. In rating systems, this concept becomes “ratings deviation” (RD): both are σ measures, but standard deviation describes data spread in general, while RD specifically quantifies uncertainty in an individual player’s rating. RD decreases as more game results accumulate (greater certainty) and increases over time when inactive (more uncertainty). Example: if ratings follow a normal curve centered at 1500 with σ=100, ~68% of players score between 1400 and 1600.",
+      "difficulty": 2,
+      "domain": "statistics"
+    },
+    {
+      "id": 30,
+      "label": "Logistic Function",
+      "type": "concept",
+      "description": "A curve that turns any real number into a value between 0 and 1, making an ‘S’ shape. The basic formula is:\n\nL(x) = 1 / (1 + e⁻ˣ)\n\n• As x → +∞, L(x) → 1; as x → –∞, L(x) → 0; at x = 0, L(x) = 0.5.\n\nIn rating systems, we use a base-10 version:\n\nE = 1 / (1 + 10^(–Δ/400))\n\nwhere Δ is the rating difference. This converts Δ into a win probability. Example: if Δ = 100, then E ≈ 1 / (1 + 10^(–0.25)) ≈ 0.64, so the stronger player wins about 64% of the time.",
+      "difficulty": 2,
+      "domain": "mathematics"
+    },
+    {
+      "id": 31,
+      "label": "Glicko Rating System",
+      "type": "paper",
+      "description": "Extends <node id=\"27\">Elo</node> by tracking both a player’s rating (r) and ratings deviation (RD), which quantifies uncertainty in that rating. Updates occur in two steps each rating period: first RD is adjusted for inactivity (grows with time) and then both r and RD are updated based on game results using a Bayesian‐inspired formula that weights opponents’ ratings and their RD via the g(RD) function. Expected score E is computed with the <node id=\"30\">logistic formula</node> adjusted for both players’ uncertainty, improving prediction accuracy. After updating, you can report a 95% confidence interval as (r ± 1.96·RD) to express the range where true skill likely lies. Example: a player with r=1500 and RD=200 who defeats a 1400±30 opponent will see their r increase substantially and RD shrink, reflecting gained information. Originally published by Mark E. Glickman in 1995.",
+      "difficulty": 3,
+      "domain": "research-papers"
+    },
+    {
+      "id": 32,
+      "label": "Arithmetic Mean",
+      "type": "concept",
+      "description": "The arithmetic mean (average) is the sum of all values divided by the number of values. It provides the central value around which deviations are measured. In standard deviation, each value’s distance from the mean (xᵢ – μ) is squared, summed, and averaged to quantify spread. Example: for scores {2, 4, 6}, the mean is 4, so deviations are {–2, 0, +2}, which feed directly into σ’s calculation.",
+      "difficulty": 1,
+      "domain": "math"
+    },
+    {
+      "id": 33,
+      "label": "Exponential Function",
+      "type": "concept",
+      "description": "A mathematical function where a constant base is raised to a variable exponent. Commonly, f(x)=eˣ, which grows rapidly as x increases and decays when x is negative. In the logistic formula, e⁻ˣ creates the S-shaped curve by converting any real number x into a value between 0 and 1. Example: e⁻¹≈0.37, so L(1)=1/(1+e⁻¹)≈0.73.",
+      "difficulty": 1,
+      "domain": "math"
+    },
+    {
+      "id": 34,
+      "label": "Statistical Model",
+      "type": "concept",
+      "description": "A mathematical framework that describes how data are generated from underlying parameters. It fits parameters to observed data to explain patterns or make predictions. Example: in Glicko, the statistical model assumes each player’s skill is a parameter and observed match outcomes inform updates to those skill estimates.",
+      "difficulty": 2,
+      "domain": "statistics"
+    }
+  ],
+  "links": [
+    {
+      "source": 34,
+      "target": 28,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 33,
+      "target": 30,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 32,
+      "target": 29,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 30,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 29,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 28,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 27,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 25,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 24,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 23,
+      "target": 21,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 23,
+      "target": 20,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 23,
+      "target": 26,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 26,
+      "target": 22,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 10,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 14,
+      "target": 8,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 4,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 13,
+      "target": 5,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 14,
+      "target": 5,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 15,
+      "target": 16,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 16,
+      "target": 14,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+} 

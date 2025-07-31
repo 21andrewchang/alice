@@ -6,6 +6,13 @@
 	import { writable } from 'svelte/store';
 	import { createEventDispatcher } from 'svelte';
 
+	function onPrevNode() {
+		dispatch('prevNode');
+	}
+	function onNextNode() {
+		dispatch('nextNode');
+	}
+
 	export let node: any;
 	export let parseNodeLinks: (content: string) => string;
 	export let onClose: () => void;
@@ -115,42 +122,12 @@
 		target.style.backgroundColor = '#BFCAF3';
 	}
 
-	// Keyboard navigation
-	function handleKeydown(event: KeyboardEvent) {
-		switch (event.key) {
-			case 'ArrowLeft':
-			case 'h':
-			case 'H':
-				event.preventDefault();
-				prevPage();
-				break;
-			case 'ArrowRight':
-			case 'l':
-			case 'L':
-				event.preventDefault();
-				nextPage();
-				break;
-			case 'Home':
-			case 'g':
-			case 'G':
-				event.preventDefault();
-				setPage(0);
-				break;
-			case 'End':
-				event.preventDefault();
-				setPage(totalPages - 1);
-				break;
-		}
-	}
-
 	function handleNodeStatusUpdate() {
 		// Force re-render of content with updated node statuses
 		updateContentWithLatestNodeStatus();
 	}
 
 	onMount(() => {
-		document.addEventListener('keydown', handleKeydown);
-
 		// Listen for custom node status update events
 		window.addEventListener('nodeStatusUpdated', handleNodeStatusUpdate);
 
@@ -161,7 +138,6 @@
 	});
 
 	onDestroy(() => {
-		document.removeEventListener('keydown', handleKeydown);
 		window.removeEventListener('nodeStatusUpdated', handleNodeStatusUpdate);
 		window.removeEventListener('focus', handleNodeStatusUpdate);
 	});
@@ -171,7 +147,7 @@
 	<!-- Header -->
 	<div class="mb-4 flex items-center justify-between border-b border-[#222] p-2">
 		<div class="flex items-center gap-2">
-			<button
+			<button on:click={onPrevNode}
 				><svg
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
@@ -183,14 +159,14 @@
 					<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
 				</svg>
 			</button>
-			<button>
+			<button on:click={onNextNode}>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke-width="1.5"
 					stroke="currentColor"
-					class="size-4 stroke-[#222]"
+					class="size-4"
 				>
 					<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
 				</svg>
