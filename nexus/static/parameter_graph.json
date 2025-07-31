@@ -185,16 +185,121 @@
       "domain": "statistics"
     },
     {
-    "id": 26,
-    "label": "Vision-Language-Action (VLA) Model",
-    "type": "concept",
-    "description": "A neural architecture that jointly processes visual inputs and natural language instructions to generate action trajectories or control signals. It combines a <node id=\"23\">vision encoder</node>, a language encoder, and an action decoder or policy network, enabling end-to-end grounding of language in perception and motion.\n\nExample: Given an image of a cluttered table and the instruction “pick up the red block,” a VLA model encodes the scene into visual tokens, encodes the command via a language encoder, fuses both representations in a cross-attention module, and outputs motor commands that guide a robot arm to grasp the red block.",
-    "difficulty": 3,
-    "domain": "tech"
-  }
-
+      "id": 26,
+      "label": "Vision-Language-Action (VLA) Model",
+      "type": "concept",
+      "description": "A neural architecture that jointly processes visual inputs and natural language instructions to generate action trajectories or control signals. It combines a <node id=\"23\">vision encoder</node>, a language encoder, and an action decoder or policy network, enabling end-to-end grounding of language in perception and motion.\n\nExample: Given an image of a cluttered table and the instruction “pick up the red block,” a VLA model encodes the scene into visual tokens, encodes the command via a language encoder, fuses both representations in a cross-attention module, and outputs motor commands that guide a robot arm to grasp the red block.",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 27,
+      "label": "Elo Rating System",
+      "type": "paper",
+      "description": "A simple, probabilistic method to rate players based on game results. Each player has a numeric rating; when two players meet, you compute an expected score E = 1 / (1 + 10^(–Δ/400)), where Δ = (your rating – opponent rating). After the game, you update your rating by ΔR = K × (S – E), where S is the actual score (1 for win, 0.5 draw, 0 loss) and K is a constant controlling sensitivity. Novel contributions: first system with clear probabilistic underpinnings, scalable to large federations, and easy to compute incrementally. Originally published by Arpad Elo in The Rating of Chessplayers, Past and Present (1978).",
+      "difficulty": 3,
+      "domain": "research-papers"
+    },
+    {
+      "id": 28,
+      "label": "Paired Comparison Model",
+      "type": "concept",
+      "description": "A method that estimates each competitor’s skill by analyzing outcomes of one-on-one contests. When two players face off, the model uses their win-loss record to adjust skill estimates. Example: if Alice wins 7 of 10 chess games against Bob, Alice’s skill rating increases above Bob’s.",
+      "difficulty": 2,
+      "domain": "statistics"
+    },
+    {
+      "id": 29,
+      "label": "Standard Deviation",
+      "type": "concept",
+      "description": "Measures how spread out values are around the mean. Calculated as:\n\nσ = √( (1/N) Σᵢ (xᵢ – μ)² )\n\nIn a Gaussian (normal) distribution, σ sets the scale: about 68% of values lie within ±1σ, 95% within ±2σ, and 99.7% within ±3σ. Saying “1 standard deviation away” means one σ unit from the mean, not a fixed number—it scales with the dataset. In rating systems, this concept becomes “ratings deviation” (RD): both are σ measures, but standard deviation describes data spread in general, while RD specifically quantifies uncertainty in an individual player’s rating. RD decreases as more game results accumulate (greater certainty) and increases over time when inactive (more uncertainty). Example: if ratings follow a normal curve centered at 1500 with σ=100, ~68% of players score between 1400 and 1600.",
+      "difficulty": 2,
+      "domain": "statistics"
+    },
+    {
+      "id": 30,
+      "label": "Logistic Function",
+      "type": "concept",
+      "description": "A curve that turns any real number into a value between 0 and 1, making an ‘S’ shape. The basic formula is:\n\nL(x) = 1 / (1 + e⁻ˣ)\n\n• As x → +∞, L(x) → 1; as x → –∞, L(x) → 0; at x = 0, L(x) = 0.5.\n\nIn rating systems, we use a base-10 version:\n\nE = 1 / (1 + 10^(–Δ/400))\n\nwhere Δ is the rating difference. This converts Δ into a win probability. Example: if Δ = 100, then E ≈ 1 / (1 + 10^(–0.25)) ≈ 0.64, so the stronger player wins about 64% of the time.",
+      "difficulty": 2,
+      "domain": "mathematics"
+    },
+    {
+      "id": 31,
+      "label": "Glicko Rating System",
+      "type": "paper",
+      "description": "Extends Elo by tracking both a player’s rating (r) and ratings deviation (RD), which quantifies uncertainty in that rating. Updates occur in two steps each rating period: first RD is adjusted for inactivity (grows with time) and then both r and RD are updated based on game results using a Bayesian‐inspired formula that weights opponents’ ratings and their RD via the g(RD) function. Expected score E is computed with the logistic formula adjusted for both players’ uncertainty, improving prediction accuracy. After updating, you can report a 95% confidence interval as (r ± 1.96·RD) to express the range where true skill likely lies. Example: a player with r=1500 and RD=200 who defeats a 1400±30 opponent will see their r increase substantially and RD shrink, reflecting gained information. Originally published by Mark E. Glickman in 1995.",
+      "difficulty": 3,
+      "domain": "research-papers"
+    },
+    {
+      "id": 32,
+      "label": "Arithmetic Mean",
+      "type": "concept",
+      "description": "The arithmetic mean (average) is the sum of all values divided by the number of values. It provides the central value around which deviations are measured. In standard deviation, each value’s distance from the mean (xᵢ – μ) is squared, summed, and averaged to quantify spread. Example: for scores {2, 4, 6}, the mean is 4, so deviations are {–2, 0, +2}, which feed directly into σ’s calculation.",
+      "difficulty": 1,
+      "domain": "math"
+    },
+    {
+      "id": 33,
+      "label": "Exponential Function",
+      "type": "concept",
+      "description": "A mathematical function where a constant base is raised to a variable exponent. Commonly, f(x)=eˣ, which grows rapidly as x increases and decays when x is negative. In the logistic formula, e⁻ˣ creates the S-shaped curve by converting any real number x into a value between 0 and 1. Example: e⁻¹≈0.37, so L(1)=1/(1+e⁻¹)≈0.73.",
+      "difficulty": 1,
+      "domain": "math"
+    },
+    {
+      "id": 34,
+      "label": "Statistical Model",
+      "type": "concept",
+      "description": "A mathematical framework that describes how data are generated from underlying parameters. It fits parameters to observed data to explain patterns or make predictions. Example: in Glicko, the statistical model assumes each player’s skill is a parameter and observed match outcomes inform updates to those skill estimates.",
+      "difficulty": 2,
+      "domain": "statistics"
+    }
   ],
   "links": [
+    {
+      "source": 34,
+      "target": 28,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 33,
+      "target": 30,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 32,
+      "target": 29,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 30,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 29,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 28,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 27,
+      "target": 31,
+      "relation": "prerequisite",
+      "value": 1
+    },
     {
       "source": 6,
       "target": 25,
