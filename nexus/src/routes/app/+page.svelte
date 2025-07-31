@@ -172,7 +172,7 @@
 
 	async function loadMergedGraph() {
 		try {
-			const res = await fetch('/parameter_graph.json');
+			const res = await fetch('/glicko.json');
 			if (res.ok) {
 				mergedGraph = await res.json();
 				mergedGraphLoaded = true;

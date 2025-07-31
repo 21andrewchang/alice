@@ -1,0 +1,120 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "label": "Elo Rating System",
+      "type": "paper",
+      "description": "A simple, probabilistic method to rate players based on game results. Each player has a numeric rating; when two players meet, you compute an expected score E = 1 / (1 + 10^(–Δ/400)), where Δ = (your rating – opponent rating). After the game, you update your rating by ΔR = K × (S – E), where S is the actual score (1 for win, 0.5 draw, 0 loss) and K is a constant controlling sensitivity. Novel contributions: first system with clear probabilistic underpinnings, scalable to large federations, and easy to compute incrementally. Originally published by Arpad Elo in The Rating of Chessplayers, Past and Present (1978).",
+      "difficulty": 3,
+      "domain": "research-papers"
+    },
+    {
+      "id": 1,
+      "label": "Paired Comparison Model",
+      "type": "concept",
+      "description": "A method that estimates each competitor’s skill by analyzing outcomes of one-on-one contests. When two players face off, the model uses their win-loss record to adjust skill estimates. Example: if Alice wins 7 of 10 chess games against Bob, Alice’s skill rating increases above Bob’s.",
+      "difficulty": 2,
+      "domain": "statistics"
+    },
+    {
+      "id": 2,
+      "label": "Standard Deviation",
+      "type": "concept",
+      "description": "Measures how spread out values are around the mean. Calculated as:\n\nσ = √( (1/N) Σᵢ (xᵢ – μ)² )\n\nIn a Gaussian (normal) distribution, σ sets the scale: about 68% of values lie within ±1σ, 95% within ±2σ, and 99.7% within ±3σ. Saying “1 standard deviation away” means one σ unit from the mean, not a fixed number—it scales with the dataset. In rating systems, this concept becomes “ratings deviation” (RD): both are σ measures, but standard deviation describes data spread in general, while RD specifically quantifies uncertainty in an individual player’s rating. RD decreases as more game results accumulate (greater certainty) and increases over time when inactive (more uncertainty). Example: if ratings follow a normal curve centered at 1500 with σ=100, ~68% of players score between 1400 and 1600.",
+      "difficulty": 2,
+      "domain": "statistics"
+    },
+    {
+      "id": 3,
+      "label": "Logistic Function",
+      "type": "concept",
+      "description": "A curve that turns any real number into a value between 0 and 1, making an ‘S’ shape. The basic formula is:\n\nL(x) = 1 / (1 + e⁻ˣ)\n\n• As x → +∞, L(x) → 1; as x → –∞, L(x) → 0; at x = 0, L(x) = 0.5.\n\nIn rating systems, we use a base-10 version:\n\nE = 1 / (1 + 10^(–Δ/400))\n\nwhere Δ is the rating difference. This converts Δ into a win probability. Example: if Δ = 100, then E ≈ 1 / (1 + 10^(–0.25)) ≈ 0.64, so the stronger player wins about 64% of the time.",
+      "difficulty": 2,
+      "domain": "mathematics"
+    },
+    {
+      "id": 4,
+      "label": "Glicko Rating System",
+      "type": "paper",
+      "description": "Extends <node id=\"0\">Elo</node> by tracking both a player’s rating (r) and a <node id=\"29\">ratings deviation (RD)</node> to quantify uncertainty. Each rating period updates in two steps: first, RD grows with inactivity via variance addition (RD_new = √(RD_old² + c²)), then both r and RD shrink with game results by combining prior and data variances (RD_new = √(1/(1/RD² + 1/d²))). Expected score E is computed using the <node id=\"3\">logistic function</node> (E = 1/(1+10^(–Δ/400))) adjusted for both players’ RD, improving prediction accuracy. Finally, you express a player’s skill as a <node id=\"8\">confidence interval</node> (r ± 1.96·RD for 95%), making uncertainty explicit. Example: a player with r=1500, RD=200 beats a 1400±30 opponent—r jumps and RD shrinks, reflecting gained information. Originally published by Mark E. Glickman in 1995.",
+      "difficulty": 3,
+      "domain": "research-papers"
+    },
+    {
+      "id": 5,
+      "label": "Arithmetic Mean",
+      "type": "concept",
+      "description": "The arithmetic mean (average) is the sum of all values divided by the number of values. It provides the central value around which deviations are measured. In standard deviation, each value’s distance from the mean (xᵢ – μ) is squared, summed, and averaged to quantify spread. Example: for scores {2, 4, 6}, the mean is 4, so deviations are {–2, 0, +2}, which feed directly into σ’s calculation.",
+      "difficulty": 1,
+      "domain": "math"
+    },
+    {
+      "id": 6,
+      "label": "Exponential Function",
+      "type": "concept",
+      "description": "A mathematical function where a constant base is raised to a variable exponent. Commonly, f(x)=eˣ, which grows rapidly as x increases and decays when x is negative. In the logistic formula, e⁻ˣ creates the S-shaped curve by converting any real number x into a value between 0 and 1. Example: e⁻¹≈0.37, so L(1)=1/(1+e⁻¹)≈0.73.",
+      "difficulty": 1,
+      "domain": "math"
+    },
+    {
+      "id": 7,
+      "label": "Statistical Model",
+      "type": "concept",
+      "description": "A mathematical framework that describes how data are generated from underlying parameters. It fits parameters to observed data to explain patterns or make predictions. Example: in Glicko, the statistical model assumes each player’s skill is a parameter and observed match outcomes inform updates to those skill estimates.",
+      "difficulty": 2,
+      "domain": "statistics"
+    },
+    {
+      "id": 8,
+      "label": "Confidence Interval",
+      "type": "concept",
+      "description": "Derived from the Gaussian (normal) distribution: for a variable X∼N(μ,σ²), about 95% of values lie within ±1.96σ of the mean. A 95% confidence interval around an estimate μ is therefore (μ – 1.96·σ, μ + 1.96·σ). This means we are 95% confident that the true value (e.g., a player’s skill) lies within this range. Example: a Glicko rating r=1850 with RD=50 (σ=50) gives CI ≈ (1850 – 1.96·50, 1850 + 1.96·50) ≈ (1752, 1948), so we’re 95% confident the player’s true skill is between 1752 and 1948. Wider σ yields wider intervals, reflecting greater uncertainty.",
+      "difficulty": 2,
+      "domain": "statistics"
+    }
+  ],
+  "links": [
+    {
+      "source": 8,
+      "target": 4,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 6,
+      "target": 3,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 1,
+      "target": 0,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 5,
+      "target": 2,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 7,
+      "target": 1,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 0,
+      "target": 4,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 3,
+      "target": 4,
+      "relation": "prerequisite",
+      "value": 1
+    }
+  ]
+} 
