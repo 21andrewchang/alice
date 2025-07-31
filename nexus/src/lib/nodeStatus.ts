@@ -29,8 +29,11 @@ export class NodeStatusService {
   /**
    * Push internal map snapshot into the Svelte store to trigger reactivity.
    */
-  private pushToStore() {
-    nodeStatuses.set(new Map(this.nodeStatusMap));
+  private pushToStore(nodeId: string, updated: NodeStatus) {
+    nodeStatuses.update(map => {
+      map.set(nodeId, updated);
+      return map;
+    });
   }
 
   /**
@@ -57,7 +60,7 @@ export class NodeStatusService {
       lastUpdated: new Date()
     };
     this.nodeStatusMap.set(nodeId, updated);
-    this.pushToStore();
+    this.pushToStore(nodeId, updated);
   }
 
   /**
@@ -85,7 +88,7 @@ export class NodeStatusService {
 
   /** Returns true if mastery >= 1. */
   isMastered(nodeId: string): boolean {
-    return (this.getNodeStatus(nodeId).mastery || 0) >= 1;
+    return (this.getNodeStatus(nodeId).mastery || 0) >= 3;
   }
 }
 
@@ -158,12 +161,9 @@ export function shouldEnhanceLink(
 export function calculateLinkVisualState(
   sourceId: string,
   targetId: string,
-  domain = 'tech',
-  type: 'concept' | 'paper' = 'concept'
-): { strokeWidth: number; glowEffect: string | null } {
-  const glowColor = type === 'paper' ? '#BFCAF3' : getDomainColor(domain);
+): { strokeWidth: number } {
   if (shouldEnhanceLink(sourceId, targetId)) {
-    return { strokeWidth: 2.5, glowEffect: `drop-shadow(0 0 3px ${glowColor})` };
+    return { strokeWidth: 2.5 };
   }
-  return { strokeWidth: 1.5, glowEffect: null };
+  return { strokeWidth: 1.5 };
 }

@@ -2,8 +2,56 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { corsHeaders } from "../../cors.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+type Bracket = 'beginner' | 'intermediate' | 'advanced' | 'expert'
+
+const bracketRules: Record<Bracket, { level: number; count: number; next: Bracket | null }> = {
+  beginner: { level: 1, count: 5, next: 'intermediate' },
+  intermediate: { level: 2, count: 5, next: 'advanced' },
+  advanced: { level: 3, count: 5, next: 'expert' },
+  expert: { level: 0, count: 0, next: null }
+}
+
+async function recalcSkillBracket(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<Bracket> {
+  console.log('recalculating skill bracket function')
+  // 1) fetch current bracket
+  const { data: user, error: userErr } = await supabase
+    .from('users')
+    .select('bracket')
+    .eq('id', userId)
+    .single()
+  if (userErr) throw userErr
+
+  const current = user.bracket as Bracket
+  const rule = bracketRules[current]
+  if (!rule.next) return 'expert';
+
+  // 2) count mastered nodes
+  const { count, error: cntErr } = await supabase
+    .from('user_nodes')
+    .select('*', { head: true, count: 'exact' })
+    .eq('user_id', userId)
+    .gte('mastery', rule.level)
+  if (cntErr) throw cntErr
+  console.log('count of mastery: ', count);
+
+  // 3) if they’ve hit the threshold, promote
+  console.log('rule count', rule.count);
+  if ((count ?? 0) >= rule.count) {
+    console.log('attempting to update bracket', rule.next);
+    const { error: upErr } = await supabase
+      .from('users')
+      .update({ bracket: rule.next })
+      .eq('id', userId)
+    if (upErr) { console.log(upErr) }
+    return rule.next;
+  }
+  return current;
+}
+
 Deno.serve(async (req) => {
-  // CORS preflight
   if (req.method === "OPTIONS")
     return new Response(null, { status: 204, headers: corsHeaders });
 
@@ -35,6 +83,7 @@ Deno.serve(async (req) => {
     const newMastery = Math.min(currentMastery + gainLevels, 3)
     const remainingExp = totalExp % 100
 
+
     const { data: row, error } = await supabase
       .from("user_nodes")
       .upsert(
@@ -46,14 +95,15 @@ Deno.serve(async (req) => {
         },
         { onConflict: 'user_id,node_id' }
       ).single();
-    console.log("data from function: ", row);
-    console.log("data from function: ", remainingExp, newMastery);
     if (error) {
-      console.error("upsert failed:", error);
       throw error;
     }
 
-    return new Response(JSON.stringify({ newExp: remainingExp, newMastery: newMastery }), {
+    let newBracket: string | null = null;
+    if (gainLevels > 0) {
+      newBracket = await recalcSkillBracket(supabase, user_id);
+    }
+    return new Response(JSON.stringify({ newExp: remainingExp, newMastery: newMastery, newBracket: newBracket }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -21,11 +21,29 @@
 	let challengeOpen = false;
 	let challengeNode;
 	let shouldShowOnboarding = false;
+	let userBracket: string = '–';
 
 	let startMs = 0;
 	let elapsedMs = 0;
 	let ticker: number | undefined;
 
+	async function loadUserFromDb() {
+		const { data: sessionData } = await supabase.auth.getSession();
+		let user = sessionData.session?.user;
+		console.log('user session', user);
+		if (user) {
+			const { data: userData, error } = await supabase
+				.from('users')
+				.select('bracket, recommendation')
+				.eq('id', user?.id);
+			console.log('user data', userData);
+			if (error) {
+				console.error('Error loading profile:', error);
+			} else {
+				userBracket = userData[0]?.bracket;
+			}
+		}
+	}
 	async function loadVisitedFromDb() {
 		const { data: sessionData } = await supabase.auth.getSession();
 		let user = sessionData.session?.user;
@@ -90,11 +108,6 @@
 		const { data: session } = await supabase.auth.getSession();
 		let user = session.session?.user;
 		if (!user) throw new Error('Not signed in');
-		// const payload = {
-		// 	node_id: nodeId,
-		// 	exp: exp,
-		// 	user_id: user.id
-		// };
 		const { data, error } = await supabase.functions.invoke('updateNodeProgress', {
 			body: {
 				node_id: nodeId,
@@ -102,6 +115,10 @@
 				user_id: user.id
 			}
 		});
+		console.log('data from edge function: ', data);
+		if (data?.newBracket) {
+			userBracket = data.newBracket;
+		}
 		nodeStatusService.updateNodeStatus(nodeId, {
 			exp: data.newExp,
 			mastery: data.newMastery
@@ -134,7 +151,6 @@
 		return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
 	}
 
-	// User profile store for reactivity
 	const userProfileStore = writable(getSuggestionService().getUserProfile());
 
 	let mergedGraph: { nodes: any[]; links: any[] } = { nodes: [], links: [] };
@@ -154,10 +170,9 @@
 		updateUserProfileDebug();
 	}
 
-	// Load mergedGraph dynamically
 	async function loadMergedGraph() {
 		try {
-			const res = await fetch('/merged_graph.json');
+			const res = await fetch('/glicko.json');
 			if (res.ok) {
 				mergedGraph = await res.json();
 				mergedGraphLoaded = true;
@@ -169,15 +184,12 @@
 	let element: any;
 	let tooltipEl: any;
 
-	async function loadData() {
-		return fetch('/merged_graph.json').then((r) => r.json());
-	}
-
 	function selectNode(node: any) {
 		// Add to stack instead of setting selectedNode
 		addToNodeStack(node);
 		// Center the graph on the selected node
 		centerGraphOnNode(node);
+		updateNodeStyles();
 	}
 
 	let nodeSel: any; // Store node selection for updates
@@ -451,6 +463,16 @@
 					.strength((d: any) => {
 						return d.domain === 'math' ? 0.12 : 0.1;
 					})
+			)
+			.force(
+				'collide',
+				d3
+					.forceCollide()
+					.radius((d: any) => {
+						const base = d.type === 'paper' ? 12 : 8;
+						return base + 20;
+					})
+					.strength(0.8)
 			);
 
 		// Create SVG with zoom behavior
@@ -673,12 +695,24 @@
 			.data(nodes)
 			.join('text')
 			.attr('text-anchor', 'middle')
-			.attr('dy', '0.35em')
-			.attr('font-size', '6px')
+			.attr('dy', '0.1em')
+			.attr('font-size', '4px')
 			.attr('font-family', 'Arial, sans-serif')
 			.attr('fill', '#CCCCCC') // Updated to match the new default color
 			.attr('pointer-events', 'none')
-			.style('opacity', 0) // Start hidden
+			.style('opacity', 0); // Start hidden
+
+		textSel = g
+			.selectAll('text')
+			.data(nodes)
+			.join('text')
+			/* …your attrs… */
+			.text((d) => {
+				const MAX = 30;
+				return d.label.length > MAX ? d.label.slice(0, MAX - 1) + '…' : d.label;
+			})
+			// then add a native SVG tooltip so the full title is on hover:
+			.append('title')
 			.text((d) => d.label);
 
 		// Tick update
@@ -1028,14 +1062,37 @@
 
 					// Get node status to determine visual representation
 					if (nodeStatusService.isMastered(nodeId)) {
-						// Mastered: colored text with glow effect and mastery indicator
-						return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="color: ${color}; font-weight: 600; text-shadow: 0 0 4px ${color}80;">${text} <span style="font-size: 0.8em; vertical-align: super;">✓</span></span>`;
+						// Mastered: plain text (no underline)
+						return `<span
+						  class="cursor-pointer transition-colors duration-200 node-link"
+						  data-node-id="${nodeId}"
+						  style="font-weight: 500; color: inherit;"
+						  onmouseover="this.style.color='${color}'"
+						  onmouseout="this.style.color='';"
+						>${text}</span>`;
 					} else if (nodeStatusService.isVisited(nodeId)) {
-						// Visited: just colored text, no box
-						return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="color: ${color}; font-weight: 500;">${text}</span>`;
+						// Visited: underlined text
+						return `<span
+								class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link"
+								data-node-id="${nodeId}"
+								style="color: ${color}; font-weight: 500; text-decoration: underline;"
+							  >${text}</span>`;
 					} else {
-						// Not visited: box style with even padding
-						return `<span class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link" data-node-id="${nodeId}" style="display: inline-flex; align-items: center; background: ${color}18; border: 1px solid ${color}4D; border-radius: 5px; padding: 2px 3px; color: ${color}; font-weight: 500;">${text}</span>`;
+						// Not visited: boxed style
+						return `<span
+							class="cursor-pointer hover:opacity-80 transition-all duration-200 node-link"
+							data-node-id="${nodeId}"
+							style="
+							  display: inline-flex;
+							  align-items: center;
+							  background: ${color}18;
+							  border: 1px solid ${color}4D;
+							  border-radius: 5px;
+							  padding: 2px 3px;
+							  color: ${color};
+							  font-weight: 500;
+							"
+						  >${text}</span>`;
 					}
 				}
 				return text;
@@ -1059,7 +1116,7 @@
 
 				// Add to the stack first (same order as selectNode)
 				addToNodeStack(liveNode);
-
+				updateNodeStyles();
 				// Then center the graph on the selected node
 				centerGraphOnNode(liveNode);
 
@@ -1083,7 +1140,7 @@
 	// Function to center the graph on a specific node (restored original logic)
 	function centerGraphOnNode(node: any) {
 		if (zoomBehavior && svgElement) {
-			const scale = 1.2; // Less zoom-in than before
+			const scale = 1.6;
 			const [x, y] = [node.x || 0, node.y || 0]; // Node position
 
 			// Get the current container dimensions
@@ -1105,6 +1162,8 @@
 		}
 	}
 
+	//TODO :: Nodes are just not adding in at all anymore
+	//MARKED NODES AS VISIT -> AddNodeToDB IS NOT ADDING IT IN
 	async function addToNodeStack(node: any) {
 		focusedNode = node;
 		connectedNodes.clear();
@@ -1175,7 +1234,6 @@
 		updateNodeStyles();
 	}
 
-	// Function to navigate to a specific index in the navigation history
 	function navigateToStackIndex(index: any) {
 		if (index >= 0 && index < navigationHistory.length) {
 			// Get the selected node from navigation history
@@ -1230,13 +1288,35 @@
 
 	onMount(async () => {
 		await loadVisitedFromDb();
+		await loadUserFromDb();
+		await loadMergedGraph();
 		initializeSuggestionSystem();
-		loadMergedGraph();
+
+		element.innerHTML = '';
+		element.appendChild(chart(mergedGraph));
+
 		updateNodeStyles();
 		updateUserProfileDebug();
+
+		const handleNodeLinkClick = (event: MouseEvent) => {
+			const target = (event.target as HTMLElement).closest('.node-link');
+			if (target?.dataset.nodeId) {
+				selectNodeById(parseInt(target.dataset.nodeId));
+			}
+		};
+		document.addEventListener('click', handleNodeLinkClick);
+
+		// 6. Any other broadcast listeners
 		window.addEventListener('nodeVisited', updateUserProfileDebug);
+		window.addEventListener('nodeStatusUpdated', updateUserProfileDebug);
+		const unsubRec = recommendedNodeStore.subscribe(updateUserProfileDebug);
+
+		// Cleanup all listeners when component unmounts
 		return () => {
+			document.removeEventListener('click', handleNodeLinkClick);
 			window.removeEventListener('nodeVisited', updateUserProfileDebug);
+			window.removeEventListener('nodeStatusUpdated', updateUserProfileDebug);
+			unsubRec();
 		};
 	});
 
@@ -1250,75 +1330,67 @@
 		}
 	}
 
-	onMount(async () => {
-		const data = await loadData();
-		element.innerHTML = '';
-		element.appendChild(chart(data));
-
-		// Ensure global function is available after mount
-		window.selectNodeById = selectNodeById;
-
-		// Add click listener for node links
-		const handleNodeLinkClick = (event: any) => {
-			const target = event.target.closest('.node-link');
-			if (target && target.dataset.nodeId) {
-				const nodeId = parseInt(target.dataset.nodeId);
-				selectNodeById(nodeId);
-			}
-		};
-
-		document.addEventListener('click', handleNodeLinkClick);
-
-		// Cleanup function
-		return () => {
-			document.removeEventListener('click', handleNodeLinkClick);
-		};
-	});
-
-	// Update debug panel on mount and whenever a node is visited or recommendedNode changes
-	onMount(async () => {
-		// Load mergedGraph dynamically
-		try {
-			const res = await fetch('/merged_graph.json');
-			mergedGraph = await res.json();
-			mergedGraphLoaded = true;
-			updateUserProfileDebug();
-		} catch (e) {
-			console.error('Failed to load merged_graph.json', e);
-		}
-		window.addEventListener('nodeStatusUpdated', updateUserProfileDebug);
-		recommendedNodeStore.subscribe(() => updateUserProfileDebug());
-		return () => {
-			window.removeEventListener('nodeStatusUpdated', updateUserProfileDebug);
-		};
-	});
-
 	let userProfileClicked = false;
 	function handleUserProfileClick() {
-		userProfileClicked = true;
 		handleLogout();
+		userProfileClicked = true;
 		setTimeout(() => {
 			userProfileClicked = false;
 		}, 100);
+	}
+	const bracketColors = {
+		beginner: '#9CA3AF',
+		intermediate: '#E0AF67',
+		advanced: '#BA9AF7',
+		expert: '#F7768E'
+	};
+
+	function hexToRgba(hex: string, alpha: number) {
+		const r = parseInt(hex.slice(1, 3), 16);
+		const g = parseInt(hex.slice(3, 5), 16);
+		const b = parseInt(hex.slice(5, 7), 16);
+		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+	}
+	// whenever userBracket changes, this will update
+	$: borderColor = bracketColors[userBracket] || '#333333';
+	$: borderColorAlpha = hexToRgba(borderColor, 0.3);
+	$: currentHistoryIndex = navigationHistory.findIndex((n) => n.id === focusedNode?.id);
+
+	function prevStack() {
+		if (currentHistoryIndex > 0) {
+			navigateToStackIndex(currentHistoryIndex - 1);
+		}
+	}
+	function nextStack() {
+		if (currentHistoryIndex < navigationHistory.length - 1) {
+			navigateToStackIndex(currentHistoryIndex + 1);
+		}
 	}
 </script>
 
 <div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
 	<div
-		class="user-profile-debug {userProfileClicked
-			? 'clicked'
-			: ''} flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2 text-xs text-white shadow"
-		style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
+		class="user-profile-debug flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
+		style="
+    background-color: rgba(0,0,0,.95);
+    border: 2px solid {borderColorAlpha};
+    backdrop-filter: blur(10px);
+  "
 		on:click={handleUserProfileClick}
 	>
-		<p><b>User Bracket:</b> {$userProfileStore.bracket}</p>
+		<p
+			class="flex items-center gap-x-2 text-xs font-semibold capitalize"
+			style="color: {borderColor}; "
+		>
+			{userBracket}
+		</p>
 	</div>
 	{#if recommendedNode && recommendedNode.node}
 		<div
-			class="next-step-glow flex items-center gap-2 rounded-sm px-4 py-2 text-xs shadow"
-			style="background-color: rgba(0,0,0,.95); border:1px solid #333; backdrop-filter: blur(10px);"
+			class="next-step-glow flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
+			style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
 		>
-			<span class="font-semibold text-white">Next Step:</span>
+			<span class="font-semibold text-neutral-50">Next Step:</span>
 			<span
 				class="node-link cursor-pointer transition-all duration-200 hover:opacity-80"
 				data-node-id={recommendedNode.node.id}
@@ -1408,6 +1480,8 @@
 									onClose={() => removeFromStack(node.id)}
 									nodesVisited={nodeStatusService.getAllStatuses().size}
 									on:challenge={(e) => openChallenge(e.detail.node)}
+									on:prevNode={prevStack}
+									on:nextNode={nextStack}
 								/>
 							</div>
 						</div>
