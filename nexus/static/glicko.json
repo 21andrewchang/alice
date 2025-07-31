@@ -4,7 +4,7 @@
       "id": 0,
       "label": "Elo Rating System",
       "type": "paper",
-      "description": "A simple, probabilistic method to rate players based on game results. Each player has a numeric rating; when two players meet, you compute an expected score E = 1 / (1 + 10^(–Δ/400)), where Δ = (your rating – opponent rating). After the game, you update your rating by ΔR = K × (S – E), where S is the actual score (1 for win, 0.5 draw, 0 loss) and K is a constant controlling sensitivity. Novel contributions: first system with clear probabilistic underpinnings, scalable to large federations, and easy to compute incrementally. Originally published by Arpad Elo in The Rating of Chessplayers, Past and Present (1978).",
+      "description": "Overview:\nA method to assign each player a number (rating) that represents their skill level.\n\nExpected Score:\nE = 1 / (1 + 10^(–Δ/400)), where Δ = (your rating – opponent rating). This gives the probability you will win based on you and your opponents ratings.\n\nRating Update:\nAfter a match, your rating changes by ΔR = K × (S – E), where:\n• S = actual score (1 = win, 0.5 = draw, 0 = loss)\n• K = sensitivity constant (larger K → bigger rating gains)\n\nWhy “Probabilistic”?\nInstead of treating wins and losses as absolute, it uses probabilities—surprise (S–E) drives the update.\n\nKey Innovations:\n• First rating system grounded in probability theory\n• Scales to thousands of players with simple arithmetic\n• Incremental updates without re‐rating the entire pool\n\nSource:\nArpad Elo, The Rating of Chessplayers, Past and Present (1978).",
       "difficulty": 3,
       "domain": "research-papers"
     },
@@ -71,9 +71,173 @@
       "description": "Derived from the Gaussian (normal) distribution: for a variable X∼N(μ,σ²), about 95% of values lie within ±1.96σ of the mean. A 95% confidence interval around an estimate μ is therefore (μ – 1.96·σ, μ + 1.96·σ). This means we are 95% confident that the true value (e.g., a player’s skill) lies within this range. Example: a Glicko rating r=1850 with RD=50 (σ=50) gives CI ≈ (1850 – 1.96·50, 1850 + 1.96·50) ≈ (1752, 1948), so we’re 95% confident the player’s true skill is between 1752 and 1948. Wider σ yields wider intervals, reflecting greater uncertainty.",
       "difficulty": 2,
       "domain": "statistics"
+    },
+    {
+      "id": 9,
+      "label": "Segment Anything Model 2 (SAM 2)",
+      "type": "paper",
+      "description": "SAM 2 is a unified foundation model for promptable segmentation in both images and videos.  It extends the original <node id=\"10\">SAM</node> architecture by adding a lightweight streaming-memory module that retains object “memories” (spatial feature maps + semantic pointers) from previous frames, enabling real-time, interactive mask propagation and refinement across arbitrarily long videos.\n\nNovel Contributions:\n• **Streaming Memory for Video** – introduces a FIFO memory bank of past frame embeddings and mask pointers, cross-attended at each frame to fuse temporal context without per-video fine-tuning.\n• **Promptable Visual Segmentation (PVS) Task** – defines a general interactive segmentation task over video (“masklets”) using clicks, boxes or masks on any frame, unifying image and video segmentation under one interface.\n• **Data Engine & SA-V Dataset** – builds a model-in-the-loop annotation pipeline to collect 35.5 M masks across 50.9 K videos (manual + auto), 53× larger than any prior VOS dataset, with minimal semantic constraints.\n• **Transformer-Based Architecture** – adapts SAM’s mask decoder to videos via hierarchical image encoder (MAE-pretrained Hiera) + memory-attention blocks, supporting real-time inference (43.8 FPS on A100) at 1024² resolution.\n• **Zero-Shot & Interactive Performance** – outperforms prior video segmentation systems (XMem++, Cutie) with >3× fewer interactions, and exceeds SAM on 37 zero-shot image benchmarks (1 click mIoU 61.9% vs 58.1%) while being 6× faster.\n\nOriginally published as “arXiv:2408.00714v2 [cs.CV] (Oct 2024)” by Nikhila Ravi et al., Meta FAIR.",
+      "difficulty": 4,
+      "domain": "research-papers"
+    },
+    {
+      "id": 10,
+      "label": "Segment Anything (SAM)",
+      "type": "paper",
+      "description": "Segment Anything (SAM) is a promptable foundation model for image segmentation that, when given user prompts (points, boxes, masks or text), produces valid segmentation masks in real time without any downstream fine-tuning.\n\nNovel Contributions:\n• **Promptable Segmentation Task** – formulates segmentation as a “promptable” task, where any spatial or textual cue can be used to specify what to segment, enabling zero-shot transfer via prompt engineering.\n• **Efficient Model Architecture** – designs SAM as a heavy Vision Transformer image encoder + lightweight prompt encoder + mask decoder that runs in ∼50 ms per prompt and outputs multiple ambiguity-aware masks with confidence scores.\n• **Data Engine & SA-1B Dataset** – introduces a model-in-the-loop annotation pipeline (assisted-manual → semi-automatic → fully-automatic) to collect over 1.1 billion masks on 11 million licensed, privacy-protected images.\n• **Largest Segmentation Dataset** – releases SA-1B with 1.1 B high-quality masks, 11 M high-resolution images, privacy safeguards (blurred faces/license plates), and broad geographic diversity.\n• **Extensive Zero-Shot Evaluation** – demonstrates SAM’s competitive or superior zero-shot performance on 23 segmentation benchmarks, edge detection, object proposals, instance segmentation, and text-to-mask tasks.\n\nOriginally published as “arXiv:2304.02643v1 [cs.CV] (Apr 2023)” by Alexander Kirillov et al., Meta AI Research.",
+      "difficulty": 4,
+      "domain": "research-papers"
+    },
+    {
+      "id": 11,
+      "label": "Streaming Memory",
+      "type": "concept",
+      "description": "Streaming Memory keeps a fixed-size FIFO buffer of the last N frames’ image embeddings and mask tokens. Each incoming frame:\n  1. Drops the oldest slot and appends its new features and mask pointers\n  2. Cross-attends into this rolling window to fuse only recent context\n  3. Writes back updated keys & mask tokens for future frames\n\nThis design lets SAM 2:\n• **Use constant compute & RAM** per frame—no matter how long the video, each step costs the same\n• **Smooth predictions** by leveraging only the most relevant recent history (cuts down flicker/jitter)\n• **Propagate interactive prompts** through time so a click or box on one frame automatically refines masks in later frames without re-prompting",
+      "difficulty": 3,
+      "domain": "tech"
+    },
+    {
+      "id": 12,
+      "label": "Transformer",
+      "type": "concept",
+      "description": "**What it is:** Transformers are a deep learning architecture built around self-attention, which lets every element in an input sequence (e.g., words, image patches, frame features) directly attend to every other element. Each layer has:\n\n• **Multi-Head Self-Attention:** computes pairwise interactions between all tokens in parallel, capturing long-range dependencies efficiently.  \n• **Position-Wise Feed-Forward Networks:** apply a small MLP to each token independently to mix features.  \n• **Positional Encodings:** inject order or spatial information since attention itself is permutation-invariant.\n\n**How it works:** Given a sequence of embeddings, self-attention produces new embeddings where each is a weighted sum of all inputs, with weights learned to focus on relevant context. Multi-head attention runs several of these in parallel, allowing the model to capture different types of relationships. Stacking layers builds deep contextual representations.\n\n**Why it’s good for SAM 2:**\n• **Global Context:** attention spans the entire image or video frame, enabling precise mask boundaries even on high-resolution inputs.  \n• **Parallel & Scalable:** computes all token relationships at once, making it practical for real-time inference on GPUs.  \n• **Flexible Fusion:** cross-attention extensions easily integrate prompts and past frame memory, letting SAM 2 fuse spatial, temporal, and prompt signals seamlessly."
+    ,
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 13,
+      "label": "Deep Learning",
+      "type": "foundation",
+      "description": "**What it is:** Deep learning is a subfield of machine learning where models—called neural networks—are composed of many stacked layers of interconnected “neurons.” Each layer learns to extract increasingly abstract features from raw data (pixels, audio waveforms, text tokens), enabling end-to-end learning of complex patterns.  \n\n**Key components:**  \n• **Layers & Neurons:** linear transforms + nonlinear activations wired in a directed graph.  \n• **Backpropagation:** algorithm that computes gradients of a loss function w.r.t. every weight, driving learning via gradient descent.  \n• **Representation Learning:** earlier layers learn basic features (edges, textures), deeper layers learn high-level concepts (objects, actions).  \n\n**Why it’s good for SAM 2:**  \n• **Scalable Feature Learning:** deep image and prompt encoders automatically discover rich embeddings from millions of masks and images.  \n• **End-to-End Differentiability:** the entire prompt→mask pipeline (including streaming memory blocks) can be trained jointly for optimal performance.  \n• **Flexibility:** supports complex architectures (Transformers, convolutional blocks, memory modules) that power SAM 2’s real-time, interactive segmentation capabilities."
+    ,
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 14,
+      "label": "Image Encoder",
+      "type": "concept",
+      "description": "Definition: A module that converts a raw image into numerical feature vectors summarizing its visual content.  \nWhy it matters: Downstream models (segmentation, detection, etc.) need compact, structured representations instead of raw pixels.  \nKey ideas:  \n• Produces spatially organized embeddings or feature maps that capture edges, textures, shapes, and context.  \n• Balances local detail and broader context so later components can reason about both.  \n• Is often pretrained to bootstrap general visual understanding.  \nRelevance: Feeds downstream vision tasks such as mask decoding and object recognition.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 15,
+      "label": "Foundational Model",
+      "type": "concept",
+      "description": "Definition: A large-scale machine learning model (typically an overparameterized neural network) pretrained on broad, general data to learn representations that can be adapted to many downstream tasks. Its pretraining and interface often give it zero-shot generalization—performing new tasks at inference with no task-specific examples—and few-shot adaptability when given a small number of examples or prompts.  \nWhy it matters: It lets builders start from a powerful base and specialize behavior cheaply instead of training new models from scratch for every task.  \nKey ideas:  \n• Learns transferable features via broad self- or weakly-supervised pretraining over massive diverse data.  \n• Is adapted to specific tasks through prompting, retrieval, adapters, few-shot examples, or lightweight fine-tuning.  \n• Exhibits emergent zero-shot/few-shot capabilities as scale and data increase (zero-shot = no new examples; few-shot = a handful provided in context).  \nRelevance: Serves as the substrate for systems like GPT, CLIP, and SAM, enabling immediate and efficient task specialization without rebuilding from zero.",
+      "difficulty": 2,
+      "domain": "machine-learning"
+    },
+    {
+      "id": 16,
+      "label": "Rolling Window",
+      "type": "concept",
+      "description": "Definition: A fixed-size sliding buffer that always contains the most recent N items (e.g., frame embeddings and mask tokens).  \nWhy it matters: It gives models access to recent history with constant compute and memory by keeping the lookback bounded.  \nKey ideas:  \n• On each new frame, the oldest entry is dropped and the new one appended, so the window ‘‘rolls’’ forward in time.  \n• Fusion modules (like cross-attention) query only this bounded window to incorporate recent context.  \n• Maintains temporal coherence without letting history grow unbounded.  \nRelevance: Core mechanism inside Streaming Memory; provides the recent context that enables smooth, consistent video segmentation in SAM 2.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 17,
+      "label": "Buffer",
+      "type": "concept",
+      "description": "Definition: A temporary holding area for data in transit between a producer and a consumer.  \nWhy it matters: It decouples differing production/consumption rates, smoothing bursts and preventing stalls or data loss.  \nKey ideas:  \n• Producers write data into the buffer; consumers read from it.  \n• Common forms include FIFO queues and ring (circular) buffers for fixed-size sliding history.  \n• Policies handle overflow (drop/overwrite/backpressure) and underflow (waiting or fallback).  \nRelevance: Core primitive behind the rolling window in Streaming Memory and used broadly in video, I/O, and networking to maintain stable data flow.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 18,
+      "label": "Machine Learning Model",
+      "type": "concept",
+      "description": "Definition: A parameterized function trained on data to make predictions or decisions by learning patterns; training adjusts its parameters to minimize a loss that measures error.  \nWhy it matters: It turns raw data into useful outputs (classification, regression, generation, etc.) by generalizing from examples instead of hard-coded rules.  \nKey ideas:  \n• Architecture: the chosen structure (linear model, tree, neural network) determines what patterns can be represented.  \n• Training: uses data and an optimization algorithm (e.g., gradient descent) to fit parameters by minimizing a loss.  \n• Generalization vs overfitting: a good model performs well on unseen data, not just its training examples.  \n• Inference: applying the learned parameters to new inputs to produce predictions.  \nRelevance: Builds on statistical modeling principles and is the basis for foundational models (like GPT or CLIP); used across tasks such as segmentation, ranking, and recommendation.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 19,
+      "label": "Feature Vector",
+      "type": "concept",
+      "description": "Definition: A fixed-length numeric vector that encodes meaningful attributes of an object (image, text, user state, etc.) so machines can compare, classify, or reason about it.  \nWhy it matters: It turns raw, high-dimensional data into structured inputs that downstream models can operate on efficiently and meaningfully.  \nKey ideas:  \n• Each dimension captures a latent feature or aspect; similarity in vector space implies semantic or functional similarity.  \n• Often produced by encoders (e.g., image encoders, language models) and can be normalized for distance metrics.  \n• Used for retrieval, nearest-neighbor search, clustering, classification, and as inputs to higher-level predictors.  \nRelevance: Core representation used across recommendation, zero-shot/few-shot matching, and model inference pipelines.",
+      "difficulty": 1,
+      "domain": "machine-learning"
+    },
+    {
+      "id": 20,
+      "label": "Vector",
+      "type": "concept",
+      "description": "Definition: An ordered list of numbers representing magnitude and direction in a coordinate space.  \nWhy it matters: It is the basic building block in linear algebra for encoding positions, directions, and quantities, enabling combination, comparison, and transformation.  \nKey ideas:  \n• Components: each entry is a coordinate along a basis.  \n• Operations: addition, scalar multiplication, dot product (similarity/projection), and norm (length).  \n• Linear combinations & basis: any vector can be expressed as a weighted sum of basis vectors; changing basis re-expresses the same geometric object.  \nRelevance: Foundation for feature vectors, embeddings, linear transformations, and similarity computations in machine learning.",
+      "difficulty": 1,
+      "domain": "math"
     }
   ],
   "links": [
+    {
+      "source": 20,
+      "target": 19,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 19,
+      "target": 14,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 18,
+      "target": 15,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 17,
+      "target": 16,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 16,
+      "target": 11,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 15,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 14,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 13,
+      "target": 12,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 12,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 10,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
     {
       "source": 8,
       "target": 4,
