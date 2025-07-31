@@ -36,7 +36,7 @@
       "id": 5,
       "label": "Non-linear State Space Model",
       "type": "concept",
-      "description": "A non-linear state space model represents a dynamic system in discrete time by two equations:\n\n1. **State (Transition) Equation**:  xₜ = f(xₜ₋₁) + wₜ,  where xₜ is the hidden state at time t, f(·) is a (possibly non-linear) transition function, and wₜ is process noise.\n\n2. **Observation (Measurement) Equation**:  yₜ = g(xₜ) + vₜ,  where yₜ is the observed data at time t, g(·) is a (possibly non-linear) measurement function, and vₜ is observation noise.\n\nSuch models track latent variables that evolve over time under non-linear dynamics and generate noisy observations. Inference (e.g., computing the posterior of xₜ) typically requires approximation methods like the Extended or Unscented Kalman Filter, Particle Filtering, or variational approaches.",
+      "description": "A non-linear state space model represents a dynamic system in discrete time by two equations:\n\n1. **State (Transition) Equation**:  xₜ = f(xₜ₋₁) + wₜ,  where xₜ is the hidden state at time t, f(·) is a (possibly non-linear) transition function, and wₜ is process noise.\n\n2. **Observation (Measurement) Equation**:  yₜ = g(xₜ) + vₜ,  where yₜ is the observed data at time t, g(·) is a (possibly non-linear) measurement function, and vₜ is observation noise.\n\nSuch models track <node id=\"29\">latent variables</node> that evolve over time under non-linear dynamics and generate noisy observations. Inference (e.g., computing the posterior of xₜ) typically requires approximation methods like the Extended or Unscented Kalman Filter, Particle Filtering, or variational approaches.",
       "difficulty": 4,
       "domain": "tech"
     },
@@ -60,7 +60,7 @@
       "id": 8,
       "label": "Fitting",
       "type": "concept",
-      "description": "Fitting refers to the process of estimating model parameters so that the model best explains observed data. In paired comparison settings, fitting a model involves choosing strength or merit parameters that maximize agreement between predicted and actual outcomes.",
+      "description": "Fitting refers to the process of estimating <node id=\"14\">model</node> parameters so that the model best explains observed data. In paired comparison settings, fitting a model involves choosing strength or merit parameters that maximize agreement between predicted and actual outcomes.",
       "difficulty": 2,
       "domain": "tech"
     },
@@ -349,8 +349,8 @@
       "value": 1
     },
     {
-      "source": 8,
-      "target": 0,
+      "source": 14,
+      "target": 8,
       "relation": "prerequisite",
       "value": 1
     },
