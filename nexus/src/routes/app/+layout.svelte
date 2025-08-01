@@ -65,7 +65,7 @@
 	});
 </script>
 
-{#if showOnboarding}
+{#if true}
 	<OnboardingOverlay onSetRecommendation={handleSetRecommendation} on:finish={finishOnboarding} />
 {/if}
 <slot />
