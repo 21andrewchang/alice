@@ -144,22 +144,6 @@
 
 		currentRecommendation = info;
 
-		// persist bracket & recommendation
-		if (typeof localStorage !== 'undefined') {
-			localStorage.setItem('userBracket', bracket);
-			localStorage.setItem(
-				'currentRecommendation',
-				JSON.stringify({
-					id: info.id,
-					label: info.label,
-					explanation: info.explanation,
-					confidence: 1.0,
-					timestamp: new Date().toISOString()
-				})
-			);
-		}
-
-		// callback for any external consumer (not dispatch)
 		if (onSetRecommendation) {
 			onSetRecommendation({
 				node: { id: info.id, label: info.label, explanation: info.explanation },
@@ -175,10 +159,7 @@
 		if (!selectedLevel || !selectedInterest || !currentRecommendation || !bracket) return;
 		dispatch('finish', {
 			bracket,
-			interest: selectedInterest.title,
-			suggestedId: currentRecommendation.id,
-			label: currentRecommendation.label,
-			explanation: currentRecommendation.explanation
+			recommendation: currentRecommendation.id
 		});
 	}
 </script>
