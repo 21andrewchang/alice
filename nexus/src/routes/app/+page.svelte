@@ -21,7 +21,6 @@
 
 	let showContent = false;
 
-	// immediately hide when collapsing
 	$: if (!tutorialExpanded) showContent = false;
 
 	function handleTutorialTransitionEnd(e: TransitionEvent) {
@@ -83,6 +82,8 @@
 			const node = mergedGraph.nodes.find((n: any) => n.id === savedRecommendationId);
 			if (node) {
 				recommendedNode = { node };
+				showContent = true;
+				tutorialExpanded = true;
 			}
 		}
 	});
@@ -93,20 +94,23 @@
 
 	async function loadUserFromDb() {
 		const { data: sessionData } = await supabase.auth.getSession();
-		let user = sessionData.session?.user;
+		const user = sessionData.session?.user;
 		if (user) {
 			const { data: userData, error } = await supabase
 				.from('users')
 				.select('bracket, recommendation')
-				.eq('id', user?.id);
+				.eq('id', user.id)
+				.limit(1);
+
 			if (error) {
 				console.error('Error loading profile:', error);
-			} else {
+			} else if (userData && userData.length > 0) {
+				tutorialExpanded = false;
+
 				userBracket = userData[0]?.bracket;
 				const rec = userData[0]?.recommendation;
 				if (rec != null) {
 					savedRecommendationId = rec;
-
 					if (mergedGraphLoaded) {
 						const node = mergedGraph.nodes.find((n: any) => n.id === savedRecommendationId);
 						if (node) {
