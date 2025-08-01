@@ -1,13 +1,6 @@
 <script lang="ts">
-	import {
-		guestProgress,
-		currentLevel,
-		setGoal,
-		setCurrentPaper,
-		completeLesson,
-		onboardingComplete
-	} from '$lib/onboarding';
-	import { fade, scale } from 'svelte/transition';
+	import { guestProgress, currentLevel, setGoal } from '$lib/onboarding';
+	import { fade } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
@@ -22,9 +15,6 @@
 
 	let dispatch = createEventDispatcher();
 	let step: 'goal' | 'quiz' | 'complete' = 'goal';
-	let goalInput = '';
-	let showSuccess = false;
-	let confettiLaunched = false;
 	type PlacementQuestion = {
 		id: number;
 		question: string;
