@@ -3,12 +3,10 @@
 	import OnboardingOverlay from '$lib/OnboardingOverlay.svelte';
 	import { supabase } from '$lib/supabaseClient';
 	import { recommendedNodeStore } from '$lib/recommendedNodeStore';
+	import { userProfile } from '$lib/userProfileStore';
 
 	export let data: { session: import('@supabase/supabase-js').Session | null };
 
-	function handleSetRecommendation(node: any) {
-		recommendedNodeStore.set(node);
-	}
 	let user = data.session?.user;
 	let displayEmail = user?.email ?? '';
 	let showOnboarding: boolean | null = false; // null = loading
@@ -27,24 +25,25 @@
 		return count === 0;
 	}
 
-	async function newUserProfile(recommendation: string, bracket: string) {
+	async function newUserProfile(recommendation: number, bracket: string) {
 		const { data: sessionData } = await supabase.auth.getSession();
 		user = sessionData.session?.user;
-		console.log(user);
-		const { data, error } = await supabase.from('users').insert([
+		const { error } = await supabase.from('users').upsert(
 			{
 				id: user?.id,
 				recommendation: recommendation,
 				bracket: bracket
-			}
-		]);
-		console.log(error);
+			},
+			{ onConflict: 'id' }
+		);
+		userProfile.set({ bracket, recommendation });
+		console.log('hello: ', error);
 	}
-	async function finishOnboarding(e: CustomEvent<{ recommendation: string; bracket: string }>) {
+	async function finishOnboarding(e: CustomEvent<{ recommendation: number; bracket: string }>) {
 		const { recommendation, bracket } = e.detail;
-		console.log('from layout: ', recommendation, bracket);
 		await newUserProfile(recommendation, bracket);
 		showOnboarding = false;
+		console.log('what');
 	}
 
 	onMount(async () => {
@@ -66,6 +65,6 @@
 </script>
 
 {#if showOnboarding}
-	<OnboardingOverlay onSetRecommendation={handleSetRecommendation} on:finish={finishOnboarding} />
+	<OnboardingOverlay on:finish={finishOnboarding} />
 {/if}
 <slot />

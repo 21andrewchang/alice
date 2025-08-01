@@ -3,7 +3,6 @@
 <script lang="ts">
 	import OnboardingSlideshow from '$lib/OnboardingSlideshowSelf.svelte';
 	import { createEventDispatcher } from 'svelte';
-	export let onSetRecommendation;
 	let dispatch = createEventDispatcher();
 	function finishOnboarding(e: CustomEvent<{ recommendation: string; bracket: string }>) {
 		dispatch('finish', e);

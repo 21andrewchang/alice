@@ -17,12 +17,24 @@
 	} from '$lib/nodeStatus';
 	import { getSuggestionService } from '$lib/suggestionSystem';
 	import { writable } from 'svelte/store';
+	import { userProfile } from '$lib/userProfileStore';
 
+	let mergedGraphLoaded = false;
 	let challengeOpen = false;
 	let challengeNode;
 	let userBracket: string = '';
 	let savedRecommendationId: number | null = null;
 	let recommendedNode: any = null;
+	const unsubscribe = userProfile.subscribe(({ bracket, recommendation }) => {
+		if (bracket) userBracket = bracket;
+		if (recommendation != null) savedRecommendationId = recommendation;
+		if (mergedGraphLoaded) {
+			const node = mergedGraph.nodes.find((n: any) => n.id === savedRecommendationId);
+			if (node) {
+				recommendedNode = { node };
+			}
+		}
+	});
 
 	let startMs = 0;
 	let elapsedMs = 0;
@@ -31,13 +43,11 @@
 	async function loadUserFromDb() {
 		const { data: sessionData } = await supabase.auth.getSession();
 		let user = sessionData.session?.user;
-		console.log('user session', user);
 		if (user) {
 			const { data: userData, error } = await supabase
 				.from('users')
 				.select('bracket, recommendation')
 				.eq('id', user?.id);
-			console.log('user data', userData);
 			if (error) {
 				console.error('Error loading profile:', error);
 			} else {
@@ -45,12 +55,9 @@
 				const rec = userData[0]?.recommendation;
 				if (rec != null) {
 					savedRecommendationId = rec;
-					console.log('recommendation id: ', savedRecommendationId);
 
 					if (mergedGraphLoaded) {
-						console.log('graph', mergedGraphLoaded);
 						const node = mergedGraph.nodes.find((n: any) => n.id === savedRecommendationId);
-						console.log('node found: ', node);
 						if (node) {
 							recommendedNode = { node };
 						}
@@ -130,7 +137,6 @@
 				user_id: user.id
 			}
 		});
-		console.log('data from edge function: ', data);
 		if (data?.newBracket) {
 			userBracket = data.newBracket;
 		}
@@ -152,9 +158,6 @@
 		challengeOpen = false;
 		if (ticker) clearInterval(ticker);
 		const total = performance.now() - startMs;
-		console.log('Updating mastery for: ', challengeNode.label);
-		console.log('Exp Earned: ', e.expEarned);
-		console.log('Challenge time (hh:mm:ss):', formatTime(total));
 	}
 
 	// helper
@@ -169,7 +172,6 @@
 	const userProfileStore = writable(getSuggestionService().getUserProfile());
 
 	let mergedGraph: { nodes: any[]; links: any[] } = { nodes: [], links: [] };
-	let mergedGraphLoaded = false;
 
 	function updateUserProfileDebug() {
 		const suggestionService = getSuggestionService();
@@ -417,7 +419,6 @@
 
 		// Clone data
 		const nodes = data.nodes.map((d: any) => ({ ...d }));
-		console.log('nodes: ', nodes);
 		const links = data.links.map((d: any) => ({ ...d }));
 
 		// Map central relations
@@ -1117,15 +1118,12 @@
 
 	// Function to select a node by ID (for node links)
 	function selectNodeById(nodeId: any) {
-		console.log('[DEBUG] selectNodeById called with nodeId:', nodeId);
 		// Get the live node from the simulation with current x,y coordinates
 		if (typeof window !== 'undefined' && window.simulation) {
 			const liveNodes = window.simulation.nodes();
 			const liveNode = liveNodes.find((n) => n.id === nodeId);
 
 			if (liveNode) {
-				// Mark the node as visited immediately
-				console.log('[DEBUG] Marking node as visited:', nodeId);
 				nodeStatusService.markAsVisited(nodeId);
 				onNodeVisited(nodeId); // Call SuggestionService logic
 
@@ -1137,16 +1135,13 @@
 
 				// --- MVP Recommendation Logic ---
 				if (recommendedNode && recommendedNode.node && nodeId === recommendedNode.node.id) {
-					console.log('[DEBUG] Clicked recommended node:', nodeId);
 					if (
 						window.suggestionService &&
 						typeof window.suggestionService.generateRecommendation === 'function'
 					) {
-						console.log('[DEBUG] Generating new recommendation...');
 						window.suggestionService.generateRecommendation();
 					}
 				} else {
-					console.log('[DEBUG] Clicked non-recommended node:', nodeId);
 				}
 			}
 		}
@@ -1282,12 +1277,6 @@
 			// Update node styles
 			updateNodeStyles();
 		}
-	}
-
-	// Function to toggle between sequential and parallel shooting stars
-	function toggleShootingStarMode() {
-		// This function is no longer needed as shooting stars are always sequential
-		console.log('Shooting star mode is always sequential.');
 	}
 
 	// Make function available globally for onclick handlers (client-side only)
