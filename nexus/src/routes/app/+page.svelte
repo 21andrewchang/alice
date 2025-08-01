@@ -19,6 +19,57 @@
 	import { writable } from 'svelte/store';
 	import { userProfile } from '$lib/userProfileStore';
 
+	let showContent = false;
+
+	// immediately hide when collapsing
+	$: if (!tutorialExpanded) showContent = false;
+
+	function handleTutorialTransitionEnd(e: TransitionEvent) {
+		// only care about the end of the size transition
+		if (e.propertyName !== 'width' && e.propertyName !== 'height') return;
+		if (tutorialExpanded) {
+			// now that expansion is done, reveal content
+			showContent = true;
+		} else {
+			showContent = false;
+		}
+	}
+
+	let tutorialExpanded = false;
+	let slideIndex = 0;
+	const tutorialSlides = [
+		{
+			title: 'The Nexus',
+			body: `The graph in the center is called The Nexus. The circles are Nodes, which can either be Research Papers or Foundational Knowlege. You can zoom in and out with scroll and pan by clicking and dragging.`
+		},
+		{
+			title: 'Nodes',
+			body: `Clicking a Node in the graph or through a link opens the Node's detailed view on the right. The graph centers the Node and focuses it's connections on the left.`
+		},
+		{
+			title: 'Your First Node',
+			body: `The "Next Step" box in the top left shows your first recommendation. Clicking the link to the topic opens the Node View for it.`
+		},
+		{
+			title: 'Mastery',
+			body: `Mastery represents your understanding of a Node. You can challenge your current Mastery at any time by clicking the button in the bottom right of the Node. Answering questions correct will give you EXP. When you get 100 EXP, you level up that Node's mastery`
+		},
+		{
+			title: 'Skill Bracket',
+			body: `All your mastery levels are accumulated to determine your skill bracket. You can check your progress towards the next skill bracket by clicking your current bracket in the top left`
+		}
+	];
+
+	const isLastSlide = () => slideIndex === tutorialSlides.length - 1;
+	function prevSlide() {
+		if (slideIndex > 0) slideIndex--;
+	}
+	function nextSlide() {
+		if (slideIndex < tutorialSlides.length - 1) slideIndex++;
+	}
+	function closeTutorial() {
+		tutorialExpanded = false;
+	}
 	let mergedGraphLoaded = false;
 	let challengeOpen = false;
 	let challengeNode;
@@ -1488,6 +1539,59 @@
 			{/each}
 		</div>
 	{/if}
+	<!-- Expanding tutorial panel -->
+	<div
+		class="tutorial-container border-2 border-neutral-900"
+		class:expanded={tutorialExpanded}
+		on:click={() => {
+			if (!tutorialExpanded) tutorialExpanded = true;
+		}}
+		on:transitionend={handleTutorialTransitionEnd}
+		aria-label="Tutorial"
+	>
+		{#if !tutorialExpanded}
+			<!-- Collapsed circle -->
+			<div class="circle text-neutral-800">
+				<span aria-hidden="true">?</span>
+			</div>
+		{:else}
+			<div class="panel">
+				{#if showContent}
+					<div class="panel-inner">
+						<div class="panel-header">
+							<div class="panel-title">{tutorialSlides[slideIndex].title}</div>
+							<button
+								class="close"
+								aria-label="Close tutorial"
+								on:click|stopPropagation={closeTutorial}
+							>
+								×
+							</button>
+						</div>
+						<div class="panel-body">
+							<div class="step-indicator">Step {slideIndex + 1} of {tutorialSlides.length}</div>
+							<div class="slide-content">{tutorialSlides[slideIndex].body}</div>
+						</div>
+						<div class="panel-footer">
+							<button on:click={prevSlide} disabled={slideIndex === 0} class="nav-btn">
+								← Previous
+							</button>
+							<div class="spacer"></div>
+							<button
+								on:click={() => {
+									if (isLastSlide()) closeTutorial();
+									else nextSlide();
+								}}
+								class="nav-btn"
+							>
+								{isLastSlide() ? 'Done' : 'Next →'}
+							</button>
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
+	</div>
 	{#if challengeOpen}
 		<Challenge on:finish={(e) => closeChallenge(e.detail)} {challengeNode} />
 	{/if}
@@ -1540,26 +1644,130 @@
 	}
 
 	/* Glow animation for Next Step box */
-	.next-step-glow {
-		animation: nextStepGlow 1s;
-	}
-	@keyframes nextStepGlow {
-		0% {
-			box-shadow: 0 0 0px 0px #7f9cf5;
-		}
-		20% {
-			box-shadow: 0 0 16px 6px #7f9cf5;
-		}
-		60% {
-			box-shadow: 0 0 16px 6px #7f9cf5;
-		}
-		100% {
-			box-shadow: 0 0 0px 0px #7f9cf5;
-		}
+	.tutorial-container {
+		position: fixed;
+		bottom: 16px;
+		left: 16px;
+		z-index: 70;
+		overflow: hidden;
+		cursor: pointer;
+		transition:
+			width 0.2s ease,
+			height 0.2s ease,
+			border-radius 0.35s ease,
+			box-shadow 0.35s ease,
+			padding 0.35s ease;
+		width: 30px;
+		height: 30px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-family: system-ui, sans-serif;
+		color: #e0e0e0;
+		box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.5);
+		background: rgba(0, 0, 0, 0.08);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 	}
 
-	.user-profile-debug.clicked {
-		background: #b00 !important;
-		color: #fff;
+	.tutorial-container.expanded {
+		width: 340px;
+		height: 300px;
+		border-radius: 10px;
+		cursor: default;
+		padding: 12px;
+		display: flex;
+		flex-direction: column;
+		background: rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+	}
+
+	.circle {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: medium;
+		font-size: 10px;
+		user-select: none;
+	}
+
+	.panel {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+
+	.panel-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 6px;
+	}
+
+	.panel-title {
+		font-size: 14px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	.close {
+		background: transparent;
+		border: none;
+		color: #ccc;
+		font-size: 18px;
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.panel-body {
+		flex: 1;
+		overflow-y: auto;
+		padding: 4px 0;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.step-indicator {
+		font-size: 11px;
+		opacity: 0.7;
+	}
+
+	.slide-content {
+		flex: 1;
+		font-size: 13px;
+		line-height: 1.4;
+		white-space: pre-wrap;
+	}
+
+	.panel-footer {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		padding-top: 4px;
+	}
+
+	.nav-btn {
+		background: rgba(255, 255, 255, 0.08);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		padding: 6px 12px;
+		border-radius: 6px;
+		font-size: 12px;
+		cursor: pointer;
+		min-width: 80px;
+	}
+
+	.nav-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.spacer {
+		flex: 1;
 	}
 </style>
