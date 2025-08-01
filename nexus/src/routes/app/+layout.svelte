@@ -37,7 +37,7 @@
 			{ onConflict: 'id' }
 		);
 		userProfile.set({ bracket, recommendation });
-		console.log('hello: ', error);
+		console.log(error);
 	}
 	async function finishOnboarding(e: CustomEvent<{ recommendation: number; bracket: string }>) {
 		const { recommendation, bracket } = e.detail;
