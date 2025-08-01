@@ -20,7 +20,6 @@
 
 	let challengeOpen = false;
 	let challengeNode;
-	let shouldShowOnboarding = false;
 	let userBracket: string = '–';
 
 	let startMs = 0;
