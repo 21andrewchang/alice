@@ -57,23 +57,22 @@
 			key: 'beginner',
 			label: 'Beginner',
 			emoji: '🌱',
-			subtitle: 'I’m just getting started and want to build core foundations.'
+			subtitle: 'I’m just getting started.'
 		},
 		{
 			key: 'intermediate',
 			label: 'Intermediate',
 			emoji: '🚀',
-			subtitle: 'I understand basics and want to deepen and connect concepts.'
+			subtitle: 'I understand basics and want to connect concepts.'
 		},
 		{
 			key: 'advanced',
 			label: 'Advanced',
 			emoji: '🧠',
-			subtitle: 'I’m comfortable with fundamentals. Lets go straight to advanced material.'
+			subtitle: 'I’m comfortable with fundamentals.'
 		}
 	];
 
-	// Hardcoded recommendations (interest × level)
 	const recommendationInfo: Record<
 		string,
 		Record<string, { id: number; label: string; explanation: string }>
@@ -205,7 +204,6 @@
 		</div>
 	</div>
 {:else if step === 1}
-	<!-- Level self-assessment -->
 	<div class="space-y-6">
 		<h2 class="text-2xl font-bold">What’s your current level?</h2>
 		<p class="text-lg opacity-80">Self-select the description that best fits your understanding.</p>
@@ -222,14 +220,14 @@
 					<div class="flex h-full flex-col">
 						<div class="mb-2 text-4xl">{lvl.emoji}</div>
 						<div class="mb-1 font-semibold capitalize">{lvl.label}</div>
-						<div class="flex-1 text-sm opacity-80">{lvl.subtitle}</div>
+						<div class="flex-1 text-xs opacity-50">{lvl.subtitle}</div>
 					</div>
 				</button>
 			{/each}
 		</div>
 	</div>
 {:else}
-	<div class="mt-24 space-y-6">
+	<div class="space-y-6">
 		<h2 class="text-2xl font-bold">Ready to begin</h2>
 		{#if currentRecommendation}
 			<div class="rounded border border-[#151515] bg-[#111111] p-6">
@@ -243,7 +241,7 @@
 			</div>
 		{/if}
 		<div class="mt-4 flex flex-col gap-2">
-			<button class="w-full rounded bg-neutral-200 py-2 font-semibold text-black" on:click={finish}>
+			<button class="w-full rounded bg-black py-2 font-semibold text-white" on:click={finish}>
 				Continue to App
 			</button>
 		</div>
