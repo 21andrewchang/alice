@@ -1367,7 +1367,7 @@
 	}
 </script>
 
-<div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
+<div class="fixed top-4 left-4 z-50 flex flex-row gap-2 bg-black">
 	<div
 		class="user-profile-debug flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
 		style="
