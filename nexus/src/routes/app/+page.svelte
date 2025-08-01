@@ -1210,7 +1210,6 @@
 
 			// Get the current container dimensions
 			const containerWidth = 928;
-			const containerHeight = 680;
 
 			// Instead of centering in the middle, center in the open area on the left
 			// Target position: 1/4 from left, vertically centered
@@ -1582,13 +1581,14 @@
 							</button>
 							<div class="spacer"></div>
 							<button
+								disabled={slideIndex === 4}
 								on:click={() => {
-									if (isLastSlide()) closeTutorial();
+									if (slideIndex === 4) closeTutorial();
 									else nextSlide();
 								}}
 								class="nav-btn"
 							>
-								{isLastSlide() ? 'Done' : 'Next →'}
+								Next →
 							</button>
 						</div>
 					</div>
