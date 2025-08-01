@@ -20,7 +20,9 @@
 
 	let challengeOpen = false;
 	let challengeNode;
-	let userBracket: string = '–';
+	let userBracket: string = '';
+	let savedRecommendationId: number | null = null;
+	let recommendedNode: any = null;
 
 	let startMs = 0;
 	let elapsedMs = 0;
@@ -40,6 +42,20 @@
 				console.error('Error loading profile:', error);
 			} else {
 				userBracket = userData[0]?.bracket;
+				const rec = userData[0]?.recommendation;
+				if (rec != null) {
+					savedRecommendationId = rec;
+					console.log('recommendation id: ', savedRecommendationId);
+
+					if (mergedGraphLoaded) {
+						console.log('graph', mergedGraphLoaded);
+						const node = mergedGraph.nodes.find((n: any) => n.id === savedRecommendationId);
+						console.log('node found: ', node);
+						if (node) {
+							recommendedNode = { node };
+						}
+					}
+				}
 			}
 		}
 	}
@@ -164,8 +180,8 @@
 	// Listen for node visit events (assuming you have a function or event for this)
 	//SUGGESTIONS
 	function onNodeVisited(nodeId: string) {
-		const suggestionService = getSuggestionService();
-		suggestionService.updateAfterNodeVisit(nodeId);
+		// const suggestionService = getSuggestionService();
+		// suggestionService.updateAfterNodeVisit(nodeId);
 		updateUserProfileDebug();
 	}
 
@@ -1279,16 +1295,10 @@
 		window.selectNodeById = selectNodeById;
 	}
 
-	let recommendedNode = null;
-
-	recommendedNodeStore.subscribe((node) => {
-		recommendedNode = node;
-	});
-
 	onMount(async () => {
+		await loadMergedGraph();
 		await loadVisitedFromDb();
 		await loadUserFromDb();
-		await loadMergedGraph();
 		initializeSuggestionSystem();
 
 		element.innerHTML = '';
@@ -1386,7 +1396,7 @@
 	</div>
 	{#if recommendedNode && recommendedNode.node}
 		<div
-			class="next-step-glow flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
+			class="flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
 			style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
 		>
 			<span class="font-semibold text-neutral-50">Next Step:</span>

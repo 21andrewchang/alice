@@ -10,10 +10,8 @@
 	}
 </script>
 
-<div
-	class="onboarding-bg fixed inset-0 z-50 flex items-center justify-center bg-black p-4 text-white"
->
-	<div class="onboarding-panel w-full max-w-2xl space-y-6">
+<div class="onboarding-bg fixed inset-0 z-50 flex items-center justify-center bg-black text-white">
+	<div class="onboarding-panel w-full max-w-2xl p-8">
 		<OnboardingSlideshow on:finish={(e) => finishOnboarding(e.detail)} />
 	</div>
 </div>
