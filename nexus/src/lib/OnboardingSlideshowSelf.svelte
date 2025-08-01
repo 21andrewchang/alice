@@ -63,13 +63,13 @@
 			key: 'intermediate',
 			label: 'Intermediate',
 			emoji: '🚀',
-			subtitle: 'I understand basics and want to connect concepts.'
+			subtitle: 'I’ve explored this topic before.'
 		},
 		{
 			key: 'advanced',
 			label: 'Advanced',
 			emoji: '🧠',
-			subtitle: 'I’m comfortable with fundamentals.'
+			subtitle: 'I’m comfortable with advanced concepts.'
 		}
 	];
 

@@ -64,7 +64,7 @@
 	});
 </script>
 
-{#if true}
+{#if showOnboarding}
 	<OnboardingOverlay on:finish={finishOnboarding} />
 {/if}
 <slot />
