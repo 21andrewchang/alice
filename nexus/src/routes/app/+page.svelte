@@ -1214,8 +1214,8 @@
 
 			// Instead of centering in the middle, center in the open area on the left
 			// Target position: 1/4 from left, vertically centered
-			const targetX = -containerWidth / 4; // 1/4 from left edge
-			const targetY = 0; // Vertically centered
+			const targetX = -containerWidth / 4 - 20; // 1/4 from left edge
+			const targetY = -50; // Vertically centered
 
 			// Create transform to move the node to the target position
 			const transform = d3.zoomIdentity
