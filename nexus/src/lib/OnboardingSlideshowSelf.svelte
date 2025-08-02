@@ -3,18 +3,32 @@
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 
-	export let onSetRecommendation: (rec: {
-		node: any;
-		confidence: number;
-		timestamp: string;
-	}) => void;
-
 	const dispatch = createEventDispatcher();
 
-	// consider done when progress is essentially full
-	$: isDone = $progress >= 99.5;
+	let otherInterest = '';
+	let suggestionSubmitted = false;
 
-	// Steps: 0=interest,1=level,2=complete
+	function openInterestSuggestion() {
+		const input = prompt(
+			'Have something else in mind? Tell us what topic you’d like and we’ll consider adding it.'
+		);
+		if (input && input.trim()) {
+			otherInterest = input.trim();
+			suggestionSubmitted = true;
+
+			// Optional: notify parent / backend
+			dispatch('suggestInterest', { interest: otherInterest });
+
+			// Example backend send (adjust endpoint as needed):
+			fetch('/api/suggest-interest', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ interest: otherInterest })
+			}).catch(() => {
+				/* swallow or handle error */
+			});
+		}
+	}
 	let step: 0 | 1 | 2 = 0;
 
 	// User selections
@@ -142,15 +156,6 @@
 		if (!info) return;
 
 		currentRecommendation = info;
-
-		if (onSetRecommendation) {
-			onSetRecommendation({
-				node: { id: info.id, label: info.label, explanation: info.explanation },
-				confidence: 1.0,
-				timestamp: new Date().toISOString()
-			});
-		}
-
 		step = 2;
 	}
 
@@ -183,7 +188,7 @@
 	<div class="space-y-2">
 		<h2 class="mb-6 text-2xl font-bold">Welcome to Alice</h2>
 		<p class="text-lg opacity-80">Select a topic that interests you.</p>
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+		<div class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
 			{#each interests as interest}
 				<button
 					class="card"
@@ -202,11 +207,25 @@
 				</button>
 			{/each}
 		</div>
+		<div class="flex flex-col items-end gap-1">
+			<button
+				type="button"
+				class="text-right text-sm text-neutral-600 underline hover:opacity-80"
+				on:click={openInterestSuggestion}
+			>
+				Have something else in mind? Let us know and we’ll add it for you!
+			</button>
+			{#if suggestionSubmitted}
+				<div class="text-right text-xs text-green-400">
+					Thanks! We'll review "{otherInterest}" and follow up if needed.
+				</div>
+			{/if}
+		</div>
 	</div>
 {:else if step === 1}
 	<div class="space-y-6">
 		<h2 class="text-2xl font-bold">What’s your current level?</h2>
-		<p class="text-lg opacity-80">Self-select the description that best fits your understanding.</p>
+		<p class="text-lg opacity-80">Select the description that best fits your current level.</p>
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 			{#each levels as lvl}
 				<button
@@ -241,7 +260,10 @@
 			</div>
 		{/if}
 		<div class="mt-4 flex flex-col gap-2">
-			<button class="w-full rounded bg-black py-2 font-semibold text-white" on:click={finish}>
+			<button
+				class=" rounded-full bg-neutral-200 py-2 font-medium text-black transition hover:opacity-80"
+				on:click={finish}
+			>
 				Continue to App
 			</button>
 		</div>

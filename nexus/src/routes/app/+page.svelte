@@ -1539,7 +1539,7 @@
 	{/if}
 	<!-- Expanding tutorial panel -->
 	<div
-		class="tutorial-container border-2 border-neutral-900"
+		class="tutorial-container border-2 border-neutral-800"
 		class:expanded={tutorialExpanded}
 		on:click={() => {
 			if (!tutorialExpanded) tutorialExpanded = true;
@@ -1549,7 +1549,7 @@
 	>
 		{#if !tutorialExpanded}
 			<!-- Collapsed circle -->
-			<div class="circle text-neutral-800 transition hover:text-neutral-200">
+			<div class="circle text-neutral-600 transition hover:text-neutral-200">
 				<span aria-hidden="true">?</span>
 			</div>
 		{:else}

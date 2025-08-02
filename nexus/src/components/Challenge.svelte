@@ -3,38 +3,66 @@
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import { createEventDispatcher } from 'svelte';
 
-	type Q = { q: string; options: string[]; correct: number };
-	type FinishPayload = { nodeId: number };
-	export let challengeNode;
-	console.log('Challenge Node', challengeNode);
+	import quizBank from '$lib/quizBank.json';
 
-	const QUESTIONS: Q[] = [
-		{
-			q: 'What is the what is the what is the what is the what?',
-			options: ['1', '2', '3', '4'],
-			correct: 3
-		},
-		{ q: 'What is the what is the what is the what?', options: ['1', '2', '3', '4'], correct: 3 },
-		{ q: 'What is the what is the what?', options: ['1', '2', '3', '4'], correct: 3 },
-		{ q: 'What is the what?', options: ['1', '2', '3', '4'], correct: 3 },
-		{ q: 'What?', options: ['1', '2', '3', '4'], correct: 3 }
-	];
+	type Q = { q: string; options: string[]; correct: number };
+	type BankQuestion = {
+		id: number;
+		text: string;
+		options: string[];
+		correctIndex: number;
+		explanation?: string;
+	};
+	type QuizBank = Record<string, { questions: BankQuestion[] }>; // keys are stringified node ids
+
+	export let challengeNode: { id: number; label: string };
 
 	const dispatch = createEventDispatcher();
 
+	// quiz state
+	let QUESTIONS: Q[] = [];
 	let i = 0;
-	let answers: number[] = Array(QUESTIONS.length).fill(-1);
-
-	// results state
+	let answers: number[] = [];
 	let step: 'quiz' | 'results' = 'quiz';
 	let correctCount = 0;
 	let expEarned = 0;
 	const EXP_PER_CORRECT = 10;
 
+	// utility to shuffle
+	function shuffleArray<T>(arr: T[]) {
+		const a = [...arr];
+		for (let i = a.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[a[i], a[j]] = [a[j], a[i]];
+		}
+		return a;
+	}
+
+	// whenever the challenge node changes, pick 5 random questions and reset
+	$: if (challengeNode) {
+		const entry = (quizBank as QuizBank)[String(challengeNode.id)];
+		if (entry && entry.questions.length > 0) {
+			const picked: BankQuestion[] = shuffleArray(entry.questions).slice(0, 5);
+			QUESTIONS = picked.map((q) => ({
+				q: q.text,
+				options: q.options,
+				correct: q.correctIndex
+			}));
+			// reset progress
+			i = 0;
+			answers = Array(QUESTIONS.length).fill(-1);
+			step = 'quiz';
+			correctCount = 0;
+			expEarned = 0;
+		} else {
+			QUESTIONS = [];
+		}
+	}
+
 	function pick(optIdx: number) {
+		if (QUESTIONS.length === 0) return;
 		answers[i] = optIdx;
 
-		// last question -> finish
 		if (i === QUESTIONS.length - 1) {
 			endQuiz();
 			return;
@@ -52,7 +80,7 @@
 	}
 
 	function close() {
-		dispatch('finish', { expEarned: expEarned });
+		dispatch('finish', { expEarned, nodeId: challengeNode.id });
 	}
 </script>
 
