@@ -389,11 +389,6 @@
 						sourceNode?.type || 'concept'
 					);
 
-					// Enhanced glow for mastered connections
-					if (linkState.glowEffect) {
-						return `drop-shadow(0 0 8px ${linkState.glowEffect.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#73DACA'}) drop-shadow(0 0 4px ${linkState.glowEffect.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#73DACA'})`;
-					}
-
 					return null; // No glow for non-mastered connections
 				})
 				.attr('stroke-width', (d: any) => {
@@ -1554,7 +1549,7 @@
 	>
 		{#if !tutorialExpanded}
 			<!-- Collapsed circle -->
-			<div class="circle text-neutral-800">
+			<div class="circle text-neutral-800 transition hover:text-neutral-200">
 				<span aria-hidden="true">?</span>
 			</div>
 		{:else}
@@ -1661,8 +1656,8 @@
 			border-radius 0.35s ease,
 			box-shadow 0.35s ease,
 			padding 0.35s ease;
-		width: 30px;
-		height: 30px;
+		width: 25px;
+		height: 25px;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
