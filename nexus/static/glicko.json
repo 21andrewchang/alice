@@ -12,7 +12,7 @@
       "id": 1,
       "label": "Paired Comparison Model",
       "type": "concept",
-      "description": "A method that estimates each competitor’s skill by analyzing outcomes of one-on-one contests. When two players face off, the model uses their win-loss record to adjust skill estimates. Example: if Alice wins 7 of 10 chess games against Bob, Alice’s skill rating increases above Bob’s.",
+    "description": "Paired comparison models estimate each competitor’s hidden skill by looking at the outcomes of one-on-one contests. Instead of assigning absolute scores, the model infers relative skill: if Alice beats Bob more often than not, Alice’s skill is inferred higher. All observed pairwise results are fitted together to find skill values that best explain the data; this handles noisy or cyclic outcomes (e.g., A beats B, B beats C, C beats A) by balancing conflicting evidence. Skills can be indirectly compared through transitivity (e.g., if A beat B and B beat C, we gain information about A vs C). When data is sparse, regularization keeps skill estimates from drifting to extremes. Ties can be encoded as partial outcomes (like half-wins), and recent comparisons can be weighted more to reflect changing ability.",
       "difficulty": 2,
       "domain": "math"
     },
@@ -60,7 +60,7 @@
       "id": 7,
       "label": "Statistical Model",
       "type": "concept",
-      "description": "A mathematical framework that describes how data are generated from underlying parameters. It fits parameters to observed data to explain patterns or make predictions. Example: in Glicko, the statistical model assumes each player’s skill is a parameter and observed match outcomes inform updates to those skill estimates.",
+      "description": "A statistical model is a concrete, usually probabilistic, specification of how observed data could have been generated from hidden parameters. It has three pieces: latent parameters (e.g., each player’s true skill), a data-generating process (the likelihood) that gives the probability of outcomes given those parameters, and any encoded assumptions (or priors). \"Fitting\" the model means choosing parameter values that make the observed data plausible (e.g., maximizing likelihood). Once fitted, the model can be used to infer skill, predict future match outcomes, and quantify how confident those inferences are. Explicit assumptions enable diagnostics—by comparing predictions to held-out matches or examining residuals, you can spot when the model mismatches reality or is overfitting noise. Simpler models often generalize better; overly complex ones may explain past data perfectly but fail on new data. In <node id=\"4\">Glicko</node>, the statistical model treats a player’s skill as a latent parameter and match results as noisy observations conditioned on skill differences. Tracking uncertainty via RD lets the system adjust how much each new result should shift beliefs.",
       "difficulty": 2,
       "domain": "math"
     },
