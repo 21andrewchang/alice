@@ -1506,6 +1506,242 @@
       }
     ]
   },
+  "15": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What defines a foundation model compared to a traditional task-specific model?",
+        "options": [
+          "A small model trained from scratch for each task.",
+          "A rule-based system requiring extensive manual engineering.",
+          "A large neural network pretrained on broad, diverse data for general-purpose use.",
+          "A clustering algorithm that groups similar inputs without supervision."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 2,
+        "text": "Which training signal is commonly used during the pretraining phase of foundation models?",
+        "options": [
+          "Fully supervised labels for every downstream task.",
+          "Self-supervised or weakly-supervised objectives on large unlabeled corpora.",
+          "Reinforcement learning with carefully engineered rewards.",
+          "Adversarial training against synthetic examples only."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "What does transferability enable in foundation models?",
+        "options": [
+          "Running the model on multiple hardware architectures simultaneously.",
+          "Generalizing learned representations across tasks, domains, and modalities.",
+          "Compressing the model to a fixed size for mobile deployment.",
+          "Guaranteeing 100% accuracy on all downstream tasks."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "How can a foundation model be adapted to a new downstream task with minimal additional supervision?",
+        "options": [
+          "By retraining the entire network from scratch on task-specific data.",
+          "By fine-tuning, prompting, or adding lightweight adapter modules.",
+          "By converting it into a decision tree model.",
+          "By freezing all layers and only adjusting the input format."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 5,
+        "text": "Which of the following is NOT a benefit of foundation models?",
+        "options": [
+          "Eliminating the need to train a separate model from scratch for every task.",
+          "Enabling zero-shot or few-shot performance on new tasks.",
+          "Forming a modular base for rapid prototyping and research.",
+          "Ensuring perfect, error-free outputs on any downstream application."
+        ],
+        "correctIndex": 3
+      }
+    ]
+  },
+    "16": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the primary purpose of a rolling window in streaming models?",
+        "options": [
+          "To accumulate all historical data indefinitely.",
+          "To store only the most recent N elements for bounded memory usage.",
+          "To randomly sample past data points for training.",
+          "To permanently delete incoming data."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "How does a rolling window maintain a constant buffer size?",
+        "options": [
+          "By duplicating the newest element until full.",
+          "By appending new items and removing the oldest ones.",
+          "By compressing all elements into a single summary vector.",
+          "By discarding new items when the buffer is full."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "Why are rolling windows important for real-time video segmentation in SAM 2?",
+        "options": [
+          "They enable the model to fine-tune on each new video.",
+          "They allow the model to fuse recent context without storing the entire video.",
+          "They guarantee zero latency in processing frames.",
+          "They increase the embedding dimensionality over time."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "Which property does a rolling window buffer emulate in data processing?",
+        "options": [
+          "First-In, First-Out queue behavior.",
+          "Last-In, First-Out stack behavior.",
+          "Random-access memory block.",
+          "Priority-based scheduling."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 5,
+        "text": "What trade-off does using a rolling window introduce?",
+        "options": [
+          "Infinite context length vs. zero compute cost.",
+          "Full historical accuracy vs. increased latency.",
+          "Bounded memory usage vs. limited historical context.",
+          "Guaranteed model convergence vs. unpredictable memory growth."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
+    "17": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the primary function of a buffer in data pipelines?",
+        "options": [
+          "To permanently store data for long-term access.",
+          "To temporarily hold data between producer and consumer to manage flow mismatches.",
+          "To transform data from one format to another.",
+          "To encrypt data for secure transmission."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "How do buffers typically support bursty input rates?",
+        "options": [
+          "By processing all data only at fixed intervals.",
+          "By absorbing spikes in incoming data without overwhelming the consumer.",
+          "By accelerating the consumer’s processing speed.",
+          "By discarding older data immediately."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "Which of the following is a common implementation of a buffer?",
+        "options": [
+          "Last-In, First-Out stack.",
+          "Priority queue based on deadlines.",
+          "Ring buffer with constant-time access.",
+          "Hash table for random access."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 4,
+        "text": "What strategy is used to handle underflow in buffer systems?",
+        "options": [
+          "Dropping new incoming data.",
+          "Waiting or falling back to a default operation.",
+          "Compressing all remaining data.",
+          "Restarting the producer automatically."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 5,
+        "text": "Why are buffers essential in real-time systems like video pipelines?",
+        "options": [
+          "They eliminate the need for any processing delays.",
+          "They ensure smooth, lossless data flow by decoupling producer and consumer rates.",
+          "They compress video frames to save bandwidth.",
+          "They prioritize newer frames over older ones."
+        ],
+        "correctIndex": 1
+      }
+    ]
+  },
+    "18": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the core characteristic of a machine learning model compared to a traditional rule-based system?",
+        "options": [
+          "They rely on fixed, hand-coded rules for decision making.",
+          "They use adjustable parameters learned from data to make predictions.",
+          "They generate random outputs without training.",
+          "They only work for linear relationships between variables."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "During which stage are a model’s parameters adjusted to minimize the loss function?",
+        "options": [
+          "Inference",
+          "Training",
+          "Validation",
+          "Data collection"
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "What does “generalization” refer to in the context of a machine learning model?",
+        "options": [
+          "The model’s ability to perform well on unseen data, not just the training set.",
+          "The model’s capacity to memorize training examples perfectly.",
+          "The speed at which the model makes predictions.",
+          "The size of the model in memory."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 4,
+        "text": "What best describes inference in machine learning?",
+        "options": [
+          "Adjusting the model’s weights based on new labeled data.",
+          "Applying the trained model to new inputs to generate predictions.",
+          "Grouping similar inputs into clusters.",
+          "Compressing the model to reduce its size."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 5,
+        "text": "Why are machine learning models critical engines behind systems like GPT or CLIP?",
+        "options": [
+          "They eliminate the need for any data in decision making.",
+          "They use handcrafted rules for each specific task.",
+          "They automate complex predictions by learning patterns from data.",
+          "They guarantee perfect accuracy on all tasks."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
   "19": {
     "questions": [
       {
@@ -1562,6 +1798,301 @@
           "It converts continuous values into discrete bins."
         ],
         "correctIndex": 2
+      }
+    ]
+  },
+    "20": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What defines a vector in mathematics?",
+        "options": [
+          "An ordered list of numbers representing both direction and magnitude.",
+          "A single numeric value representing size only.",
+          "A grid of pixels forming an image.",
+          "A binary indicator for classification tasks."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 2,
+        "text": "How do you compute the length (norm) of the vector [3, 4, 0]?",
+        "options": [
+          "By summing its components: 3 + 4 + 0 = 7.",
+          "By taking the square root of the sum of squares: √(3² + 4² + 0²) = 5.",
+          "By multiplying its components: 3 × 4 × 0 = 0.",
+          "By averaging its components: (3 + 4 + 0) / 3 ≈ 2.33."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "Which operation measures the alignment between two vectors?",
+        "options": [
+          "Vector addition.",
+          "Dot product.",
+          "Scalar multiplication.",
+          "Basis transformation."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "What does it mean to express a vector in terms of a basis?",
+        "options": [
+          "Rebuilding the vector as a weighted sum of basis vectors.",
+          "Normalizing the vector to unit length.",
+          "Computing the dot product with each basis vector.",
+          "Converting the vector into a matrix form."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 5,
+        "text": "What is the result of adding the vectors [3, 4, 0] and [1, -2, 0]?",
+        "options": [
+          "[3, 2, 0]",
+          "[4, 2, 0]",
+          "[2, 6, 0]",
+          "[3, -2, 0]"
+        ],
+        "correctIndex": 1
+      }
+    ]
+  },
+    "21": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the primary function of SmolVLA in robotics?",
+        "options": [
+          "To fuse visual, language, and sensorimotor inputs into continuous action chunks for robot control.",
+          "To perform high-resolution image segmentation in real time.",
+          "To compress large language models for mobile deployment.",
+          "To generate textual descriptions of robotic tasks."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 2,
+        "text": "How does SmolVLA’s lightweight multimodal backbone reduce inference cost?",
+        "options": [
+          "By quantizing all weights to 4-bit precision.",
+          "By skipping roughly half of the pretrained model’s layers and aggressively reducing visual tokens.",
+          "By using a convolutional neural network instead of a transformer.",
+          "By running only on CPU without GPU acceleration."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "What is the role of the flow-matching action expert in SmolVLA?",
+        "options": [
+          "It predicts overlapping chunks of low-level actions using interleaved cross-attention and self-attention.",
+          "It compresses action sequences into static action plans.",
+          "It filters out noisy sensor data before encoding.",
+          "It generates language instructions from visual inputs."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 4,
+        "text": "How does the asynchronous inference stack maintain high control responsiveness?",
+        "options": [
+          "By decoupling perception, action prediction, and execution via an action queue with thresholding and duplicate filtering.",
+          "By executing all actions in a single synchronous pipeline to avoid context switches.",
+          "By batching multiple frames before inference to improve throughput.",
+          "By offloading computation to a remote server without local buffering."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 5,
+        "text": "Why is community-driven pretraining important for SmolVLA?",
+        "options": [
+          "It uses a small publicly contributed dataset to achieve generalizable visuomotor skills matching larger baselines.",
+          "It requires no human-annotated data at all.",
+          "It guarantees perfect performance on all robotics tasks.",
+          "It focuses solely on simulated environments without real-world data."
+        ],
+        "correctIndex": 0
+      }
+    ]
+  },
+    "22": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the defining feature of a vision-language model?",
+        "options": [
+          "It uses only visual inputs to generate image captions.",
+          "It processes both images and text to produce a joint representation.",
+          "It translates text into speech without visual context.",
+          "It clusters images based on pixel intensity alone."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "How are the visual and textual inputs combined in a vision-language model?",
+        "options": [
+          "By concatenating raw pixels with word embeddings directly.",
+          "By fusing their encoded representations via cross-attention or joint transformers.",
+          "By training separate models and averaging their outputs.",
+          "By converting text to images and then processing as a single modality."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "In the example “which object is edible?”, what capability does the model demonstrate?",
+        "options": [
+          "Identifying and aligning visual regions with the language query.",
+          "Generating a textual summary of the entire scene.",
+          "Translating the question into another language.",
+          "Segmenting all objects regardless of the prompt."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 4,
+        "text": "Which of these is NOT listed as a benefit of vision-language models?",
+        "options": [
+          "Grounding language in perception for actionable understanding.",
+          "Enabling prompt-driven tasks like captioning and locating objects.",
+          "Requiring extensive task-specific supervised training for each new query.",
+          "Supporting applications in robotics and interactive agents."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 5,
+        "text": "Why are vision-language models critical for systems like SmolVLA?",
+        "options": [
+          "They compress sensor data to reduce model size.",
+          "They provide a way to ground natural language instructions in visual context.",
+          "They eliminate the need for any language processing.",
+          "They ensure perfect accuracy in robot control decisions."
+        ],
+        "correctIndex": 1
+      }
+    ]
+  },
+    "23": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the core objective of flow matching during training?",
+        "options": [
+          "Predicting the full clean data in one step.",
+          "Predicting a vector that moves noisy inputs closer to the original.",
+          "Classifying inputs into discrete noise levels.",
+          "Generating synthetic noise patterns."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "How does flow matching handle corrupted data?",
+        "options": [
+          "By discarding noisy samples and only training on clean data.",
+          "By adding noise, then training to reverse the corruption via iterative corrections.",
+          "By training a separate denoising autoencoder for each noise level.",
+          "By using adversarial examples to robustify the model."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "During inference, flow matching generates outputs by:",
+        "options": [
+          "Applying a single-shot mapping from noise to clean data.",
+          "Iteratively applying predicted correction vectors to denoise step by step.",
+          "Sampling random noise and selecting the best output.",
+          "Interpolating between two pretrained models."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "Why does flow matching produce more stable sequences than one-shot predictions?",
+        "options": [
+          "Because it uses higher learning rates during training.",
+          "Because it applies gradual, stepwise corrections that mirror real-world processes.",
+          "Because it relies solely on supervised labels without noise.",
+          "Because it compresses the model into fewer parameters."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 5,
+        "text": "In SmolVLA, flow matching is applied to:",
+        "options": [
+          "Denoise image embeddings for segmentation tasks.",
+          "Predict language token corrections for prompts.",
+          "Gradually reverse corruption in robot action sequences for smooth control.",
+          "Cluster sensorimotor states into discrete actions."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
+  "24": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the primary goal of asynchronous inference?",
+        "options": [
+          "Decoupling action execution from model prediction to avoid stalls.",
+          "Batching all predictions before any execution starts.",
+          "Synchronizing perception and control in a single thread.",
+          "Running the entire model on a single device only."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 2,
+        "text": "How does asynchronous inference decide when to trigger a new model prediction?",
+        "options": [
+          "When the action queue length drops below a threshold (g).",
+          "After every frame regardless of queue status.",
+          "Only at the start of execution.",
+          "When the robot completes all actions."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 3,
+        "text": "Which technique is used to skip redundant computation in asynchronous inference?",
+        "options": [
+          "Increasing the batch size of inputs.",
+          "Filtering out near-identical observations.",
+          "Running the model at higher resolution.",
+          "Caching results in a database."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "In SmolVLA, asynchronous inference contributes to fluid robot control by:",
+        "options": [
+          "Computing the next action chunk (A₂) while executing the current one (A₁).",
+          "Waiting until A₁ finishes before starting A₂ computation.",
+          "Precomputing all action chunks offline before deployment.",
+          "Only using the latest frame for all action predictions."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 5,
+        "text": "Which of the following is NOT a benefit of asynchronous inference?",
+        "options": [
+          "Preventing idle gaps due to model or network latency.",
+          "Enabling responsive real-time control with large models.",
+          "Supporting edge–cloud hybrid deployments.",
+          "Guaranteeing perfect, error-free predictions."
+        ],
+        "correctIndex": 3
       }
     ]
   }
