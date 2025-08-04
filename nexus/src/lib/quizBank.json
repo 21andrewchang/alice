@@ -1,0 +1,2099 @@
+{
+  "0": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "Why does the Elo system map rating differences through a logistic-like function when computing the expected score?",
+        "options": [
+          "To turn rating differences into a probability between 0 and 1 that reflects win likelihood, with diminishing impact for large gaps.",
+          "To scale rating gaps so that equal differences always yield the same update magnitude regardless of outcome.",
+          "To ensure the higher-rated player always gains points no matter the match result.",
+          "To compress rating differences into a fixed bounded range while preserving their relative ordering."
+        ],
+        "correctIndex": 0,
+        "explanation": "The function produces a win probability and saturates for large gaps, so surprise drives meaningful updates."
+      },
+      {
+        "id": 2,
+        "text": "What role does the K-factor play in the Elo rating update ΔR = K × (S − E)?",
+        "options": [
+          "It controls how much each game outcome moves a player’s rating.",
+          "It balances ratings across different rating pools in the system.",
+          "It ensures ratings remain on an absolute fixed scale over time.",
+          "It scales the expected score E to always equal 0.5 for balanced matches."
+        ],
+        "correctIndex": 0,
+        "explanation": "K is the sensitivity constant: larger K yields bigger rating changes per unit of surprise (S−E)."
+      },
+      {
+        "id": 3,
+        "text": "Why is Elo considered a zero-sum rating system?",
+        "options": [
+          "Because one player’s gain in rating exactly equals the other’s loss.",
+          "Because total rating points in the pool grow over time with new players.",
+          "Because both players always gain rating when they win their match.",
+          "Because draws produce no net change in any player’s rating."
+        ],
+        "correctIndex": 0,
+        "explanation": "In head-to-head matches the sum of rating changes is zero: one wins what the other loses."
+      },
+      {
+        "id": 4,
+        "text": "How does the Elo formula treat a draw result in updating ratings?",
+        "options": [
+          "It assigns each player S = 0.5 and updates by K × (0.5 − E).",
+          "It treats the draw as two half-wins and two half-losses simultaneously.",
+          "It ignores the game entirely and makes no rating change for either player.",
+          "It awards full points to the lower-rated player only to balance the outcome."
+        ],
+        "correctIndex": 0,
+        "explanation": "Draws are scored as S = 0.5; rating change is K times the difference between 0.5 and expected score."
+      },
+      {
+        "id": 5,
+        "text": "Why does Elo avoid re-rating the entire player pool after each game?",
+        "options": [
+          "Because it uses incremental updates affecting only the two participants.",
+          "Because it recalculates ratings only once per month centrally.",
+          "Because older games permanently lock in initial ratings.",
+          "Because ratings converge without any need for further adjustments."
+        ],
+        "correctIndex": 0,
+        "explanation": "Elo updates just the two players involved, so global re-computation isn’t needed."
+      },
+      {
+        "id": 6,
+        "text": "What does the term (S − E) represent in the Elo update?",
+        "options": [
+          "The surprise factor: how much the actual result differed from expectation.",
+          "The normalized score ratio between performance and opponent strength.",
+          "The scaled K-factor that adjusts ratings based on historic results.",
+          "The capped difference used to limit maximum rating gains per game."
+        ],
+        "correctIndex": 0,
+        "explanation": "(S−E) measures surprise: positive if over-performing, negative if under-performing, driving the update."
+      },
+      {
+        "id": 7,
+        "text": "How does increasing the K-factor affect the volatility of player ratings?",
+        "options": [
+          "It increases volatility by making ratings change more per game.",
+          "It decreases volatility by smoothing out rating adjustments.",
+          "It maintains the same volatility regardless of match outcomes.",
+          "It delays rating updates until a player has multiple games."
+        ],
+        "correctIndex": 0,
+        "explanation": "A larger K makes each result swing ratings more, so volatility increases."
+      },
+      {
+        "id": 8,
+        "text": "Why might a tournament organizer choose a lower K for highly rated players?",
+        "options": [
+          "To reduce rating swings and avoid large updates from any single match.",
+          "To accelerate rating changes so that new results matter more.",
+          "To average the ratings of all participants at the tournament end.",
+          "To penalize draws more heavily relative to decisive results."
+        ],
+        "correctIndex": 0,
+        "explanation": "Lowering K damps single-game upsets, keeping top players’ ratings more stable."
+      },
+      {
+        "id": 9,
+        "text": "What assumption underlies the expected score formula E = 1 / (1 + 10^(–Δ/400))?",
+        "options": [
+          "That rating differences correspond to the log-odds of winning.",
+          "That player performance follows a uniform distribution each game.",
+          "That match outcomes depend only on absolute rating magnitudes.",
+          "That ratings should change in equal increments per victory."
+        ],
+        "correctIndex": 0,
+        "explanation": "Elo models rating gap as log-odds, so the formula is a logistic mapping to win probability."
+      },
+      {
+        "id": 10,
+        "text": "How could you adjust Elo for a game format with frequent draws?",
+        "options": [
+          "Lower the K or modify S-scores to reflect draw frequency realistically.",
+          "Ignore draws entirely and treat them as losses for both players.",
+          "Increase base ratings uniformly to account for draw-heavy play.",
+          "Hold draws to be replayed until someone wins the match."
+        ],
+        "correctIndex": 0,
+        "explanation": "In draw-heavy contexts you typically reduce K or tweak scoring so updates remain meaningful."
+      }
+    ]
+  },
+
+  "1": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What does a paired comparison model primarily try to estimate?",
+        "options": [
+          "Each competitor’s hidden skill based on head-to-head outcomes.",
+          "The total number of wins each competitor has collected.",
+          "A fixed ranking decided before any matches are played.",
+          "The average score across team-based competitions."
+        ],
+        "correctIndex": 0,
+        "explanation": "It infers latent skill values from pairwise match results rather than using raw win counts or preset ranks."
+      },
+      {
+        "id": 2,
+        "text": "Why might you see a cycle like A beats B, B beats C, and C beats A in real results?",
+        "options": [
+          "Because the model enforces cycles to keep rankings dynamic.",
+          "Because match outcomes are noisy and do not always follow strict transitivity.",
+          "Because players always improve after a loss automatically.",
+          "Because previous results are discarded, causing contradictions."
+        ],
+        "correctIndex": 1,
+        "explanation": "Real-world outcomes include randomness, so transitivity can break and cycles appear; the model reconciles them when fitting skills."
+      },
+      {
+        "id": 3,
+        "text": "If Alice beats Bob 8 out of 10 times, what inference does the model make?",
+        "options": [
+          "Alice likely has a higher inferred skill than Bob.",
+          "Bob is assumed to be more skilled due to the remaining losses.",
+          "They are considered equally skilled because ten games are insufficient.",
+          "The system resets both players’ skills after that series."
+        ],
+        "correctIndex": 0,
+        "explanation": "Frequent wins imply stronger evidence that Alice’s latent skill exceeds Bob’s."
+      },
+      {
+        "id": 4,
+        "text": "How does the model deal with all pairwise results when estimating skills?",
+        "options": [
+          "It only uses the most recent result and ignores earlier ones.",
+          "It fits them simultaneously to find skill values best explaining the full set.",
+          "It averages the win rates for each pair separately without global coordination.",
+          "It randomly drops some comparisons to simplify computation."
+        ],
+        "correctIndex": 1,
+        "explanation": "Global fitting reconciles conflicting and complementary evidence to produce consistent skill estimates."
+      },
+      {
+        "id": 5,
+        "text": "Why is regularization applied when few comparisons exist?",
+        "options": [
+          "To keep skill estimates from becoming extreme with limited data.",
+          "To force the model to ignore all existing results.",
+          "To rank players by arbitrary fixed buckets instead of data.",
+          "To inflate the influence of early wins."
+        ],
+        "correctIndex": 0,
+        "explanation": "Regularization tethers estimates so sparse evidence doesn’t produce overconfident or extreme skill values."
+      },
+      {
+        "id": 6,
+        "text": "If two players never played each other directly, how can their relative skill be inferred?",
+        "options": [
+          "Transitively through common opponents' comparisons.",
+          "They are assigned the same default skill forever.",
+          "Their skills remain unknown and unused.",
+          "The model randomly chooses their relative ordering."
+        ],
+        "correctIndex": 0,
+        "explanation": "Indirect evidence via chains of comparisons enables transitive inference of relative skill."
+      },
+      {
+        "id": 7,
+        "text": "Why do humans often prefer paired comparisons over absolute scoring?",
+        "options": [
+          "Because absolute scores require more memory to store.",
+          "Because paired comparisons ignore any skill differences.",
+          "Because the system automatically ranks without any input.",
+          "Because it's easier to judge who is better between two than assign a number."
+        ],
+        "correctIndex": 3,
+        "explanation": "Relative judgments reduce subjective scaling difficulty compared to assigning absolute values."
+      },
+      {
+        "id": 8,
+        "text": "What effect does increasing the number of comparisons between the same pair have?",
+        "options": [
+          "It forces their skills to converge to the same value.",
+          "It increases the likelihood of discarding earlier data.",
+          "It reduces uncertainty in their relative skill estimate.",
+          "It makes the model ignore that pair in future updates."
+        ],
+        "correctIndex": 2,
+        "explanation": "More data tightens the estimate, decreasing variance around their inferred skill difference."
+      },
+      {
+        "id": 9,
+        "text": "How can ties be represented in a paired comparison model?",
+        "options": [
+          "They are treated as wins for both players.",
+          "As a partial outcome (e.g., half-win) or with a tie probability.",
+          "They are deleted from the history automatically.",
+          "They are converted into a random winner to simplify modeling."
+        ],
+        "correctIndex": 1,
+        "explanation": "Explicitly modeling ties preserves that information without forcing a decisive result."
+      },
+      {
+        "id": 10,
+        "text": "Why might recent match outcomes be weighted more heavily?",
+        "options": [
+          "To reflect changes in player ability over time.",
+          "To discard older evidence entirely as irrelevant.",
+          "To keep early matches dominant in all future estimates.",
+          "To prevent any updates to the skill values."
+        ],
+        "correctIndex": 0,
+        "explanation": "Weighting recent results more allows the model to adapt if skills shift over time."
+      }
+    ]
+  },
+  "2": {
+    "description": "Measures how spread out values are around the mean. Calculated as:\n\nσ = √( (1/N) Σᵢ (xᵢ – μ)² )\n\nIn a Gaussian (normal) distribution, σ sets the scale: about 68% of values lie within ±1σ, 95% within ±2σ, and 99.7% within ±3σ. Saying “1 standard deviation away” means one σ unit from the mean—it scales with the dataset. In rating systems, this concept becomes “rating deviation” (RD): both are σ-style uncertainty measures, but standard deviation describes the spread of a dataset, while RD quantifies uncertainty in an individual player’s rating. RD decreases with more game results (more confidence) and increases during inactivity (less recent information). Example: if ratings follow a normal curve centered at 1500 with σ=100, ~68% of players score between 1400 and 1600.",
+    "questions": [
+      {
+        "id": 1,
+        "text": "What does standard deviation tell you about a dataset?",
+        "options": [
+          "The average value of the dataset.",
+          "The proportion of values above the mean.",
+          "How far typical values are from the mean, i.e., the dataset's spread.",
+          "The difference between the highest and lowest values."
+        ],
+        "correctIndex": 2,
+        "explanation": "Standard deviation quantifies dispersion: how much values typically deviate from the mean."
+      },
+      {
+        "id": 2,
+        "text": "If every value in a dataset is identical, what is the standard deviation?",
+        "options": [
+          "The average value of the dataset.",
+          "Undefined, since variance cannot be computed.",
+          "Zero, because there is no variation.",
+          "Very large, because uniformity hides spread."
+        ],
+        "correctIndex": 2,
+        "explanation": "With no difference from the mean, all deviations are zero, so σ is zero."
+      },
+      {
+        "id": 3,
+        "text": "Why are differences squared when computing variance (the step before taking the square root)?",
+        "options": [
+          "To make the number smaller only for display purposes.",
+          "To convert the values into probabilities.",
+          "To prevent positive and negative deviations from canceling and to emphasize larger gaps.",
+          "To simplify the arithmetic by removing decimals."
+        ],
+        "correctIndex": 2,
+        "explanation": "Squaring avoids cancellation of signs and gives greater weight to larger deviations."
+      },
+      {
+        "id": 4,
+        "text": "Why do we take the square root after averaging squared deviations?",
+        "options": [
+          "Because without it the variance would be negative.",
+          "To return to the original units so spread is interpretable.",
+          "To make the result always less than one.",
+          "To reduce the influence of large deviations arbitrarily."
+        ],
+        "correctIndex": 1,
+        "explanation": "The square root brings the measure back to the same units as the data, making interpretation easier."
+      },
+      {
+        "id": 5,
+        "text": "In a normal distribution, roughly what proportion lies within one standard deviation of the mean?",
+        "options": [
+          "About 95%, since most data points cluster tightly.",
+          "About 50%, the median spread.",
+          "About 68%, reflecting moderate deviations being common.",
+          "Nearly 100%, because σ covers almost all values."
+        ],
+        "correctIndex": 2,
+        "explanation": "For a Gaussian, ~68% of values fall within ±1σ of the mean."
+      },
+      {
+        "id": 6,
+        "text": "What impact does an outlier have on standard deviation?",
+        "options": [
+          "It makes σ negative due to skew.",
+          "It has no effect if the dataset has many points.",
+          "It increases σ because its large squared deviation adds heavily.",
+          "It decreases σ by pulling the mean toward itself."
+        ],
+        "correctIndex": 2,
+        "explanation": "Outliers produce large deviations that, when squared, inflate the overall spread."
+      },
+      {
+        "id": 7,
+        "text": "If you add the same constant to every data point, how does standard deviation change?",
+        "options": [
+          "It stays the same, since relative differences are unchanged.",
+          "It halves because the mean shifts.",
+          "It becomes zero, as values become more uniform.",
+          "It increases by that constant amount."
+        ],
+        "correctIndex": 0,
+        "explanation": "Adding a constant shifts all points equally; dispersion about the mean remains identical."
+      },
+      {
+        "id": 8,
+        "text": "If you multiply every value in the dataset by a positive constant c, what happens to σ?",
+        "options": [
+          "It remains unchanged regardless of scaling.",
+          "It is divided by c, compressing the spread.",
+          "It is multiplied by c, scaling the spread accordingly.",
+          "It becomes squared like the variance."
+        ],
+        "correctIndex": 2,
+        "explanation": "Scaling data by c scales standard deviation by the same factor, preserving relative structure."
+      },
+      {
+        "id": 9,
+        "text": "How is standard deviation different from rating deviation (RD) in a rating system?",
+        "options": [
+          "They are exactly the same; the terms are interchangeable.",
+          "RD is always smaller because it tracks individual players.",
+          "Standard deviation only applies to ratings, while RD is for general statistics.",
+          "Standard deviation describes dataset spread; RD is uncertainty of a single player’s rating that evolves with activity."
+        ],
+        "correctIndex": 3,
+        "explanation": "RD reflects confidence in one rating over time, whereas σ is a static measure of overall data spread."
+      },
+      {
+        "id": 10,
+        "text": "Why does rating deviation increase when a player is inactive?",
+        "options": [
+          "Because the player’s rating is reset to the mean automatically.",
+          "Because lack of recent results raises uncertainty, so RD grows to reflect less confidence.",
+          "Because old games are removed, reducing evidence.",
+          "Because the system locks the rating, preventing any change."
+        ],
+        "correctIndex": 1,
+        "explanation": "Inactivity means no new information; uncertainty about true skill increases, raising RD."
+      }
+    ]
+  },
+  "3": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "Why prefer the logistic-style mapping over a simple linear rescaling when turning score differences into probabilities?",
+        "options": [
+          "Because it ensures that outputs stay bounded within the [0,1] range.",
+          "Because linear scaling requires more arithmetic operations and is slower.",
+          "Because only logistic produces exact 0 or 1 values for extreme inputs.",
+          "Because it always gives equal weight to all differences regardless of magnitude."
+        ],
+        "correctIndex": 0,
+        "explanation": "Logistic keeps outputs bounded and reduces sensitivity for extreme gaps, which models uncertainty and surprise appropriately."
+      },
+      {
+        "id": 2,
+        "text": "What does the midpoint (x = 0) of the logistic function represent in probability terms?",
+        "options": [
+          "A guaranteed win for the higher input.",
+          "An ignored input because it's neutral.",
+          "Equal odds: probability 0.5 (maximum uncertainty).",
+          "Certainty in outcome because the curve flattens."
+        ],
+        "correctIndex": 2,
+        "explanation": "At x=0 the logistic output is 0.5, meaning both sides are equally likely; it's the most uncertain point."
+      },
+      {
+        "id": 3,
+        "text": "Why is it useful that the logistic function saturates (flattens) for very large positive or negative inputs?",
+        "options": [
+          "Because it reduces the impact of already-certain outcomes and avoids overreacting.",
+          "Because it makes the function more linear in the tails.",
+          "Because saturation introduces randomness in predictions.",
+          "Because it forces all inputs to map to exactly 0 or 1 beyond a threshold."
+        ],
+        "correctIndex": 0,
+        "explanation": "Saturation means extreme differences produce probabilities near certainty but don’t overshoot, so updates shrink when outcome is unsurprising."
+      },
+      {
+        "id": 4,
+        "text": "What does the derivative of the logistic function tell you about its behavior?",
+        "options": [
+          "The cumulative probability up to a given input.",
+          "How far the output is from 1 in absolute terms.",
+          "The point where the curve crosses the x-axis.",
+          "How sensitive the output probability is to small changes in input, largest near the midpoint."
+        ],
+        "correctIndex": 3,
+        "explanation": "The derivative measures sensitivity; logistic is most responsive around x=0 and flattens in the tails."
+      },
+      {
+        "id": 5,
+        "text": "Why would you apply a logistic transformation when combining model features to produce a probability?",
+        "options": [
+          "To create a hard cutoff so outputs are strictly 0 or 1.",
+          "To smoothly compress arbitrary outputs into [0,1].",
+          "To avoid having to normalize the data beforehand.",
+          "To amplify extreme feature values disproportionately."
+        ],
+        "correctIndex": 1,
+        "explanation": "Logistic makes arbitrary scores interpretable as probabilities while remaining differentiable for optimization."
+      },
+      {
+        "id": 6,
+        "text": "Why does the Elo expected score formula divide the rating difference Δ by 400 before applying 10 to that power?",
+        "options": [
+          "To calibrate the scale so a 400-point gap corresponds to about a 10:1 win odds, yielding sensible probabilities.",
+          "To compress all rating differences into the [0,1] range before the logistic step.",
+          "To guarantee the expected score is exactly 0.5 when ratings are equal.",
+          "To make rating differences additive in probability space without further transformation."
+        ],
+        "correctIndex": 0,
+        "explanation": "Dividing by 400 sets the sensitivity: a 400-point difference gives 10^(1)=10 odds ratio, mapping to ≈0.91 win probability, which is a chosen calibration of skill gaps."
+      },
+      {
+        "id": 7,
+        "text": "What happens if you decrease the denominator in the exponent (e.g., use 200 instead of 400) in the Elo-style logistic?",
+        "options": [
+          "The curve steepens, smaller rating gaps push probabilities closer to 0 or 1.",
+          "The curve flattens, making it less responsive to differences.",
+          "Output probabilities are no longer bounded between 0 and 1.",
+          "It inverts the meaning of strong and weak players."
+        ],
+        "correctIndex": 0,
+        "explanation": "Reducing the scale makes the logistic transition sharper, increasing sensitivity to rating differences."
+      },
+      {
+        "id": 8,
+        "text": "When might the logistic function be a poor model for converting a score to a probability?",
+        "options": [
+          "When you need a smooth transition without any saturation.",
+          "When outcomes are completely deterministic and require no uncertainty modeling.",
+          "When you want to allow probabilities outside [0,1] for flexibility.",
+          "When the relationship is asymmetric or violates constant odds-ratio assumptions, so its symmetric S-shape misfits the data."
+        ],
+        "correctIndex": 3,
+        "explanation": "Logistic assumes symmetry in log-odds; if real behavior has asymmetrical tail behavior or changing odds ratios, it can misrepresent probabilities."
+      },
+      {
+        "id": 9,
+        "text": "Why is logistic preferable to a step function for mapping a continuous score to a probability in a learning context?",
+        "options": [
+          "Because it provides a graded, smooth output that reflects uncertainty instead of an abrupt yes/no.",
+          "Because step functions are differentiable and easier to tune.",
+          "Because logistic always outputs integers.",
+          "Because subtle changes in input have no effect on the output."
+        ],
+        "correctIndex": 0,
+        "explanation": "Logistic gives gradual shifts in belief, which is useful for incremental learning and avoids brittle decisions."
+      },
+      {
+        "id": 10,
+        "text": "If you have independent pieces of evidence in log-odds form, why add them before applying logistic instead of averaging their probabilities?",
+        "options": [
+          "Averaging probabilities always biases toward 0.5, whereas adding log-odds loses information.",
+          "Because probabilities cannot be combined at all without logistic.",
+          "Because adding log-odds multiplies the underlying odds, and logistic of the sum yields the correct combined probability.",
+          "Because logistic requires inputs to be equal before combining."
+        ],
+        "correctIndex": 2,
+        "explanation": "Log-odds combine additively for independent evidence; applying logistic after summing gives the updated probability consistently."
+      }
+    ]
+  },
+  "4": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the primary innovation of Glicko compared to basic Elo?",
+        "options": [
+          "It periodically recalculates all player ratings in batch to keep the system consistent.",
+          "It tracks uncertainty (RD) alongside the rating, making confidence explicit.",
+          "It removes the need for expected scores by using fixed updates.",
+          "It only updates ratings after a fixed number of games to reduce noise."
+        ],
+        "correctIndex": 1,
+        "explanation": "Glicko augments a player’s rating with a rating deviation (RD) that quantifies uncertainty, enabling more informed updates and interpretations."
+      },
+      {
+        "id": 2,
+        "text": "Why does a player’s RD grow during periods of inactivity?",
+        "options": [
+          "Because the system resets RD to maximum after inactivity to avoid outdated confidence.",
+          "Because uncertainty increases assuming the player's rating is now unreliable.",
+          "Because the player's rating is reduced linearly over time to reflect decay.",
+          "Because past game results are discarded and averaged again."
+        ],
+        "correctIndex": 1,
+        "explanation": "Without recent games, the system becomes less certain about true skill; RD grows by adding variance to reflect that increased uncertainty."
+      },
+      {
+        "id": 3,
+        "text": "How does Glicko combine prior uncertainty and new game data when updating RD after a match?",
+        "options": [
+          "By taking the larger of the prior and new deviation to stay conservative.",
+          "By replacing the old RD entirely if the new data is more recent.",
+          "By summing precisions (inverse variances) and inverting: RD_new = √(1 / (1/RD² + 1/d²)).",
+          "By averaging old and new deviations equally."
+        ],
+        "correctIndex": 2,
+        "explanation": "Independent sources combine by adding precision; the harmonic-like formula yields a reduced RD reflecting increased certainty from both prior and new data."
+      },
+      {
+        "id": 4,
+        "text": "What does a large rating deviation (RD) imply about a player?",
+        "options": [
+          "The player has a very stable rating with minimal expected change.",
+          "The player consistently defeats higher-rated opponents.",
+          "The player has a high recent win rate regardless of opponents.",
+          "The system is uncertain about the player's true skill."
+        ],
+        "correctIndex": 3,
+        "explanation": "Large RD means less information has been gathered or outdated activity, so the rating is uncertain and the corresponding confidence interval is broader."
+      },
+      {
+        "id": 5,
+        "text": "If a player has a small RD, how does that affect their rating update after a game?",
+        "options": [
+          "Updates become larger because the system trusts the rating more.",
+          "Updates become smaller because the existing rating is reliable.",
+          "The opponent’s rating increases by more due to high reliability.",
+          "The game outcome is ignored for the opponent because of uncertainty."
+        ],
+        "correctIndex": 1,
+        "explanation": "Small RD indicates high confidence in the current rating, so new results produce smaller adjustments."
+      },
+      {
+        "id": 6,
+        "text": "Why does Glicko adjust the expected score computation using RD (e.g., via a weighting function like g(RD))?",
+        "options": [
+          "To make expected scores always default to 0.5 when uncertainty is high.",
+          "To convert the logistic curve into a linear probability for easier mixing.",
+          "To downweight extreme rating differences when one or both players are uncertain, making predictions less overconfident.",
+          "To ensure the higher-rated player always has overwhelming predicted advantage regardless of uncertainty."
+        ],
+        "correctIndex": 2,
+        "explanation": "The weighting softens the impact of rating differences when uncertainty is large, preventing overconfident predictions from unreliable estimates."
+      },
+      {
+        "id": 7,
+        "text": "What does the confidence interval r ± 1.96·RD represent in Glicko?",
+        "options": [
+          "How much the player's rating will change on their next win.",
+          "The range in which the player's true skill rating lies with roughly 95% confidence.",
+          "The typical ratings of players they are expected to beat.",
+          "How many games the player can go without playing before RD doubles."
+        ],
+        "correctIndex": 1,
+        "explanation": "Assuming normality, r ± 1.96·RD gives the interval where the true rating lies with about 95% probability, making uncertainty explicit."
+      },
+      {
+        "id": 8,
+        "text": "If a player with high RD beats a low-RD opponent, what is the expected effect on their rating and RD?",
+        "options": [
+          "Their rating barely changes due to high uncertainty, and RD stays large.",
+          "Both players' RD increase because the result was unexpected.",
+          "Their rating moves significantly and their RD shrinks, since the result provides strong information.",
+          "The opponent loses RD while the winner’s RD remains unchanged."
+        ],
+        "correctIndex": 2,
+        "explanation": "A win by an uncertain (high-RD) player against a confident opponent is informative: the rating adjusts noticeably and RD reduces, reflecting increased certainty."
+      },
+      {
+        "id": 9,
+        "text": "Why does Glicko combine variances using inverse sums (i.e., combining precision) instead of a simple average when updating uncertainty?",
+        "options": [
+          "Averaging would give too much weight to old data and ignore new information.",
+          "Independent pieces of evidence combine by summing precision, yielding a tighter updated estimate.",
+          "Taking the maximum variance is safer for uncertain systems.",
+          "It makes the math simpler by treating all uncertainties linearly."
+        ],
+        "correctIndex": 1,
+        "explanation": "Combining precision (inverse variance) is the correct method for fusing independent estimates, producing a lower overall uncertainty than naive averaging."
+      },
+      {
+        "id": 10,
+        "text": "In what scenario does Glicko behave similarly to Elo?",
+        "options": [
+          "When no games have been played and everyone starts with equal ratings.",
+          "When large RD values make all match outcomes unpredictable.",
+          "When both players have very small RD, so uncertainty adjustments become negligible.",
+          "When the system uses a fixed update size regardless of outcome."
+        ],
+        "correctIndex": 2,
+        "explanation": "With tiny RD (high certainty), the uncertainty-aware modifications fade and Glicko’s updates resemble Elo’s because confidence adjustments are minimal."
+      }
+    ]
+  },
+  "5": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What does the arithmetic mean represent in a dataset?",
+        "options": [
+          "The most common value among the entries.",
+          "The sum of deviations from here is zero.",
+          "The middle value when all numbers are sorted.",
+          "The largest value in the set."
+        ],
+        "correctIndex": 1,
+        "explanation": "The mean is defined so that positive and negative deviations cancel; it's the balancing point of the data."
+      },
+      {
+        "id": 2,
+        "text": "How does the arithmetic mean relate to standard deviation?",
+        "options": [
+          "It normalizes standard deviation to be between 0 and 1.",
+          "It averages the variances to get the deviation.",
+          "It is the fixed reference from which squared deviations are computed for spread.",
+          "It explains why distributions are always symmetric."
+        ],
+        "correctIndex": 2,
+        "explanation": "Standard deviation measures the average squared distance of values from the mean, so the mean is the central reference."
+      },
+      {
+        "id": 3,
+        "text": "If you add 5 to every number in a dataset, how does the mean change?",
+        "options": [
+          "It stays the same.",
+          "It doubles.",
+          "It increases by 5.",
+          "It becomes the median."
+        ],
+        "correctIndex": 2,
+        "explanation": "Adding a constant shifts all values equally, so the mean increases by that constant."
+      },
+      {
+        "id": 4,
+        "text": "If you multiply every value in a dataset by 3, how does the mean change?",
+        "options": [
+          "It increases by 3.",
+          "It remains unchanged.",
+          "It increases by 3/(# of values).",
+          "It triples."
+        ],
+        "correctIndex": 3,
+        "explanation": "Scaling all values by a factor scales the mean by the same factor."
+      },
+      {
+        "id": 5,
+        "text": "Why can the arithmetic mean be misleading in some datasets?",
+        "options": [
+          "Because it always underestimates the central tendency.",
+          "Because outliers can skew it away from most values.",
+          "Because it only works on integer values.",
+          "Because it ignores the size of the dataset."
+        ],
+        "correctIndex": 1,
+        "explanation": "Extreme values (outliers) can pull the mean away from where the bulk of data lies, misrepresenting a 'typical' value."
+      },
+      {
+        "id": 6,
+        "text": "Given chess player ratings [1400, 1500, 1600, 1700, 1800], what is their mean and what does it reflect?",
+        "options": [
+          "1500, reflecting the median better than average.",
+          "1700, showing the highest tier among them.",
+          "1600, reflecting the average skill level.",
+          "1550, because extreme values are discarded in mean."
+        ],
+        "correctIndex": 2,
+        "explanation": "The average of those ratings is 1600; it represents the central/typical skill level of the group."
+      },
+      {
+        "id": 7,
+        "text": "If group A has mean 100 with 3 members and group B has mean 200 with 1 member, what's the combined mean?",
+        "options": [
+          "150, average of the two means.",
+          "125, because total sum is (300 + 200) / 4.",
+          "100, since group A dominates.",
+          "200, because group B has the highest mean."
+        ],
+        "correctIndex": 1,
+        "explanation": "Weighted average: (3*100 + 1*200)/4 = 125; group sizes influence the combined mean."
+      },
+      {
+        "id": 8,
+        "text": "Why is the sum of deviations from the mean always zero?",
+        "options": [
+          "Because all data points are equidistant from the mean.",
+          "Because the mean is always zero in normalized datasets.",
+          "Because the mean is the value that makes positive and negative deviations cancel out.",
+          "Because deviations are squared before summing."
+        ],
+        "correctIndex": 2,
+        "explanation": "By definition, the mean balances the data: deviations above and below sum to zero."
+      },
+      {
+        "id": 9,
+        "text": "When will the arithmetic mean equal the median?",
+        "options": [
+          "When there are extreme outliers.",
+          "When the distribution is symmetric.",
+          "Only when the dataset has an even number of items.",
+          "When all values are different."
+        ],
+        "correctIndex": 1,
+        "explanation": "In symmetric distributions, the center is the same whether measured by mean or median."
+      },
+      {
+        "id": 10,
+        "text": "What happens to the mean if you add a new value equal to the current mean?",
+        "options": [
+          "The mean increases slightly.",
+          "The mean decreases slightly.",
+          "The mean becomes that new value only.",
+          "The mean stays the same."
+        ],
+        "correctIndex": 3,
+        "explanation": "Adding another instance of the current mean doesn't change the average."
+      }
+    ]
+  },
+  "6": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What property of exponential functions makes them ideal for modeling continuous growth like compound interest?",
+        "options": [
+          "Their rate of change is proportional to their current value.",
+          "They add a fixed amount each interval, matching constant increases.",
+          "They stay bounded to prevent runaway growth.",
+          "They reverse direction when inputs become negative."
+        ],
+        "correctIndex": 0,
+        "explanation": "Because the derivative is proportional to the value itself, growth accelerates and compounds continuously."
+      },
+      {
+        "id": 2,
+        "text": "Why does using base e simplify differentiation of exponential growth?",
+        "options": [
+          "It eliminates the need to consider limits in calculus.",
+          "Powers of e approximate all polynomials without error.",
+          "Because e^x equals its own derivative.",
+          "Because e is less than 1, making expressions shrink naturally."
+        ],
+        "correctIndex": 2,
+        "explanation": "The derivative of e^x is e^x, so no additional constants appear, simplifying analysis."
+      },
+      {
+        "id": 3,
+        "text": "In the logistic function L(x)=1/(1+e^{-x}), what role does the term e^{-x} play?",
+        "options": [
+          "It forces the output to always stay positive by adding a constant offset.",
+          "It shrinks the denominator for large positive x and enlarges it for large negative x.",
+          "It scales x linearly so the curve passes through (0,0.5).",
+          "It makes the function oscillate around 0.5 for moderate inputs."
+        ],
+        "correctIndex": 1,
+        "explanation": "e^{-x} modulates the denominator so the output transitions smoothly between 0 and 1 in the classic S shape."
+      },
+      {
+        "id": 4,
+        "text": "Why does e^{-x} decay as x increases?",
+        "options": [
+          "Because e^{-x} equals 1 divided by e^{x}, so larger x makes the denominator grow and the value shrink.",
+          "Because negative exponents cause oscillations that average downward.",
+          "Because the logistic definition manually caps it to decay.",
+          "Because the base becomes less than one when the exponent is negative."
+        ],
+        "correctIndex": 0,
+        "explanation": "e^{-x} = 1/e^{x}; as x grows, e^{x} grows, so its reciprocal decreases."
+      },
+      {
+        "id": 5,
+        "text": "In an exponential decay model y = y₀ * e^{-t/τ}, what does τ represent?",
+        "options": [
+          "The time it takes for the quantity to halve.",
+          "The rate at which the initial amount is added over time.",
+          "The time over which the quantity falls to about 37% of its starting value.",
+          "The fixed amount subtracted each step in the decay."
+        ],
+        "correctIndex": 2,
+        "explanation": "τ is the time constant: after τ, the value is roughly y₀/e (~37%)."
+      },
+      {
+        "id": 6,
+        "text": "Why is taking the natural logarithm helpful when solving for time in A = A₀ e^{kt}?",
+        "options": [
+          "Because ln turns the exponential into a polynomial of fixed degree.",
+          "Because ln ignores the initial amount A₀.",
+          "Because ln bounds the result between 0 and 1.",
+          "Because ln isolates the exponent, converting multiplicative growth into a linear expression."
+        ],
+        "correctIndex": 3,
+        "explanation": "Taking ln lets you solve for t by bringing the exponent down: ln(A/A₀)=kt."
+      },
+      {
+        "id": 7,
+        "text": "Which explanation best captures why exponential growth eventually outpaces any fixed-degree polynomial?",
+        "options": [
+          "Polynomials have a maximum beyond which they stop growing.",
+          "Exponential’s rate increases with its current value, causing accelerating growth that surpasses fixed power increases.",
+          "Polynomial degrees decrease over time while exponentials remain constant.",
+          "Exponential functions are finite sums, while polynomials are infinite."
+        ],
+        "correctIndex": 1,
+        "explanation": "Exponential growth compounds on itself, so its speed accelerates and dominates polynomial growth."
+      },
+      {
+        "id": 8,
+        "text": "You observe a quantity doubling every 5 time units. Which continuous exponential expression models that?",
+        "options": [
+          "y = y₀ * e^{(ln 2 / 5) t}",
+          "y = y₀ * e^{(5 ln 2) t}",
+          "y = y₀ * e^{(ln 2) / t}",
+          "y = y₀ * 2^{5t}"
+        ],
+        "correctIndex": 0,
+        "explanation": "Doubling every 5 units means growth rate is ln(2)/5 in the continuous form."
+      },
+      {
+        "id": 9,
+        "text": "In the formula for continuous compounding A = P e^{rt}, what does r represent?",
+        "options": [
+          "The total accumulated interest over the period.",
+          "The principal scaled per time unit.",
+          "The continuous interest rate per time unit.",
+          "The number of discrete compounding intervals."
+        ],
+        "correctIndex": 2,
+        "explanation": "r is the instantaneous rate; compounding continuously uses e^{rt} to accumulate interest."
+      },
+      {
+        "id": 10,
+        "text": "Why is expressing e^x as its Taylor series around zero useful for approximations?",
+        "options": [
+          "Because the series terminates for large x making it exact.",
+          "Because it turns e^x into a product of simpler functions.",
+          "Because the infinite sum converges for all x, so truncating gives good approximations with known error.",
+          "Because it restricts e^x values to a bounded interval."
+        ],
+        "correctIndex": 2,
+        "explanation": "The series converges everywhere, letting you approximate e^x by summing a few terms."
+      }
+    ]
+  },
+  "7": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the main goal of a statistical model?",
+        "options": [
+          "To describe data visually using graphs and charts.",
+          "To explain how data are generated and make predictions using parameterized assumptions.",
+          "To store datasets for long-term archival.",
+          "To apply deterministic rules for computing fixed outcomes."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "How does a statistical model treat the concept of uncertainty?",
+        "options": [
+          "It ignores uncertainty and assumes all parameters are known.",
+          "It uses fixed equations to eliminate randomness in observed data.",
+          "It incorporates uncertainty through probability distributions over parameters or outcomes.",
+          "It adds noise manually to simulate real-world variation."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 3,
+        "text": "In a paired comparison model like Glicko, what are the parameters being estimated?",
+        "options": [
+          "The number of games each player has played.",
+          "The skill levels of players, often treated as latent variables.",
+          "The frequency of wins and losses in the data.",
+          "The identities of opponents in each match."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "Why do statistical models often assume a distribution like the Gaussian?",
+        "options": [
+          "Because it makes the math more complicated and realistic.",
+          "Because it's the only distribution that works with real data.",
+          "Because many natural processes cluster around a mean with symmetric variation, making Gaussian a useful default.",
+          "Because computers are optimized to simulate Gaussian noise."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 5,
+        "text": "What does 'fitting a statistical model to data' mean?",
+        "options": [
+          "Manually adjusting values to match a plot.",
+          "Picking a random function and applying it to the dataset.",
+          "Choosing parameters that best explain observed data under the model’s assumptions.",
+          "Using brute force to memorize all outcomes."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 6,
+        "text": "Why are statistical models useful in rating systems?",
+        "options": [
+          "They let us encode animations for performance visualizations.",
+          "They help determine exact win conditions for players.",
+          "They allow structured updates to skill estimates based on observed results.",
+          "They remove the need for any randomness in player outcomes."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 7,
+        "text": "What is a key difference between a deterministic model and a statistical model?",
+        "options": [
+          "Deterministic models require less code to implement.",
+          "Statistical models account for uncertainty and randomness in data.",
+          "Deterministic models are better for real-time applications.",
+          "Statistical models never change once defined."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 8,
+        "text": "Which of the following best describes the role of data in a statistical model?",
+        "options": [
+          "Data are used to validate if the model's outputs are intuitive.",
+          "Data are ignored after the model structure is defined.",
+          "Data guide the estimation of the model's unknown parameters.",
+          "Data are only useful if the sample size is infinite."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 9,
+        "text": "What makes a statistical model 'probabilistic'?",
+        "options": [
+          "It uses randomness to ensure unpredictable results.",
+          "It outputs probabilities or uses probability distributions to describe possible outcomes.",
+          "It requires only complete datasets to function.",
+          "It computes results by flipping a coin at each step."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 10,
+        "text": "Why are parameters in statistical models often considered 'latent'?",
+        "options": [
+          "Because they are selected randomly and not observed.",
+          "Because they are fixed values defined in advance.",
+          "Because they are unobserved and must be inferred from the data.",
+          "Because they represent background music in a simulation."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
+  "8": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What does a 95% confidence interval mean in practice?",
+        "options": [
+          "There is a 95% chance the observed data fall within this range.",
+          "95% of the time, the estimated value is exactly the midpoint of the interval.",
+          "If the same experiment were repeated many times, 95% of the computed intervals would contain the true value.",
+          "The interval will always contain the true value if calculated correctly."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 2,
+        "text": "Why is 1.96 commonly used when calculating a 95% confidence interval?",
+        "options": [
+          "Because it corresponds to two standard deviations under the Gaussian distribution.",
+          "Because 1.96 is the value where the logistic function reaches 95%.",
+          "Because it’s the z-score capturing 95% of probability mass under the standard normal curve.",
+          "Because it is easier to calculate than 2.00 and offers greater accuracy."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 3,
+        "text": "In the Glicko system, how is a confidence interval constructed for a player’s rating?",
+        "options": [
+          "By multiplying their rating by 1.96.",
+          "By subtracting and adding 1.96 times their RD to/from their rating.",
+          "By finding the rating of the last 10 opponents and computing the average.",
+          "By simulating thousands of future matches and calculating the rating range."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "Why does the width of a confidence interval increase as RD increases?",
+        "options": [
+          "Because larger RD means greater certainty about the estimate.",
+          "Because higher RD reflects more confidence in past results.",
+          "Because RD represents uncertainty, and wider intervals reflect less precise estimates.",
+          "Because RD accounts for rating inflation over time."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 5,
+        "text": "If two players have overlapping 95% confidence intervals, what can we conclude?",
+        "options": [
+          "That their exact ratings are the same.",
+          "That one player is guaranteed to be stronger than the other.",
+          "That their true skill levels may not be statistically distinguishable.",
+          "That both players will draw most matches."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 6,
+        "text": "What happens to a player’s confidence interval if they stay inactive for a long time?",
+        "options": [
+          "It narrows due to rating stability.",
+          "It becomes centered at zero.",
+          "It widens because RD increases with inactivity, adding uncertainty.",
+          "It disappears since there is no new data to analyze."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 7,
+        "text": "Why is it more informative to report a confidence interval than just a point estimate?",
+        "options": [
+          "Because it shows how random the results are.",
+          "Because it guarantees correctness of predictions.",
+          "Because it communicates both the estimate and the uncertainty around it.",
+          "Because it avoids showing sensitive numerical results."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 8,
+        "text": "Which of the following would reduce the width of a player’s confidence interval over time?",
+        "options": [
+          "Playing more games, reducing RD due to increased evidence.",
+          "Increasing the K-factor in their rating updates.",
+          "Resetting their rating to the population mean.",
+          "Switching to a deterministic model without randomness."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 9,
+        "text": "Why is the Gaussian distribution used when constructing confidence intervals in systems like Glicko?",
+        "options": [
+          "Because it matches the uniform distribution of skill across all players.",
+          "Because many real-world skill estimations are modeled with symmetric, bell-shaped uncertainty.",
+          "Because it prevents players from having negative ratings.",
+          "Because Gaussian distributions are required by Elo’s original design."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 10,
+        "text": "How would you interpret a confidence interval of (1750, 1950) for a player’s rating?",
+        "options": [
+          "The player’s exact rating is 1850.",
+          "Their rating is guaranteed to fall between those bounds.",
+          "We’re 95% confident their true skill lies between 1750 and 1950.",
+          "The interval predicts all future match results against other players."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
+  "9": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What key advantage does the streaming memory module offer SAM 2 in video segmentation?",
+        "options": [
+          "It enables dynamic resizing of input frames for consistent output.",
+          "It allows cross-frame fusion of features without retraining per video.",
+          "It increases frame rate by skipping redundant pixels.",
+          "It compresses segmentation masks into lower-dimensional vectors."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "What is a 'masklet' in the context of SAM 2?",
+        "options": [
+          "A short video clip pre-segmented by the model.",
+          "An interactive segmentation output for a video prompt.",
+          "A data format used to compress multiple masks.",
+          "A segmentation refinement tool integrated in the training loop."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "How does SAM 2 unify image and video segmentation?",
+        "options": [
+          "By converting all videos into tiled image sequences for inference.",
+          "By using a single encoder-decoder model for both tasks.",
+          "By defining a Promptable Visual Segmentation (PVS) task that applies to both domains.",
+          "By merging all image datasets into a synthetic video corpus."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 4,
+        "text": "Which architectural upgrade allows SAM 2 to handle temporal context effectively?",
+        "options": [
+          "Replacing the decoder with a CNN-RNN hybrid module.",
+          "Introducing memory-attention blocks with cross-frame access.",
+          "Using only keyframes to approximate video context.",
+          "Adding dropout layers trained on motion masks."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 5,
+        "text": "What does SAM 2 achieve compared to prior systems like XMem++ and Cutie?",
+        "options": [
+          "Better zero-shot classification accuracy across 100+ classes.",
+          "Stronger performance in interactive segmentation with fewer user prompts.",
+          "More efficient object detection in satellite imagery.",
+          "Improved automatic captioning of segmented regions."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 6,
+        "text": "What role does the Hiera encoder play in SAM 2’s architecture?",
+        "options": [
+          "It converts low-resolution outputs into masklets.",
+          "It replaces all vision encoders in the model with diffusion modules.",
+          "It provides hierarchical visual features to support segmentation at multiple scales.",
+          "It transforms RGB input into one-hot semantic labels."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 7,
+        "text": "What design feature enables SAM 2 to work on arbitrarily long videos?",
+        "options": [
+          "A static memory of prior semantic labels.",
+          "A recursive token-generation mechanism across frames.",
+          "A streaming FIFO memory of embeddings and mask pointers.",
+          "A cache of precomputed decoder activations."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 8,
+        "text": "Why is the SA-V dataset important for SAM 2?",
+        "options": [
+          "It provides language prompts to train the mask decoder.",
+          "It introduces novel object categories for few-shot learning.",
+          "It enables scaling by supplying massive interactive mask data with minimal constraints.",
+          "It supports benchmarking under varying lighting and occlusion."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 9,
+        "text": "How does SAM 2 maintain high performance while achieving 43.8 FPS on an A100 GPU?",
+        "options": [
+          "By using low-resolution inputs and a smaller decoder.",
+          "By processing video frames in parallel GPU batches.",
+          "By combining real-time memory attention with an efficient transformer design.",
+          "By offloading most computations to a pretrained language model."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 10,
+        "text": "What does it mean that SAM 2 exceeds SAM on 37 zero-shot image benchmarks?",
+        "options": [
+          "SAM 2 was retrained on each dataset for fine-tuned results.",
+          "It performs better than SAM even without task-specific fine-tuning.",
+          "It uses extra annotations that SAM lacked.",
+          "Its speed compensates for any drop in accuracy."
+        ],
+        "correctIndex": 1
+      }
+    ]
+  },
+  "10": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What does it mean that SAM is a 'promptable' segmentation model?",
+        "options": [
+          "It automatically generates captions before segmenting an image.",
+          "It learns segmentation purely from user interactions.",
+          "It accepts diverse prompts like points, boxes, masks, or text to guide segmentation.",
+          "It segments predefined objects stored in a lookup table."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 2,
+        "text": "What is the role of the prompt encoder in SAM’s architecture?",
+        "options": [
+          "To compress the final masks into binary representations.",
+          "To embed user-provided cues like clicks or text into the segmentation pipeline.",
+          "To label masks with semantic class names after generation.",
+          "To fine-tune the model during inference based on feedback."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "What makes the SA-1B dataset released with SAM significant?",
+        "options": [
+          "It was the first dataset to include semantic labels with every mask.",
+          "It introduced video-based segmentation masks.",
+          "It provided over 1.1 billion high-quality masks on 11 million privacy-safe images.",
+          "It contained 3D reconstructions from multi-view images."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 4,
+        "text": "How does SAM achieve real-time segmentation performance?",
+        "options": [
+          "By using only low-resolution inputs to minimize compute.",
+          "By executing all segmentation offline before user prompts.",
+          "Through an efficient combination of a ViT image encoder and a fast mask decoder.",
+          "By relying on GPU-specific hardware acceleration via CUDA kernels."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 5,
+        "text": "What type of performance does SAM demonstrate on segmentation benchmarks?",
+        "options": [
+          "Inferior performance due to lack of domain-specific fine-tuning.",
+          "Competitive zero-shot results across 23 tasks including edge and instance segmentation.",
+          "High accuracy only on datasets with pre-labeled bounding boxes.",
+          "State-of-the-art performance on text classification benchmarks."
+        ],
+        "correctIndex": 1
+      }
+    ]
+  },
+  "11": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the primary benefit of using a fixed-size FIFO buffer in streaming memory?",
+        "options": [
+          "It eliminates the need for positional embeddings in transformers.",
+          "It ensures the model has access to the entire video history.",
+          "It keeps compute and memory usage constant regardless of video length.",
+          "It preloads future frames to speed up inference."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 2,
+        "text": "How does streaming memory help reduce flicker or jitter in video segmentation?",
+        "options": [
+          "By downsampling mask resolution to blur rapid transitions.",
+          "By fusing recent frame features to smooth temporal inconsistencies.",
+          "By caching object labels for each segment.",
+          "By switching to static masks after detecting rapid motion."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "What happens when a new frame is added to the streaming memory buffer?",
+        "options": [
+          "It replaces the frame with the highest prediction loss.",
+          "It clears the entire memory to avoid temporal bias.",
+          "It appends the new features and evicts the oldest ones.",
+          "It merges with all previous frames to form a global context."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 4,
+        "text": "How does SAM 2 use streaming memory to enable prompt propagation over time?",
+        "options": [
+          "It replicates prompt encodings across every frame in parallel.",
+          "It converts prompts into object tracks using k-means clustering.",
+          "It writes updated mask tokens into memory, allowing later frames to refine masks without new prompts.",
+          "It fine-tunes the model between each frame using the last prompt."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 5,
+        "text": "Why doesn’t streaming memory need to store the entire video history?",
+        "options": [
+          "Because earlier frames lose relevance for real-time segmentation.",
+          "Because mask quality decreases if too much context is used.",
+          "Because user prompts are only valid for the first few frames.",
+          "Because video frames are compressed and cannot be retrieved later."
+        ],
+        "correctIndex": 0
+      }
+    ]
+  },
+  "12": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What core mechanism enables Transformers to model long-range dependencies efficiently?",
+        "options": [
+          "Convolutional filters applied recursively across tokens.",
+          "Multi-head self-attention over all token pairs.",
+          "Sequential RNN gating with residual memory.",
+          "Hierarchical token pooling in a tree structure."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "Why are positional encodings necessary in a Transformer architecture?",
+        "options": [
+          "To reduce overfitting in feed-forward layers.",
+          "To assign class labels to each token after decoding.",
+          "To inject order or spatial information into attention, which is permutation-invariant.",
+          "To control the dropout rate across transformer heads."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 3,
+        "text": "How does multi-head attention improve a Transformer’s representational power?",
+        "options": [
+          "By stacking outputs from multiple CNN backbones.",
+          "By summing the results of separate recurrent layers.",
+          "By computing different attention patterns in parallel for richer context understanding.",
+          "By applying separate positional encodings per token dimension."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 4,
+        "text": "Why are Transformers a good fit for SAM 2’s segmentation tasks?",
+        "options": [
+          "Because they use hand-tuned filters for edge detection.",
+          "Because their recurrent structure naturally handles video sequences.",
+          "Because they enable global attention over high-resolution inputs and flexible integration of prompts and memory.",
+          "Because they can precompute masks without image inputs."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 5,
+        "text": "What is the function of the position-wise feed-forward network in a Transformer?",
+        "options": [
+          "It reduces token dimensionality for faster attention.",
+          "It mixes features independently at each token to enhance local transformations.",
+          "It computes pairwise distances between all token embeddings.",
+          "It generates positional encodings dynamically during inference."
+        ],
+        "correctIndex": 1
+      }
+    ]
+  },
+  "13": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What distinguishes deep learning from traditional machine learning methods?",
+        "options": [
+          "It uses manually engineered features instead of learning them.",
+          "It relies solely on decision trees for pattern recognition.",
+          "It learns hierarchical feature representations directly from raw data through stacked layers.",
+          "It requires fewer training examples to generalize well."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 2,
+        "text": "How does backpropagation enable learning in deep neural networks?",
+        "options": [
+          "By converting nonlinear activations into binary decisions.",
+          "By computing gradients of the loss with respect to weights and updating them via gradient descent.",
+          "By randomly resetting weights to find better solutions.",
+          "By pruning neurons that do not activate during training."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "What role do early layers typically play in a deep neural network?",
+        "options": [
+          "They encode class-specific outputs for final prediction.",
+          "They remove noise by compressing all information.",
+          "They learn low-level patterns like edges and textures.",
+          "They generate reinforcement signals for the loss function."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 4,
+        "text": "Why is end-to-end differentiability important in systems like SAM 2?",
+        "options": [
+          "It ensures the model uses only linear activations.",
+          "It enables all components—from input prompt to output mask—to be trained together for optimal performance.",
+          "It eliminates the need for any labeled data.",
+          "It makes the model interpretable and explainable by default."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 5,
+        "text": "How does deep learning benefit SAM 2 specifically?",
+        "options": [
+          "It allows SAM 2 to run without GPUs or accelerators.",
+          "It enables the model to hand-code rules for each object class.",
+          "It powers scalable feature extraction and flexible architectures.",
+          "It largely increases accuracy on zero-shot tasks compared to one-shot and few-shot."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
+  "14": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the main purpose of an image encoder?",
+        "options": [
+          "To classify images into predefined categories.",
+          "To convert raw pixel data into compact feature vectors.",
+          "To convert image content to semantic descriptions.",
+          "To reconstruct high-resolution versions of compressed images."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "Why do downstream tasks like segmentation and detection rely on image encoders?",
+        "options": [
+          "Because they require images to be converted to labeled data to function.",
+          "Because raw images contain too many redundant pixel values and are more efficiently stored as vectors.",
+          "Because these tasks operate more effectively on structured visual embeddings than on raw pixel values.",
+          "Because image encoders compress images to save storage space."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 3,
+        "text": "What kind of information do image encoders typically capture in their outputs?",
+        "options": [
+          "Only object class labels for each pixel.",
+          "Sequences of image captions and text descriptions.",
+          "Edges, textures, shapes, and contextual features.",
+          "Timestamps and camera metadata."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 4,
+        "text": "How does pretraining help image encoders?",
+        "options": [
+          "It teaches them to generate longer feature vectors for each image.",
+          "It enables them to memorize all possible images.",
+          "It provides a general foundation for visual understanding before fine-tuning on specific tasks.",
+          "It eliminates the need for backpropagation in training."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 5,
+        "text": "What tradeoff does a good image encoder try to balance?",
+        "options": [
+          "Storage cost vs. pixel fidelity.",
+          "Model size vs. latency.",
+          "Local visual detail vs. global context.",
+          "Color accuracy vs. image resolution."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
+  "15": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What defines a foundation model compared to a traditional task-specific model?",
+        "options": [
+          "A small model trained from scratch for each task.",
+          "A rule-based system requiring extensive manual engineering.",
+          "A large neural network pretrained on broad, diverse data for general-purpose use.",
+          "A clustering algorithm that groups similar inputs without supervision."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 2,
+        "text": "Which training signal is commonly used during the pretraining phase of foundation models?",
+        "options": [
+          "Fully supervised labels for every downstream task.",
+          "Self-supervised or weakly-supervised objectives on large unlabeled corpora.",
+          "Reinforcement learning with carefully engineered rewards.",
+          "Adversarial training against synthetic examples only."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "What does transferability enable in foundation models?",
+        "options": [
+          "Running the model on multiple hardware architectures simultaneously.",
+          "Generalizing learned representations across tasks, domains, and modalities.",
+          "Compressing the model to a fixed size for mobile deployment.",
+          "Guaranteeing 100% accuracy on all downstream tasks."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "How can a foundation model be adapted to a new downstream task with minimal additional supervision?",
+        "options": [
+          "By retraining the entire network from scratch on task-specific data.",
+          "By fine-tuning, prompting, or adding lightweight adapter modules.",
+          "By converting it into a decision tree model.",
+          "By freezing all layers and only adjusting the input format."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 5,
+        "text": "Which of the following is NOT a benefit of foundation models?",
+        "options": [
+          "Eliminating the need to train a separate model from scratch for every task.",
+          "Enabling zero-shot or few-shot performance on new tasks.",
+          "Forming a modular base for rapid prototyping and research.",
+          "Ensuring perfect, error-free outputs on any downstream application."
+        ],
+        "correctIndex": 3
+      }
+    ]
+  },
+    "16": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the primary purpose of a rolling window in streaming models?",
+        "options": [
+          "To accumulate all historical data indefinitely.",
+          "To store only the most recent N elements for bounded memory usage.",
+          "To randomly sample past data points for training.",
+          "To permanently delete incoming data."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "How does a rolling window maintain a constant buffer size?",
+        "options": [
+          "By duplicating the newest element until full.",
+          "By appending new items and removing the oldest ones.",
+          "By compressing all elements into a single summary vector.",
+          "By discarding new items when the buffer is full."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "Why are rolling windows important for real-time video segmentation in SAM 2?",
+        "options": [
+          "They enable the model to fine-tune on each new video.",
+          "They allow the model to fuse recent context without storing the entire video.",
+          "They guarantee zero latency in processing frames.",
+          "They increase the embedding dimensionality over time."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "Which property does a rolling window buffer emulate in data processing?",
+        "options": [
+          "First-In, First-Out queue behavior.",
+          "Last-In, First-Out stack behavior.",
+          "Random-access memory block.",
+          "Priority-based scheduling."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 5,
+        "text": "What trade-off does using a rolling window introduce?",
+        "options": [
+          "Infinite context length vs. zero compute cost.",
+          "Full historical accuracy vs. increased latency.",
+          "Bounded memory usage vs. limited historical context.",
+          "Guaranteed model convergence vs. unpredictable memory growth."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
+    "17": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the primary function of a buffer in data pipelines?",
+        "options": [
+          "To permanently store data for long-term access.",
+          "To temporarily hold data between producer and consumer to manage flow mismatches.",
+          "To transform data from one format to another.",
+          "To encrypt data for secure transmission."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "How do buffers typically support bursty input rates?",
+        "options": [
+          "By processing all data only at fixed intervals.",
+          "By absorbing spikes in incoming data without overwhelming the consumer.",
+          "By accelerating the consumer’s processing speed.",
+          "By discarding older data immediately."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "Which of the following is a common implementation of a buffer?",
+        "options": [
+          "Last-In, First-Out stack.",
+          "Priority queue based on deadlines.",
+          "Ring buffer with constant-time access.",
+          "Hash table for random access."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 4,
+        "text": "What strategy is used to handle underflow in buffer systems?",
+        "options": [
+          "Dropping new incoming data.",
+          "Waiting or falling back to a default operation.",
+          "Compressing all remaining data.",
+          "Restarting the producer automatically."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 5,
+        "text": "Why are buffers essential in real-time systems like video pipelines?",
+        "options": [
+          "They eliminate the need for any processing delays.",
+          "They ensure smooth, lossless data flow by decoupling producer and consumer rates.",
+          "They compress video frames to save bandwidth.",
+          "They prioritize newer frames over older ones."
+        ],
+        "correctIndex": 1
+      }
+    ]
+  },
+    "18": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the core characteristic of a machine learning model compared to a traditional rule-based system?",
+        "options": [
+          "They rely on fixed, hand-coded rules for decision making.",
+          "They use adjustable parameters learned from data to make predictions.",
+          "They generate random outputs without training.",
+          "They only work for linear relationships between variables."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "During which stage are a model’s parameters adjusted to minimize the loss function?",
+        "options": [
+          "Inference",
+          "Training",
+          "Validation",
+          "Data collection"
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "What does “generalization” refer to in the context of a machine learning model?",
+        "options": [
+          "The model’s ability to perform well on unseen data, not just the training set.",
+          "The model’s capacity to memorize training examples perfectly.",
+          "The speed at which the model makes predictions.",
+          "The size of the model in memory."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 4,
+        "text": "What best describes inference in machine learning?",
+        "options": [
+          "Adjusting the model’s weights based on new labeled data.",
+          "Applying the trained model to new inputs to generate predictions.",
+          "Grouping similar inputs into clusters.",
+          "Compressing the model to reduce its size."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 5,
+        "text": "Why are machine learning models critical engines behind systems like GPT or CLIP?",
+        "options": [
+          "They eliminate the need for any data in decision making.",
+          "They use handcrafted rules for each specific task.",
+          "They automate complex predictions by learning patterns from data.",
+          "They guarantee perfect accuracy on all tasks."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
+  "19": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "Each dimension in a feature vector typically represents what?",
+        "options": [
+          "A raw pixel intensity from the original input.",
+          "A specific latent attribute capturing some aspect of the data.",
+          "The probability of each class label.",
+          "The hyperparameter of the encoding model."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "Why are feature vectors often normalized to unit length?",
+        "options": [
+          "To reduce their dimensionality for faster storage.",
+          "To prepare them for cosine similarity comparisons.",
+          "To ensure all values are integers.",
+          "To scale each feature to have zero mean."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "In high-dimensional feature space, two objects with similar feature vectors will be:",
+        "options": [
+          "Mapped to orthogonal vectors.",
+          "Placed far apart to avoid confusion.",
+          "Located close together, indicating similarity.",
+          "Assigned identical one-hot encodings."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 4,
+        "text": "Which of the following downstream tasks is NOT commonly powered by feature vectors?",
+        "options": [
+          "Clustering similar data points together.",
+          "Performing image classification.",
+          "Generating novel text based on prompts.",
+          "Building recommendation systems."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 5,
+        "text": "What is the primary benefit of converting raw inputs into feature vectors?",
+        "options": [
+          "It eliminates the need for any training data.",
+          "It compresses the data into human-readable text.",
+          "It structures the data numerically so models can compare and generalize.",
+          "It converts continuous values into discrete bins."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
+    "20": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What defines a vector in mathematics?",
+        "options": [
+          "An ordered list of numbers representing both direction and magnitude.",
+          "A single numeric value representing size only.",
+          "A grid of pixels forming an image.",
+          "A binary indicator for classification tasks."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 2,
+        "text": "How do you compute the length (norm) of the vector [3, 4, 0]?",
+        "options": [
+          "By summing its components: 3 + 4 + 0 = 7.",
+          "By taking the square root of the sum of squares: √(3² + 4² + 0²) = 5.",
+          "By multiplying its components: 3 × 4 × 0 = 0.",
+          "By averaging its components: (3 + 4 + 0) / 3 ≈ 2.33."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "Which operation measures the alignment between two vectors?",
+        "options": [
+          "Vector addition.",
+          "Dot product.",
+          "Scalar multiplication.",
+          "Basis transformation."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "What does it mean to express a vector in terms of a basis?",
+        "options": [
+          "Rebuilding the vector as a weighted sum of basis vectors.",
+          "Normalizing the vector to unit length.",
+          "Computing the dot product with each basis vector.",
+          "Converting the vector into a matrix form."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 5,
+        "text": "What is the result of adding the vectors [3, 4, 0] and [1, -2, 0]?",
+        "options": [
+          "[3, 2, 0]",
+          "[4, 2, 0]",
+          "[2, 6, 0]",
+          "[3, -2, 0]"
+        ],
+        "correctIndex": 1
+      }
+    ]
+  },
+    "21": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the primary function of SmolVLA in robotics?",
+        "options": [
+          "To fuse visual, language, and sensorimotor inputs into continuous action chunks for robot control.",
+          "To perform high-resolution image segmentation in real time.",
+          "To compress large language models for mobile deployment.",
+          "To generate textual descriptions of robotic tasks."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 2,
+        "text": "How does SmolVLA’s lightweight multimodal backbone reduce inference cost?",
+        "options": [
+          "By quantizing all weights to 4-bit precision.",
+          "By skipping roughly half of the pretrained model’s layers and aggressively reducing visual tokens.",
+          "By using a convolutional neural network instead of a transformer.",
+          "By running only on CPU without GPU acceleration."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "What is the role of the flow-matching action expert in SmolVLA?",
+        "options": [
+          "It predicts overlapping chunks of low-level actions using interleaved cross-attention and self-attention.",
+          "It compresses action sequences into static action plans.",
+          "It filters out noisy sensor data before encoding.",
+          "It generates language instructions from visual inputs."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 4,
+        "text": "How does the asynchronous inference stack maintain high control responsiveness?",
+        "options": [
+          "By decoupling perception, action prediction, and execution via an action queue with thresholding and duplicate filtering.",
+          "By executing all actions in a single synchronous pipeline to avoid context switches.",
+          "By batching multiple frames before inference to improve throughput.",
+          "By offloading computation to a remote server without local buffering."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 5,
+        "text": "Why is community-driven pretraining important for SmolVLA?",
+        "options": [
+          "It uses a small publicly contributed dataset to achieve generalizable visuomotor skills matching larger baselines.",
+          "It requires no human-annotated data at all.",
+          "It guarantees perfect performance on all robotics tasks.",
+          "It focuses solely on simulated environments without real-world data."
+        ],
+        "correctIndex": 0
+      }
+    ]
+  },
+    "22": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the defining feature of a vision-language model?",
+        "options": [
+          "It uses only visual inputs to generate image captions.",
+          "It processes both images and text to produce a joint representation.",
+          "It translates text into speech without visual context.",
+          "It clusters images based on pixel intensity alone."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "How are the visual and textual inputs combined in a vision-language model?",
+        "options": [
+          "By concatenating raw pixels with word embeddings directly.",
+          "By fusing their encoded representations via cross-attention or joint transformers.",
+          "By training separate models and averaging their outputs.",
+          "By converting text to images and then processing as a single modality."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "In the example “which object is edible?”, what capability does the model demonstrate?",
+        "options": [
+          "Identifying and aligning visual regions with the language query.",
+          "Generating a textual summary of the entire scene.",
+          "Translating the question into another language.",
+          "Segmenting all objects regardless of the prompt."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 4,
+        "text": "Which of these is NOT listed as a benefit of vision-language models?",
+        "options": [
+          "Grounding language in perception for actionable understanding.",
+          "Enabling prompt-driven tasks like captioning and locating objects.",
+          "Requiring extensive task-specific supervised training for each new query.",
+          "Supporting applications in robotics and interactive agents."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 5,
+        "text": "Why are vision-language models critical for systems like SmolVLA?",
+        "options": [
+          "They compress sensor data to reduce model size.",
+          "They provide a way to ground natural language instructions in visual context.",
+          "They eliminate the need for any language processing.",
+          "They ensure perfect accuracy in robot control decisions."
+        ],
+        "correctIndex": 1
+      }
+    ]
+  },
+    "23": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the core objective of flow matching during training?",
+        "options": [
+          "Predicting the full clean data in one step.",
+          "Predicting a vector that moves noisy inputs closer to the original.",
+          "Classifying inputs into discrete noise levels.",
+          "Generating synthetic noise patterns."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "How does flow matching handle corrupted data?",
+        "options": [
+          "By discarding noisy samples and only training on clean data.",
+          "By adding noise, then training to reverse the corruption via iterative corrections.",
+          "By training a separate denoising autoencoder for each noise level.",
+          "By using adversarial examples to robustify the model."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "During inference, flow matching generates outputs by:",
+        "options": [
+          "Applying a single-shot mapping from noise to clean data.",
+          "Iteratively applying predicted correction vectors to denoise step by step.",
+          "Sampling random noise and selecting the best output.",
+          "Interpolating between two pretrained models."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "Why does flow matching produce more stable sequences than one-shot predictions?",
+        "options": [
+          "Because it uses higher learning rates during training.",
+          "Because it applies gradual, stepwise corrections that mirror real-world processes.",
+          "Because it relies solely on supervised labels without noise.",
+          "Because it compresses the model into fewer parameters."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 5,
+        "text": "In SmolVLA, flow matching is applied to:",
+        "options": [
+          "Denoise image embeddings for segmentation tasks.",
+          "Predict language token corrections for prompts.",
+          "Gradually reverse corruption in robot action sequences for smooth control.",
+          "Cluster sensorimotor states into discrete actions."
+        ],
+        "correctIndex": 2
+      }
+    ]
+  },
+  "24": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "What is the primary goal of asynchronous inference?",
+        "options": [
+          "Decoupling action execution from model prediction to avoid stalls.",
+          "Batching all predictions before any execution starts.",
+          "Synchronizing perception and control in a single thread.",
+          "Running the entire model on a single device only."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 2,
+        "text": "How does asynchronous inference decide when to trigger a new model prediction?",
+        "options": [
+          "When the action queue length drops below a threshold (g).",
+          "After every frame regardless of queue status.",
+          "Only at the start of execution.",
+          "When the robot completes all actions."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 3,
+        "text": "Which technique is used to skip redundant computation in asynchronous inference?",
+        "options": [
+          "Increasing the batch size of inputs.",
+          "Filtering out near-identical observations.",
+          "Running the model at higher resolution.",
+          "Caching results in a database."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 4,
+        "text": "In SmolVLA, asynchronous inference contributes to fluid robot control by:",
+        "options": [
+          "Computing the next action chunk (A₂) while executing the current one (A₁).",
+          "Waiting until A₁ finishes before starting A₂ computation.",
+          "Precomputing all action chunks offline before deployment.",
+          "Only using the latest frame for all action predictions."
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": 5,
+        "text": "Which of the following is NOT a benefit of asynchronous inference?",
+        "options": [
+          "Preventing idle gaps due to model or network latency.",
+          "Enabling responsive real-time control with large models.",
+          "Supporting edge–cloud hybrid deployments.",
+          "Guaranteeing perfect, error-free predictions."
+        ],
+        "correctIndex": 3
+      }
+    ]
+  }
+}
