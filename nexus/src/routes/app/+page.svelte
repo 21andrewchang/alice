@@ -7,7 +7,6 @@
 	import PaginatedContent from '../../components/PaginatedContent.svelte';
 	import RankRevealModal from '../../components/RankRevealModal.svelte';
 	import { supabase } from '$lib/supabaseClient';
-	import { recommendedNodeStore } from '$lib/suggestionSystem';
 	import { initializeSuggestionSystem } from '$lib/suggestionSystemInit';
 	import {
 		nodeStatusService,
@@ -15,8 +14,6 @@
 		calculateLinkVisualState,
 		getDomainColor as getNodeDomainColor
 	} from '$lib/nodeStatus';
-	import { getSuggestionService } from '$lib/suggestionSystem';
-	import { writable } from 'svelte/store';
 	import { userProfile } from '$lib/userProfileStore';
 
 	let showContent = false;
@@ -59,7 +56,6 @@
 		}
 	];
 
-	const isLastSlide = () => slideIndex === tutorialSlides.length - 1;
 	function prevSlide() {
 		if (slideIndex > 0) slideIndex--;
 	}
@@ -71,10 +67,13 @@
 	}
 	let mergedGraphLoaded = false;
 	let challengeOpen = false;
-	let challengeNode;
-	let userBracket: string = '';
+	let challengeNode: Node | null;
+
+	type BracketKey = '' | 'beginner' | 'intermediate' | 'advanced' | 'expert';
+	let userBracket: BracketKey = '';
 	let savedRecommendationId: number | null = null;
 	let recommendedNode: any = null;
+
 	const unsubscribe = userProfile.subscribe(({ bracket, recommendation }) => {
 		if (bracket) userBracket = bracket;
 		if (recommendation != null) savedRecommendationId = recommendation;
@@ -87,10 +86,6 @@
 			}
 		}
 	});
-
-	let startMs = 0;
-	let elapsedMs = 0;
-	let ticker: number | undefined;
 
 	async function loadUserFromDb() {
 		const { data: sessionData } = await supabase.auth.getSession();
@@ -175,13 +170,75 @@
 	function openChallenge(node: Node) {
 		challengeOpen = true;
 		challengeNode = node;
-		startMs = performance.now();
-		elapsedMs = 0;
-		ticker = window.setInterval(() => {
-			elapsedMs = performance.now() - startMs; // reactive var → UI can show it
-		}, 1000);
 	}
+
+	const bracketToNodeIds: Record<string, number[]> = {
+		beginner: [5, 17, 6, 2, 20],
+		intermediate: [8, 13, 0, 19, 15, 14, 3, 18, 1, 7],
+		advanced: [24, 23, 4, 11, 12, 22],
+		expert: [10, 9, 21]
+	};
+
+	function pickRandom<T>(arr: T[]) {
+		return arr[Math.floor(Math.random() * arr.length)];
+	}
+	async function newRecommendation(userId: string) {
+		if (!mergedGraphLoaded) return;
+
+		const bucket = bracketToNodeIds[userBracket] || [];
+		let candidates = bucket
+			.map((id) => mergedGraph.nodes.find((n: any) => n.id === id))
+			.filter(Boolean)
+			.filter((n: any) => {
+				const status = nodeStatusService.getNodeStatus(n.id);
+				return !status || status.mastery === 0;
+			});
+
+		// Fallback: if none in current bracket, try all bracketed nodes
+		if (candidates.length === 0) {
+			const allBucketed = Object.values(bracketToNodeIds)
+				.flat()
+				.map((id) => mergedGraph.nodes.find((n: any) => n.id === id))
+				.filter(Boolean)
+				.filter((n: any) => {
+					const status = nodeStatusService.getNodeStatus(n.id);
+					return !status || status.mastery === 0;
+				});
+			candidates = allBucketed;
+		}
+
+		// Last resort: anything in graph with no mastery
+		if (candidates.length === 0) {
+			candidates = mergedGraph.nodes.filter((n: any) => {
+				const status = nodeStatusService.getNodeStatus(n.id);
+				return !status || status.mastery === 0;
+			});
+		}
+
+		if (candidates.length === 0) {
+			return;
+		}
+
+		const choice = pickRandom(candidates);
+		savedRecommendationId = choice.id;
+		recommendedNode = { node: choice };
+
+		const { error: upsertErr } = await supabase.from('users').upsert(
+			{
+				id: userId,
+				recommendation: savedRecommendationId
+			},
+			{ onConflict: 'id' }
+		);
+
+		if (upsertErr) {
+			console.error('Failed to persist recommendation to users table:', upsertErr);
+		}
+	}
+
 	async function updateNode(nodeId: string, exp: number) {
+		const prevStatus = nodeStatusService.getNodeStatus(nodeId) || { mastery: null };
+		const prevMastery = prevStatus.mastery;
 		const { data: session } = await supabase.auth.getSession();
 		let user = session.session?.user;
 		if (!user) throw new Error('Not signed in');
@@ -204,42 +261,26 @@
 			n.id === nodeId ? { ...n, exp: data.newExp, mastery: data.newMastery } : n
 		);
 		updateNodeStyles();
+		const masteryChanged = data?.newMastery != null && data.newMastery !== prevMastery;
+
+		if (masteryChanged) {
+			await newRecommendation(user.id);
+		}
 		if (error) console.error(error);
 		return !error;
 	}
 
 	async function closeChallenge(e) {
-		updateNode(challengeNode.id, e.expEarned);
+		await updateNode(challengeNode.id, e.expEarned);
 		challengeOpen = false;
-		if (ticker) clearInterval(ticker);
-		const total = performance.now() - startMs;
 	}
-
-	// helper
-	function formatTime(ms: number) {
-		const s = Math.floor(ms / 1000);
-		const h = Math.floor(s / 3600);
-		const m = Math.floor((s % 3600) / 60);
-		const sec = s % 60;
-		return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-	}
-
-	const userProfileStore = writable(getSuggestionService().getUserProfile());
 
 	let mergedGraph: { nodes: any[]; links: any[] } = { nodes: [], links: [] };
-
-	function updateUserProfileDebug() {
-		const suggestionService = getSuggestionService();
-		const userProfile = suggestionService.getUserProfile();
-		userProfileStore.set(userProfile);
-	}
 
 	// Listen for node visit events (assuming you have a function or event for this)
 	//SUGGESTIONS
 	function onNodeVisited(nodeId: string) {
-		// const suggestionService = getSuggestionService();
-		// suggestionService.updateAfterNodeVisit(nodeId);
-		updateUserProfileDebug();
+		console.log('node visited: ', nodeId);
 	}
 
 	async function loadMergedGraph() {
@@ -248,7 +289,6 @@
 			if (res.ok) {
 				mergedGraph = await res.json();
 				mergedGraphLoaded = true;
-				updateUserProfileDebug();
 			}
 		} catch {}
 	}
@@ -1070,7 +1110,7 @@
 			.replace(
 				/^### (.+)$/gm,
 				(m: any, t: any) =>
-					`<h3 id="${slugify(t)}" class="text-lg font-semibold mb-2 mt-4" style="color: #E0E0E0;">${t}</h3>`
+					`<h3 id="${slugify(t)}" class="text-lg font-semibold" style="color: #E0E0E0;">${t}</h3>`
 			)
 			.replace(
 				/^## (.+)$/gm,
@@ -1168,31 +1208,16 @@
 
 	// Function to select a node by ID (for node links)
 	function selectNodeById(nodeId: any) {
-		// Get the live node from the simulation with current x,y coordinates
-		if (typeof window !== 'undefined' && window.simulation) {
+		if (typeof window !== 'undefined') {
 			const liveNodes = window.simulation.nodes();
 			const liveNode = liveNodes.find((n) => n.id === nodeId);
-
+			console.log('live node: ', liveNode);
 			if (liveNode) {
 				nodeStatusService.markAsVisited(nodeId);
-				onNodeVisited(nodeId); // Call SuggestionService logic
-
-				// Add to the stack first (same order as selectNode)
+				onNodeVisited(nodeId);
 				addToNodeStack(liveNode);
 				updateNodeStyles();
-				// Then center the graph on the selected node
 				centerGraphOnNode(liveNode);
-
-				// --- MVP Recommendation Logic ---
-				if (recommendedNode && recommendedNode.node && nodeId === recommendedNode.node.id) {
-					if (
-						window.suggestionService &&
-						typeof window.suggestionService.generateRecommendation === 'function'
-					) {
-						window.suggestionService.generateRecommendation();
-					}
-				} else {
-				}
 			}
 		}
 	}
@@ -1328,63 +1353,6 @@
 		}
 	}
 
-	// Make function available globally for onclick handlers (client-side only)
-	if (typeof window !== 'undefined') {
-		window.selectNodeById = selectNodeById;
-	}
-
-	onMount(async () => {
-		await loadMergedGraph();
-		await loadVisitedFromDb();
-		await loadUserFromDb();
-		initializeSuggestionSystem();
-
-		element.innerHTML = '';
-		element.appendChild(chart(mergedGraph));
-
-		updateNodeStyles();
-		updateUserProfileDebug();
-
-		const handleNodeLinkClick = (event: MouseEvent) => {
-			const target = (event.target as HTMLElement).closest('.node-link');
-			if (target?.dataset.nodeId) {
-				selectNodeById(parseInt(target.dataset.nodeId));
-			}
-		};
-		document.addEventListener('click', handleNodeLinkClick);
-
-		// 6. Any other broadcast listeners
-		window.addEventListener('nodeVisited', updateUserProfileDebug);
-		window.addEventListener('nodeStatusUpdated', updateUserProfileDebug);
-		const unsubRec = recommendedNodeStore.subscribe(updateUserProfileDebug);
-
-		// Cleanup all listeners when component unmounts
-		return () => {
-			document.removeEventListener('click', handleNodeLinkClick);
-			window.removeEventListener('nodeVisited', updateUserProfileDebug);
-			window.removeEventListener('nodeStatusUpdated', updateUserProfileDebug);
-			unsubRec();
-		};
-	});
-
-	function handleNextStepClick() {
-		if (recommendedNode && window.selectNodeById) {
-			// Use the local selectNodeById function instead of window.selectNodeById
-			selectNodeById(recommendedNode.node.id);
-			if (typeof window !== 'undefined') {
-				window.sessionStorage.setItem('hideNextStepBox', 'true');
-			}
-		}
-	}
-
-	let userProfileClicked = false;
-	function handleUserProfileClick() {
-		handleLogout();
-		userProfileClicked = true;
-		setTimeout(() => {
-			userProfileClicked = false;
-		}, 100);
-	}
 	const bracketColors = {
 		beginner: '#9CA3AF',
 		intermediate: '#E0AF67',
@@ -1398,10 +1366,39 @@
 		const b = parseInt(hex.slice(5, 7), 16);
 		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 	}
-	// whenever userBracket changes, this will update
-	$: borderColor = bracketColors[userBracket] || '#333333';
+	let borderColor = '#333333';
 	$: borderColorAlpha = hexToRgba(borderColor, 0.3);
+
+	onMount(async () => {
+		await loadMergedGraph();
+		await loadVisitedFromDb();
+		await loadUserFromDb();
+		const key = userBracket.toString().trim().toLowerCase();
+		borderColor = bracketColors[key] ?? '#333333';
+		initializeSuggestionSystem();
+
+		element.innerHTML = '';
+		element.appendChild(chart(mergedGraph));
+
+		updateNodeStyles();
+
+		const handleNodeLinkClick = (event: MouseEvent) => {
+			const target = (event.target as HTMLElement).closest('.node-link');
+			if (target?.dataset.nodeId) {
+				selectNodeById(parseInt(target.dataset.nodeId));
+			}
+		};
+		document.addEventListener('click', handleNodeLinkClick);
+
+		return () => {
+			document.removeEventListener('click', handleNodeLinkClick);
+		};
+	});
+
 	$: currentHistoryIndex = navigationHistory.findIndex((n) => n.id === focusedNode?.id);
+	function handleUserProfileClick() {
+		handleLogout();
+	}
 
 	function prevStack() {
 		if (currentHistoryIndex > 0) {
