@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Challenge from '../../components/Challenge.svelte';
+	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
@@ -360,8 +361,17 @@
 	if (!userEmail) userEmail = 'user@email.com'; // fallback placeholder
 
 	async function handleLogout() {
-		await supabase.auth.signOut();
-		window.location.href = '/';
+		const { error } = await supabase.auth.signOut();
+		if (error) {
+			console.error('Error signing out:', error.message);
+			return;
+		}
+
+		// 2) Force-clear any residual storage key (just in case)
+		localStorage.removeItem('supabase.auth.token');
+
+		// 3) Redirect using SvelteKit's goto (safer than window.location)
+		goto('/', { replaceState: true });
 	}
 
 	function updateNodeStyles() {
