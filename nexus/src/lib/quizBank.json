@@ -1505,5 +1505,64 @@
         "correctIndex": 2
       }
     ]
+  },
+  "19": {
+    "questions": [
+      {
+        "id": 1,
+        "text": "Each dimension in a feature vector typically represents what?",
+        "options": [
+          "A raw pixel intensity from the original input.",
+          "A specific latent attribute capturing some aspect of the data.",
+          "The probability of each class label.",
+          "The hyperparameter of the encoding model."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 2,
+        "text": "Why are feature vectors often normalized to unit length?",
+        "options": [
+          "To reduce their dimensionality for faster storage.",
+          "To prepare them for cosine similarity comparisons.",
+          "To ensure all values are integers.",
+          "To scale each feature to have zero mean."
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": 3,
+        "text": "In high-dimensional feature space, two objects with similar feature vectors will be:",
+        "options": [
+          "Mapped to orthogonal vectors.",
+          "Placed far apart to avoid confusion.",
+          "Located close together, indicating similarity.",
+          "Assigned identical one-hot encodings."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 4,
+        "text": "Which of the following downstream tasks is NOT commonly powered by feature vectors?",
+        "options": [
+          "Clustering similar data points together.",
+          "Performing image classification.",
+          "Generating novel text based on prompts.",
+          "Building recommendation systems."
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": 5,
+        "text": "What is the primary benefit of converting raw inputs into feature vectors?",
+        "options": [
+          "It eliminates the need for any training data.",
+          "It compresses the data into human-readable text.",
+          "It structures the data numerically so models can compare and generalize.",
+          "It converts continuous values into discrete bins."
+        ],
+        "correctIndex": 2
+      }
+    ]
   }
 }
