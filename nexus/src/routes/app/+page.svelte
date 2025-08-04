@@ -69,13 +69,13 @@
 	let challengeOpen = false;
 	let challengeNode: Node | null;
 
-	type BracketKey = '' | 'beginner' | 'intermediate' | 'advanced' | 'expert';
-	let userBracket: BracketKey = '';
+	let userBracket = '';
 	let savedRecommendationId: number | null = null;
 	let recommendedNode: any = null;
 
 	const unsubscribe = userProfile.subscribe(({ bracket, recommendation }) => {
 		if (bracket) userBracket = bracket;
+		console.log('bracket from store');
 		if (recommendation != null) savedRecommendationId = recommendation;
 		if (mergedGraphLoaded) {
 			const node = mergedGraph.nodes.find((n: any) => n.id === savedRecommendationId);
@@ -1374,6 +1374,8 @@
 		await loadVisitedFromDb();
 		await loadUserFromDb();
 		const key = userBracket.toString().trim().toLowerCase();
+		console.log('bracket key: ', key);
+		console.log('bracketcolor: ', bracketColors[key]);
 		borderColor = bracketColors[key] ?? '#333333';
 		initializeSuggestionSystem();
 
