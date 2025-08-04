@@ -69,13 +69,30 @@
 	let challengeOpen = false;
 	let challengeNode: Node | null;
 
-	type BracketKey = '' | 'beginner' | 'intermediate' | 'advanced' | 'expert';
-	let userBracket: BracketKey = '';
+	let userBracket = '';
 	let savedRecommendationId: number | null = null;
 	let recommendedNode: any = null;
 
+	const bracketColors = {
+		beginner: '#9CA3AF',
+		intermediate: '#E0AF67',
+		advanced: '#BA9AF7',
+		expert: '#F7768E'
+	};
+
+	function hexToRgba(hex: string, alpha: number) {
+		const r = parseInt(hex.slice(1, 3), 16);
+		const g = parseInt(hex.slice(3, 5), 16);
+		const b = parseInt(hex.slice(5, 7), 16);
+		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+	}
+	let borderColor = '#333333';
+	$: borderColorAlpha = hexToRgba(borderColor, 0.3);
+
 	const unsubscribe = userProfile.subscribe(({ bracket, recommendation }) => {
 		if (bracket) userBracket = bracket;
+		console.log('bracket from store', userBracket);
+		borderColor = bracketColors[userBracket] ?? '#333333';
 		if (recommendation != null) savedRecommendationId = recommendation;
 		if (mergedGraphLoaded) {
 			const node = mergedGraph.nodes.find((n: any) => n.id === savedRecommendationId);
@@ -1352,22 +1369,6 @@
 			updateNodeStyles();
 		}
 	}
-
-	const bracketColors = {
-		beginner: '#9CA3AF',
-		intermediate: '#E0AF67',
-		advanced: '#BA9AF7',
-		expert: '#F7768E'
-	};
-
-	function hexToRgba(hex: string, alpha: number) {
-		const r = parseInt(hex.slice(1, 3), 16);
-		const g = parseInt(hex.slice(3, 5), 16);
-		const b = parseInt(hex.slice(5, 7), 16);
-		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-	}
-	let borderColor = '#333333';
-	$: borderColorAlpha = hexToRgba(borderColor, 0.3);
 
 	onMount(async () => {
 		await loadMergedGraph();
