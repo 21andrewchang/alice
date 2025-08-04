@@ -147,7 +147,7 @@
 	<!-- Header -->
 	<div class="mb-4 flex items-center justify-between border-b border-[#222] p-2">
 		<div class="flex items-center gap-2">
-			<button on:click={onPrevNode}
+			<button on:click={onPrevNode} disabled={true}
 				><svg
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
@@ -159,7 +159,7 @@
 					<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
 				</svg>
 			</button>
-			<button on:click={onNextNode}>
+			<button on:click={onNextNode} disabled={true}>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
@@ -250,7 +250,7 @@
 				</div>
 			</div>
 			<button
-				class="rounded-sm bg-white px-3 py-2 text-xs font-medium text-black transition hover:bg-white/50"
+				class="rounded-full bg-neutral-200 px-4 py-2 text-xs font-semibold text-black transition hover:bg-white/50"
 				on:click={openChallenge}
 			>
 				Start Challenge

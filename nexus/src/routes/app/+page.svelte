@@ -7,7 +7,6 @@
 	import PaginatedContent from '../../components/PaginatedContent.svelte';
 	import RankRevealModal from '../../components/RankRevealModal.svelte';
 	import { supabase } from '$lib/supabaseClient';
-	import { recommendedNodeStore } from '$lib/suggestionSystem';
 	import { initializeSuggestionSystem } from '$lib/suggestionSystemInit';
 	import {
 		nodeStatusService,
@@ -15,32 +14,105 @@
 		calculateLinkVisualState,
 		getDomainColor as getNodeDomainColor
 	} from '$lib/nodeStatus';
-	import { getSuggestionService } from '$lib/suggestionSystem';
-	import { writable } from 'svelte/store';
+	import { userProfile } from '$lib/userProfileStore';
 
+	let showContent = false;
+
+	$: if (!tutorialExpanded) showContent = false;
+
+	function handleTutorialTransitionEnd(e: TransitionEvent) {
+		// only care about the end of the size transition
+		if (e.propertyName !== 'width' && e.propertyName !== 'height') return;
+		if (tutorialExpanded) {
+			// now that expansion is done, reveal content
+			showContent = true;
+		} else {
+			showContent = false;
+		}
+	}
+
+	let tutorialExpanded = false;
+	let slideIndex = 0;
+	const tutorialSlides = [
+		{
+			title: 'The Nexus',
+			body: `The graph in the center is called The Nexus. The circles are Nodes, which can either be Research Papers or Foundational Knowlege. You can zoom in and out with scroll and pan by clicking and dragging.`
+		},
+		{
+			title: 'Nodes',
+			body: `Clicking a Node in the graph or through a link opens the Node's detailed view on the right. The graph centers the Node and focuses it's connections on the left.`
+		},
+		{
+			title: 'Your First Node',
+			body: `The "Next Step" box in the top left shows your first recommendation. Clicking the link to the topic opens the Node View for it.`
+		},
+		{
+			title: 'Mastery',
+			body: `Mastery represents your understanding of a Node. You can challenge your current Mastery at any time by clicking the button in the bottom right of the Node. Answering questions correct will give you EXP. When you get 100 EXP, you level up that Node's mastery`
+		},
+		{
+			title: 'Skill Bracket',
+			body: `All your mastery levels are accumulated to determine your skill bracket. You can check your progress towards the next skill bracket by clicking your current bracket in the top left`
+		}
+	];
+
+	function prevSlide() {
+		if (slideIndex > 0) slideIndex--;
+	}
+	function nextSlide() {
+		if (slideIndex < tutorialSlides.length - 1) slideIndex++;
+	}
+	function closeTutorial() {
+		tutorialExpanded = false;
+	}
+	let mergedGraphLoaded = false;
 	let challengeOpen = false;
-	let challengeNode;
-	let shouldShowOnboarding = false;
-	let userBracket: string = '–';
+	let challengeNode: Node | null;
 
-	let startMs = 0;
-	let elapsedMs = 0;
-	let ticker: number | undefined;
+	type BracketKey = '' | 'beginner' | 'intermediate' | 'advanced' | 'expert';
+	let userBracket: BracketKey = '';
+	let savedRecommendationId: number | null = null;
+	let recommendedNode: any = null;
+
+	const unsubscribe = userProfile.subscribe(({ bracket, recommendation }) => {
+		if (bracket) userBracket = bracket;
+		if (recommendation != null) savedRecommendationId = recommendation;
+		if (mergedGraphLoaded) {
+			const node = mergedGraph.nodes.find((n: any) => n.id === savedRecommendationId);
+			if (node) {
+				recommendedNode = { node };
+				showContent = true;
+				tutorialExpanded = true;
+			}
+		}
+	});
 
 	async function loadUserFromDb() {
 		const { data: sessionData } = await supabase.auth.getSession();
-		let user = sessionData.session?.user;
-		console.log('user session', user);
+		const user = sessionData.session?.user;
 		if (user) {
 			const { data: userData, error } = await supabase
 				.from('users')
 				.select('bracket, recommendation')
-				.eq('id', user?.id);
-			console.log('user data', userData);
+				.eq('id', user.id)
+				.limit(1);
+
 			if (error) {
 				console.error('Error loading profile:', error);
-			} else {
+			} else if (userData && userData.length > 0) {
+				tutorialExpanded = false;
+
 				userBracket = userData[0]?.bracket;
+				const rec = userData[0]?.recommendation;
+				if (rec != null) {
+					savedRecommendationId = rec;
+					if (mergedGraphLoaded) {
+						const node = mergedGraph.nodes.find((n: any) => n.id === savedRecommendationId);
+						if (node) {
+							recommendedNode = { node };
+						}
+					}
+				}
 			}
 		}
 	}
@@ -98,13 +170,75 @@
 	function openChallenge(node: Node) {
 		challengeOpen = true;
 		challengeNode = node;
-		startMs = performance.now();
-		elapsedMs = 0;
-		ticker = window.setInterval(() => {
-			elapsedMs = performance.now() - startMs; // reactive var → UI can show it
-		}, 1000);
 	}
+
+	const bracketToNodeIds: Record<string, number[]> = {
+		beginner: [5, 17, 6, 2, 20],
+		intermediate: [8, 13, 0, 19, 15, 14, 3, 18, 1, 7],
+		advanced: [24, 23, 4, 11, 12, 22],
+		expert: [10, 9, 21]
+	};
+
+	function pickRandom<T>(arr: T[]) {
+		return arr[Math.floor(Math.random() * arr.length)];
+	}
+	async function newRecommendation(userId: string) {
+		if (!mergedGraphLoaded) return;
+
+		const bucket = bracketToNodeIds[userBracket] || [];
+		let candidates = bucket
+			.map((id) => mergedGraph.nodes.find((n: any) => n.id === id))
+			.filter(Boolean)
+			.filter((n: any) => {
+				const status = nodeStatusService.getNodeStatus(n.id);
+				return !status || status.mastery === 0;
+			});
+
+		// Fallback: if none in current bracket, try all bracketed nodes
+		if (candidates.length === 0) {
+			const allBucketed = Object.values(bracketToNodeIds)
+				.flat()
+				.map((id) => mergedGraph.nodes.find((n: any) => n.id === id))
+				.filter(Boolean)
+				.filter((n: any) => {
+					const status = nodeStatusService.getNodeStatus(n.id);
+					return !status || status.mastery === 0;
+				});
+			candidates = allBucketed;
+		}
+
+		// Last resort: anything in graph with no mastery
+		if (candidates.length === 0) {
+			candidates = mergedGraph.nodes.filter((n: any) => {
+				const status = nodeStatusService.getNodeStatus(n.id);
+				return !status || status.mastery === 0;
+			});
+		}
+
+		if (candidates.length === 0) {
+			return;
+		}
+
+		const choice = pickRandom(candidates);
+		savedRecommendationId = choice.id;
+		recommendedNode = { node: choice };
+
+		const { error: upsertErr } = await supabase.from('users').upsert(
+			{
+				id: userId,
+				recommendation: savedRecommendationId
+			},
+			{ onConflict: 'id' }
+		);
+
+		if (upsertErr) {
+			console.error('Failed to persist recommendation to users table:', upsertErr);
+		}
+	}
+
 	async function updateNode(nodeId: string, exp: number) {
+		const prevStatus = nodeStatusService.getNodeStatus(nodeId) || { mastery: null };
+		const prevMastery = prevStatus.mastery;
 		const { data: session } = await supabase.auth.getSession();
 		let user = session.session?.user;
 		if (!user) throw new Error('Not signed in');
@@ -115,7 +249,6 @@
 				user_id: user.id
 			}
 		});
-		console.log('data from edge function: ', data);
 		if (data?.newBracket) {
 			userBracket = data.newBracket;
 		}
@@ -128,46 +261,26 @@
 			n.id === nodeId ? { ...n, exp: data.newExp, mastery: data.newMastery } : n
 		);
 		updateNodeStyles();
+		const masteryChanged = data?.newMastery != null && data.newMastery !== prevMastery;
+
+		if (masteryChanged) {
+			await newRecommendation(user.id);
+		}
 		if (error) console.error(error);
 		return !error;
 	}
 
 	async function closeChallenge(e) {
-		updateNode(challengeNode.id, e.expEarned);
+		await updateNode(challengeNode.id, e.expEarned);
 		challengeOpen = false;
-		if (ticker) clearInterval(ticker);
-		const total = performance.now() - startMs;
-		console.log('Updating mastery for: ', challengeNode.label);
-		console.log('Exp Earned: ', e.expEarned);
-		console.log('Challenge time (hh:mm:ss):', formatTime(total));
 	}
-
-	// helper
-	function formatTime(ms: number) {
-		const s = Math.floor(ms / 1000);
-		const h = Math.floor(s / 3600);
-		const m = Math.floor((s % 3600) / 60);
-		const sec = s % 60;
-		return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-	}
-
-	const userProfileStore = writable(getSuggestionService().getUserProfile());
 
 	let mergedGraph: { nodes: any[]; links: any[] } = { nodes: [], links: [] };
-	let mergedGraphLoaded = false;
-
-	function updateUserProfileDebug() {
-		const suggestionService = getSuggestionService();
-		const userProfile = suggestionService.getUserProfile();
-		userProfileStore.set(userProfile);
-	}
 
 	// Listen for node visit events (assuming you have a function or event for this)
 	//SUGGESTIONS
 	function onNodeVisited(nodeId: string) {
-		const suggestionService = getSuggestionService();
-		suggestionService.updateAfterNodeVisit(nodeId);
-		updateUserProfileDebug();
+		console.log('node visited: ', nodeId);
 	}
 
 	async function loadMergedGraph() {
@@ -176,7 +289,6 @@
 			if (res.ok) {
 				mergedGraph = await res.json();
 				mergedGraphLoaded = true;
-				updateUserProfileDebug();
 			}
 		} catch {}
 	}
@@ -317,11 +429,6 @@
 						sourceNode?.type || 'concept'
 					);
 
-					// Enhanced glow for mastered connections
-					if (linkState.glowEffect) {
-						return `drop-shadow(0 0 8px ${linkState.glowEffect.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#73DACA'}) drop-shadow(0 0 4px ${linkState.glowEffect.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#73DACA'})`;
-					}
-
 					return null; // No glow for non-mastered connections
 				})
 				.attr('stroke-width', (d: any) => {
@@ -402,7 +509,6 @@
 
 		// Clone data
 		const nodes = data.nodes.map((d: any) => ({ ...d }));
-		console.log('nodes: ', nodes);
 		const links = data.links.map((d: any) => ({ ...d }));
 
 		// Map central relations
@@ -1004,7 +1110,7 @@
 			.replace(
 				/^### (.+)$/gm,
 				(m: any, t: any) =>
-					`<h3 id="${slugify(t)}" class="text-lg font-semibold mb-2 mt-4" style="color: #E0E0E0;">${t}</h3>`
+					`<h3 id="${slugify(t)}" class="text-lg font-semibold" style="color: #E0E0E0;">${t}</h3>`
 			)
 			.replace(
 				/^## (.+)$/gm,
@@ -1102,37 +1208,16 @@
 
 	// Function to select a node by ID (for node links)
 	function selectNodeById(nodeId: any) {
-		console.log('[DEBUG] selectNodeById called with nodeId:', nodeId);
-		// Get the live node from the simulation with current x,y coordinates
-		if (typeof window !== 'undefined' && window.simulation) {
+		if (typeof window !== 'undefined') {
 			const liveNodes = window.simulation.nodes();
 			const liveNode = liveNodes.find((n) => n.id === nodeId);
-
+			console.log('live node: ', liveNode);
 			if (liveNode) {
-				// Mark the node as visited immediately
-				console.log('[DEBUG] Marking node as visited:', nodeId);
 				nodeStatusService.markAsVisited(nodeId);
-				onNodeVisited(nodeId); // Call SuggestionService logic
-
-				// Add to the stack first (same order as selectNode)
+				onNodeVisited(nodeId);
 				addToNodeStack(liveNode);
 				updateNodeStyles();
-				// Then center the graph on the selected node
 				centerGraphOnNode(liveNode);
-
-				// --- MVP Recommendation Logic ---
-				if (recommendedNode && recommendedNode.node && nodeId === recommendedNode.node.id) {
-					console.log('[DEBUG] Clicked recommended node:', nodeId);
-					if (
-						window.suggestionService &&
-						typeof window.suggestionService.generateRecommendation === 'function'
-					) {
-						console.log('[DEBUG] Generating new recommendation...');
-						window.suggestionService.generateRecommendation();
-					}
-				} else {
-					console.log('[DEBUG] Clicked non-recommended node:', nodeId);
-				}
 			}
 		}
 	}
@@ -1145,12 +1230,11 @@
 
 			// Get the current container dimensions
 			const containerWidth = 928;
-			const containerHeight = 680;
 
 			// Instead of centering in the middle, center in the open area on the left
 			// Target position: 1/4 from left, vertically centered
-			const targetX = -containerWidth / 4; // 1/4 from left edge
-			const targetY = 0; // Vertically centered
+			const targetX = -containerWidth / 4 - 20; // 1/4 from left edge
+			const targetY = -50; // Vertically centered
 
 			// Create transform to move the node to the target position
 			const transform = d3.zoomIdentity
@@ -1269,75 +1353,6 @@
 		}
 	}
 
-	// Function to toggle between sequential and parallel shooting stars
-	function toggleShootingStarMode() {
-		// This function is no longer needed as shooting stars are always sequential
-		console.log('Shooting star mode is always sequential.');
-	}
-
-	// Make function available globally for onclick handlers (client-side only)
-	if (typeof window !== 'undefined') {
-		window.selectNodeById = selectNodeById;
-	}
-
-	let recommendedNode = null;
-
-	recommendedNodeStore.subscribe((node) => {
-		recommendedNode = node;
-	});
-
-	onMount(async () => {
-		await loadVisitedFromDb();
-		await loadUserFromDb();
-		await loadMergedGraph();
-		initializeSuggestionSystem();
-
-		element.innerHTML = '';
-		element.appendChild(chart(mergedGraph));
-
-		updateNodeStyles();
-		updateUserProfileDebug();
-
-		const handleNodeLinkClick = (event: MouseEvent) => {
-			const target = (event.target as HTMLElement).closest('.node-link');
-			if (target?.dataset.nodeId) {
-				selectNodeById(parseInt(target.dataset.nodeId));
-			}
-		};
-		document.addEventListener('click', handleNodeLinkClick);
-
-		// 6. Any other broadcast listeners
-		window.addEventListener('nodeVisited', updateUserProfileDebug);
-		window.addEventListener('nodeStatusUpdated', updateUserProfileDebug);
-		const unsubRec = recommendedNodeStore.subscribe(updateUserProfileDebug);
-
-		// Cleanup all listeners when component unmounts
-		return () => {
-			document.removeEventListener('click', handleNodeLinkClick);
-			window.removeEventListener('nodeVisited', updateUserProfileDebug);
-			window.removeEventListener('nodeStatusUpdated', updateUserProfileDebug);
-			unsubRec();
-		};
-	});
-
-	function handleNextStepClick() {
-		if (recommendedNode && window.selectNodeById) {
-			// Use the local selectNodeById function instead of window.selectNodeById
-			selectNodeById(recommendedNode.node.id);
-			if (typeof window !== 'undefined') {
-				window.sessionStorage.setItem('hideNextStepBox', 'true');
-			}
-		}
-	}
-
-	let userProfileClicked = false;
-	function handleUserProfileClick() {
-		handleLogout();
-		userProfileClicked = true;
-		setTimeout(() => {
-			userProfileClicked = false;
-		}, 100);
-	}
 	const bracketColors = {
 		beginner: '#9CA3AF',
 		intermediate: '#E0AF67',
@@ -1351,10 +1366,39 @@
 		const b = parseInt(hex.slice(5, 7), 16);
 		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 	}
-	// whenever userBracket changes, this will update
-	$: borderColor = bracketColors[userBracket] || '#333333';
+	let borderColor = '#333333';
 	$: borderColorAlpha = hexToRgba(borderColor, 0.3);
+
+	onMount(async () => {
+		await loadMergedGraph();
+		await loadVisitedFromDb();
+		await loadUserFromDb();
+		const key = userBracket.toString().trim().toLowerCase();
+		borderColor = bracketColors[key] ?? '#333333';
+		initializeSuggestionSystem();
+
+		element.innerHTML = '';
+		element.appendChild(chart(mergedGraph));
+
+		updateNodeStyles();
+
+		const handleNodeLinkClick = (event: MouseEvent) => {
+			const target = (event.target as HTMLElement).closest('.node-link');
+			if (target?.dataset.nodeId) {
+				selectNodeById(parseInt(target.dataset.nodeId));
+			}
+		};
+		document.addEventListener('click', handleNodeLinkClick);
+
+		return () => {
+			document.removeEventListener('click', handleNodeLinkClick);
+		};
+	});
+
 	$: currentHistoryIndex = navigationHistory.findIndex((n) => n.id === focusedNode?.id);
+	function handleUserProfileClick() {
+		handleLogout();
+	}
 
 	function prevStack() {
 		if (currentHistoryIndex > 0) {
@@ -1368,7 +1412,7 @@
 	}
 </script>
 
-<div class="fixed top-4 left-4 z-50 flex flex-row gap-2">
+<div class="fixed top-4 left-4 z-50 flex flex-row gap-2 bg-black">
 	<div
 		class="user-profile-debug flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
 		style="
@@ -1387,7 +1431,7 @@
 	</div>
 	{#if recommendedNode && recommendedNode.node}
 		<div
-			class="next-step-glow flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
+			class="flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
 			style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
 		>
 			<span class="font-semibold text-neutral-50">Next Step:</span>
@@ -1490,6 +1534,60 @@
 			{/each}
 		</div>
 	{/if}
+	<!-- Expanding tutorial panel -->
+	<div
+		class="tutorial-container border-2 border-neutral-800"
+		class:expanded={tutorialExpanded}
+		on:click={() => {
+			if (!tutorialExpanded) tutorialExpanded = true;
+		}}
+		on:transitionend={handleTutorialTransitionEnd}
+		aria-label="Tutorial"
+	>
+		{#if !tutorialExpanded}
+			<!-- Collapsed circle -->
+			<div class="circle text-neutral-600 transition hover:text-neutral-200">
+				<span aria-hidden="true">?</span>
+			</div>
+		{:else}
+			<div class="panel">
+				{#if showContent}
+					<div class="panel-inner">
+						<div class="panel-header">
+							<div class="panel-title">{tutorialSlides[slideIndex].title}</div>
+							<button
+								class="close"
+								aria-label="Close tutorial"
+								on:click|stopPropagation={closeTutorial}
+							>
+								×
+							</button>
+						</div>
+						<div class="panel-body">
+							<div class="step-indicator">Step {slideIndex + 1} of {tutorialSlides.length}</div>
+							<div class="slide-content">{tutorialSlides[slideIndex].body}</div>
+						</div>
+						<div class="panel-footer">
+							<button on:click={prevSlide} disabled={slideIndex === 0} class="nav-btn">
+								← Previous
+							</button>
+							<div class="spacer"></div>
+							<button
+								disabled={slideIndex === 4}
+								on:click={() => {
+									if (slideIndex === 4) closeTutorial();
+									else nextSlide();
+								}}
+								class="nav-btn"
+							>
+								Next →
+							</button>
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
+	</div>
 	{#if challengeOpen}
 		<Challenge on:finish={(e) => closeChallenge(e.detail)} {challengeNode} />
 	{/if}
@@ -1542,26 +1640,130 @@
 	}
 
 	/* Glow animation for Next Step box */
-	.next-step-glow {
-		animation: nextStepGlow 1s;
-	}
-	@keyframes nextStepGlow {
-		0% {
-			box-shadow: 0 0 0px 0px #7f9cf5;
-		}
-		20% {
-			box-shadow: 0 0 16px 6px #7f9cf5;
-		}
-		60% {
-			box-shadow: 0 0 16px 6px #7f9cf5;
-		}
-		100% {
-			box-shadow: 0 0 0px 0px #7f9cf5;
-		}
+	.tutorial-container {
+		position: fixed;
+		bottom: 16px;
+		left: 16px;
+		z-index: 70;
+		overflow: hidden;
+		cursor: pointer;
+		transition:
+			width 0.2s ease,
+			height 0.2s ease,
+			border-radius 0.35s ease,
+			box-shadow 0.35s ease,
+			padding 0.35s ease;
+		width: 25px;
+		height: 25px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-family: system-ui, sans-serif;
+		color: #e0e0e0;
+		box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.5);
+		background: rgba(0, 0, 0, 0.08);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 	}
 
-	.user-profile-debug.clicked {
-		background: #b00 !important;
-		color: #fff;
+	.tutorial-container.expanded {
+		width: 340px;
+		height: 300px;
+		border-radius: 10px;
+		cursor: default;
+		padding: 12px;
+		display: flex;
+		flex-direction: column;
+		background: rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+	}
+
+	.circle {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: medium;
+		font-size: 10px;
+		user-select: none;
+	}
+
+	.panel {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+
+	.panel-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 6px;
+	}
+
+	.panel-title {
+		font-size: 14px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	.close {
+		background: transparent;
+		border: none;
+		color: #ccc;
+		font-size: 18px;
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.panel-body {
+		flex: 1;
+		overflow-y: auto;
+		padding: 4px 0;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.step-indicator {
+		font-size: 11px;
+		opacity: 0.7;
+	}
+
+	.slide-content {
+		flex: 1;
+		font-size: 13px;
+		line-height: 1.4;
+		white-space: pre-wrap;
+	}
+
+	.panel-footer {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		padding-top: 4px;
+	}
+
+	.nav-btn {
+		background: rgba(255, 255, 255, 0.08);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		padding: 6px 12px;
+		border-radius: 6px;
+		font-size: 12px;
+		cursor: pointer;
+		min-width: 80px;
+	}
+
+	.nav-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.spacer {
+		flex: 1;
 	}
 </style>

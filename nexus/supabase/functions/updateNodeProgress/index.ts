@@ -22,10 +22,11 @@ async function recalcSkillBracket(
     .select('bracket')
     .eq('id', userId)
     .single()
-  if (userErr) throw userErr
+  if (userErr) throw userErr;
 
-  const current = user.bracket as Bracket
-  const rule = bracketRules[current]
+  const current = user.bracket as Bracket;
+  console.log('current: ', current);
+  const rule = bracketRules[current];
   if (!rule.next) return 'expert';
 
   // 2) count mastered nodes

@@ -4,76 +4,295 @@
       "id": 0,
       "label": "Elo Rating System",
       "type": "paper",
-      "description": "A simple, probabilistic method to rate players based on game results. Each player has a numeric rating; when two players meet, you compute an expected score E = 1 / (1 + 10^(–Δ/400)), where Δ = (your rating – opponent rating). After the game, you update your rating by ΔR = K × (S – E), where S is the actual score (1 for win, 0.5 draw, 0 loss) and K is a constant controlling sensitivity. Novel contributions: first system with clear probabilistic underpinnings, scalable to large federations, and easy to compute incrementally. Originally published by Arpad Elo in The Rating of Chessplayers, Past and Present (1978).",
-      "difficulty": 3,
+      "description": "Overview:\nA method to assign each player a number (rating) that represents their skill level.\n\nExpected Score:\nE = 1 / (1 + 10^(–Δ/400)), where Δ = (your rating – opponent rating). This gives the probability you will win based on you and your opponents ratings.\n\nRating Update:\nAfter a match, your rating changes by ΔR = K × (S – E), where:\n• S = actual score (1 = win, 0.5 = draw, 0 = loss)\n• K = sensitivity constant (larger K → bigger rating gains)\n\nWhy “Probabilistic”?\nInstead of treating wins and losses as absolute, it uses probabilities—surprise (S–E) drives the update.\n\nKey Innovations:\n• First rating system grounded in probability theory\n• Scales to thousands of players with simple arithmetic\n• Incremental updates without re‐rating the entire pool\n\nSource:\nArpad Elo, The Rating of Chessplayers, Past and Present (1978).",
+      "difficulty": 1,
       "domain": "research-papers"
     },
     {
       "id": 1,
       "label": "Paired Comparison Model",
       "type": "concept",
-      "description": "A method that estimates each competitor’s skill by analyzing outcomes of one-on-one contests. When two players face off, the model uses their win-loss record to adjust skill estimates. Example: if Alice wins 7 of 10 chess games against Bob, Alice’s skill rating increases above Bob’s.",
-      "difficulty": 2,
-      "domain": "statistics"
+      "description": "**What it is**: A statistical method that models outcomes between pairs of items or individuals to estimate underlying values like skill, preference, or quality. It infers *relative* strengths based on observed comparisons.\n\n**How it works**:\n• If Alice beats Bob more often, the model infers Alice is stronger\n• All pairwise outcomes are considered together to balance noisy or conflicting results\n• Handles cycles like A beats B, B beats C, C beats A by finding the best overall fit\n\n**Useful properties**:\n• Allows indirect comparisons (e.g., A vs C via B)\n• Ties can be treated as partial outcomes (e.g., 0.5 wins)\n• Regularization prevents overconfidence when data is sparse\n• Recent results can be weighted more to reflect improvement or decline\n\n**In practice**: Used in ranking systems (e.g., Elo, Glicko), sports analytics, psychometrics, and preference modeling—anywhere where pairwise comparisons provide signal.\n\n**Bottom line**: Paired comparison models convert messy, incomplete pair data into structured estimates of underlying traits or preferences.",
+      "difficulty": 1,
+      "domain": "math"
     },
     {
       "id": 2,
       "label": "Standard Deviation",
       "type": "concept",
-      "description": "Measures how spread out values are around the mean. Calculated as:\n\nσ = √( (1/N) Σᵢ (xᵢ – μ)² )\n\nIn a Gaussian (normal) distribution, σ sets the scale: about 68% of values lie within ±1σ, 95% within ±2σ, and 99.7% within ±3σ. Saying “1 standard deviation away” means one σ unit from the mean, not a fixed number—it scales with the dataset. In rating systems, this concept becomes “ratings deviation” (RD): both are σ measures, but standard deviation describes data spread in general, while RD specifically quantifies uncertainty in an individual player’s rating. RD decreases as more game results accumulate (greater certainty) and increases over time when inactive (more uncertainty). Example: if ratings follow a normal curve centered at 1500 with σ=100, ~68% of players score between 1400 and 1600.",
-      "difficulty": 2,
+      "description": "**What it is**: Standard deviation (σ) measures how much values in a dataset vary around the mean. It quantifies the typical “distance” from the average, showing how concentrated or spread out the data is.\n\n**How it works**:\n• Formula: σ = √( (1/N) Σᵢ (xᵢ – μ)² )\n• The mean (μ) anchors the data; σ shows the average squared deviation from it\n• In a normal distribution:\n  → ~68% of values fall within ±1σ\n  → ~95% within ±2σ, ~99.7% within ±3σ\n\n**Example in practice**:\nIf ratings are normally distributed with μ = 1500 and σ = 100:\n→ 68% of players score between 1400 and 1600\n→ A player 2σ above the mean (1700) is among the top ~2.5%\n\n**Special case – Rating systems**:\n• σ becomes “ratings deviation” (RD), representing uncertainty in a player’s estimated skill\n• RD decreases with more matches (more certainty)\n• RD increases with inactivity (less recent data)\n\n**Why it matters**:\n• Lets us quantify confidence in predictions and comparisons\n• Powers confidence intervals and probabilistic models\n• In rating systems, it adjusts how much each new result shifts our belief\n\n**Bottom line**: Standard deviation gives structure to randomness. It defines spread, supports statistical inference, and turns noisy outcomes into measurable uncertainty—especially in models like Glicko.",
+      "difficulty": 0,
       "domain": "statistics"
     },
     {
       "id": 3,
       "label": "Logistic Function",
       "type": "concept",
-      "description": "A curve that turns any real number into a value between 0 and 1, making an ‘S’ shape. The basic formula is:\n\nL(x) = 1 / (1 + e⁻ˣ)\n\n• As x → +∞, L(x) → 1; as x → –∞, L(x) → 0; at x = 0, L(x) = 0.5.\n\nIn rating systems, we use a base-10 version:\n\nE = 1 / (1 + 10^(–Δ/400))\n\nwhere Δ is the rating difference. This converts Δ into a win probability. Example: if Δ = 100, then E ≈ 1 / (1 + 10^(–0.25)) ≈ 0.64, so the stronger player wins about 64% of the time.",
-      "difficulty": 2,
+      "description": "**What it is**: A logistic function transforms any real number into a value between 0 and 1, producing a smooth S-shaped curve. It’s commonly used to model probabilities, especially in rating systems and binary classification.\n\n**How it works**:\n• Standard form: L(x) = 1 / (1 + e⁻ˣ)\n• As x increases, the output approaches 1; as x decreases, it approaches 0\n• At x = 0, the output is 0.5 → the “midpoint” of the curve\n\n**Example in practice**:\nIn skill rating systems like Elo, we use a base-10 variant:\n→ E = 1 / (1 + 10^(–Δ/400)), where Δ = rating difference\n→ If Δ = 100 → E ≈ 0.64 → 64% chance the higher-rated player wins\n\n**Why it matters**:\n• Smoothly converts rating differences into probabilities\n• Ensures that no outcome has probability 0 or 1 (even large rating gaps leave room for upsets)\n• The curve’s shape mirrors human uncertainty: small Δ = ~50%, large Δ = ~near-certain win\n\n**Bottom line**: The logistic function bridges the gap between linear differences and bounded probabilities, making it ideal for systems that predict outcomes based on relative strength.",
+      "difficulty": 1,
       "domain": "mathematics"
     },
     {
       "id": 4,
       "label": "Glicko Rating System",
       "type": "paper",
-      "description": "Extends <node id=\"0\">Elo</node> by tracking both a player’s rating (r) and a <node id=\"29\">ratings deviation (RD)</node> to quantify uncertainty. Each rating period updates in two steps: first, RD grows with inactivity via variance addition (RD_new = √(RD_old² + c²)), then both r and RD shrink with game results by combining prior and data variances (RD_new = √(1/(1/RD² + 1/d²))). Expected score E is computed using the <node id=\"3\">logistic function</node> (E = 1/(1+10^(–Δ/400))) adjusted for both players’ RD, improving prediction accuracy. Finally, you express a player’s skill as a <node id=\"8\">confidence interval</node> (r ± 1.96·RD for 95%), making uncertainty explicit. Example: a player with r=1500, RD=200 beats a 1400±30 opponent—r jumps and RD shrinks, reflecting gained information. Originally published by Mark E. Glickman in 1995.",
-      "difficulty": 3,
+      "description": "Overview:\nThe Glicko rating system, proposed by Dr. Mark E. Glickman in 1995, improves on <node id=\"0\">Elo</node> by modeling both a player’s skill (rating) and the uncertainty in that estimate (ratings deviation or <node id=\"29\">RD</node>). This two-parameter model enables more accurate and responsive ratings, adapting intelligently to how often a player competes and how reliable their history is.\n\nNovel Contributions:\n• Ratings Deviation (RD): Adds RD as a formal second parameter, quantifying confidence in each player’s rating.\n• Time-based RD Drift: RD increases when a player is inactive, representing rising uncertainty over time.\n• Variance-weighted Updates: Game outcomes shift both rating and RD via a Bayesian update that weighs more precise ratings more heavily.\n• Confidence Intervals: Skill is reported as a <node id=\"8\">confidence interval</node> (e.g., 1500 ± 2×RD), clarifying how trustworthy a rating is.\n• Asymmetric Updates: Breaks Elo’s symmetry—your rating gain isn’t always your opponent’s loss. Change magnitude depends on both players’ RD.\n• Flexible Rating Periods: Ratings are updated at the end of configurable intervals, which can span one game, a session, or longer—enabling both per-game updates (as in online play) or periodic batch updates (as in tournaments).\n\nKey Concepts Used:\n• <node id=\"3\">Logistic Function</node>: Computes expected outcomes, adjusted for both players’ uncertainty.\n• Bayesian Updating: Integrates prior beliefs (via RD) and new evidence (game results) using variance addition and precision-weighted averaging.\n• Latent Variable Modeling: Player skill is treated as a hidden variable inferred from match data.\n• Statistical Inference: RD acts as a proxy for standard deviation, allowing for interval-based reasoning.\n• <node id=\"1\">Paired Comparison</node>: Game outcomes are modeled as noisy comparisons between player skill levels.\n\nRelevance:\nGlicko introduced principled uncertainty modeling to skill ratings, greatly improving the robustness of online and tournament ranking systems. It laid the foundation for Glicko-2, TrueSkill, and modern systems used across chess, esports, and competitive platforms. By explicitly encoding uncertainty, it makes ratings more interpretable and actionable in high-variance or low-sample environments.",
+      "difficulty": 2,
       "domain": "research-papers"
     },
     {
       "id": 5,
       "label": "Arithmetic Mean",
       "type": "concept",
-      "description": "The arithmetic mean (average) is the sum of all values divided by the number of values. It provides the central value around which deviations are measured. In standard deviation, each value’s distance from the mean (xᵢ – μ) is squared, summed, and averaged to quantify spread. Example: for scores {2, 4, 6}, the mean is 4, so deviations are {–2, 0, +2}, which feed directly into σ’s calculation.",
-      "difficulty": 1,
+      "description": "The arithmetic mean (average) is the sum of all values in a set divided by the number of values. It tells you the center or typical value in a dataset. But its role goes beyond just averaging.\n\nThe mean serves as a reference point for many core statistical tools: it anchors how we calculate spread (standard deviation), variability (variance), and uncertainty (confidence intervals). Without the mean, these concepts fall apart.\n\nExample: for values {2, 4, 6}, the mean is 4. Each number differs from the mean by –2, 0, and +2. These deviations are what get squared and averaged to compute standard deviation. The mean is simple—but it’s the foundation of modern statistics.",
+      "difficulty": 0,
       "domain": "math"
     },
     {
       "id": 6,
       "label": "Exponential Function",
       "type": "concept",
-      "description": "A mathematical function where a constant base is raised to a variable exponent. Commonly, f(x)=eˣ, which grows rapidly as x increases and decays when x is negative. In the logistic formula, e⁻ˣ creates the S-shaped curve by converting any real number x into a value between 0 and 1. Example: e⁻¹≈0.37, so L(1)=1/(1+e⁻¹)≈0.73.",
-      "difficulty": 1,
+      "description": "**What it is**: An exponential function raises a constant base (often e) to a variable exponent. It models rapid growth or decay and is foundational in probability, statistics, and machine learning.\n\n**How it works**:\n• General form: f(x) = aᵡ, most commonly f(x) = eˣ\n• Grows quickly as x increases (e² ≈ 7.4, e³ ≈ 20.1)\n• Decays toward 0 as x becomes negative (e⁻¹ ≈ 0.37, e⁻² ≈ 0.14)\n\n**Example in practice**:\nIn the logistic function, e⁻ˣ is used to compress any real input into a number between 0 and 1:\n→ L(x) = 1 / (1 + e⁻ˣ)\n→ For x = 1, L(1) ≈ 0.73 → 73% probability\n\n**Why it matters**:\n• Converts linear inputs into smooth nonlinear outputs\n• Underpins key tools like the logistic function, which transforms rating differences into win probabilities\n• Enables models to handle uncertainty and probabilities more naturally\n\n**Bottom line**: Exponential functions scale changes dramatically and are essential for building smooth, bounded probability models like those used in skill estimation.",
+      "difficulty": 0,
       "domain": "math"
     },
     {
       "id": 7,
       "label": "Statistical Model",
       "type": "concept",
-      "description": "A mathematical framework that describes how data are generated from underlying parameters. It fits parameters to observed data to explain patterns or make predictions. Example: in Glicko, the statistical model assumes each player’s skill is a parameter and observed match outcomes inform updates to those skill estimates.",
-      "difficulty": 2,
-      "domain": "statistics"
+      "description": "**What it is**: A statistical model is a structured way to explain patterns in data by assuming they come from some hidden process. It links unknown variables (like a player’s true skill) to observable outcomes (like wins and losses).\n\n**Key components**:\n• **Latent variables** – hidden quantities we want to estimate (e.g., skill)\n• **Likelihood function** – how likely the observed data is given those variables\n• **Assumptions or priors** – beliefs about how variables behave (e.g., skill doesn’t change too fast)\n\n**Why it matters**: Once a model is fit—meaning its unknowns are adjusted to best match the data—we can:\n• Estimate hidden traits (like skill)\n• Make predictions (like win chances)\n• Measure uncertainty (like rating deviation)\n\n**In practice**: In Glicko, the model treats skill as a latent variable and match results as noisy signals. As new games are played, the model updates beliefs about each player. The better the model, the more reliable the inferences.\n\n**Bottom line**: Statistical models power systems like Elo and Glicko by providing a formal way to go from noisy data to actionable insight.",
+      "difficulty": 1,
+      "domain": "math"
     },
     {
       "id": 8,
       "label": "Confidence Interval",
       "type": "concept",
-      "description": "Derived from the Gaussian (normal) distribution: for a variable X∼N(μ,σ²), about 95% of values lie within ±1.96σ of the mean. A 95% confidence interval around an estimate μ is therefore (μ – 1.96·σ, μ + 1.96·σ). This means we are 95% confident that the true value (e.g., a player’s skill) lies within this range. Example: a Glicko rating r=1850 with RD=50 (σ=50) gives CI ≈ (1850 – 1.96·50, 1850 + 1.96·50) ≈ (1752, 1948), so we’re 95% confident the player’s true skill is between 1752 and 1948. Wider σ yields wider intervals, reflecting greater uncertainty.",
+      "description": "**What it is**: A confidence interval gives a range around an estimate that likely contains the true value. It expresses uncertainty by showing how much the estimate could vary based on the data.\n\n**How it works**:\n• Based on the Gaussian distribution: ~95% of values lie within ±1.96σ of the mean\n• A 95% CI around a point estimate μ is (μ – 1.96·σ, μ + 1.96·σ)\n• Wider σ means a wider interval → more uncertainty\n\n**Example**:\nIf a player’s Glicko rating is r = 1850 with RD = 50 (σ = 50), then:\n→ CI ≈ (1850 – 1.96·50, 1850 + 1.96·50) ≈ (1752, 1948)\n→ So we’re 95% confident their true skill lies in that range\n\n**Why it matters**:\n• Communicates how sure we are about an estimate\n• Helps compare players: overlapping CIs suggest less certainty about who’s better\n• Used to guide decisions when predictions are noisy\n\n**Bottom line**: Confidence intervals make uncertainty explicit. Instead of pretending we know a player’s exact skill, we give a realistic range based on available data.",
+      "difficulty": 1,
+      "domain": "math"
+    },
+    {
+      "id": 9,
+      "label": "Segment Anything Model 2 (SAM 2)",
+      "type": "paper",
+      "description": "SAM 2 is a unified foundation model for promptable segmentation in both images and videos.  It extends the original <node id=\"10\">SAM</node> architecture by adding a lightweight streaming-memory module that retains object “memories” (spatial feature maps + semantic pointers) from previous frames, enabling real-time, interactive mask propagation and refinement across arbitrarily long videos.\n\n Novel Contributions: \n• **Streaming Memory for Video** – introduces a FIFO memory bank of past frame embeddings and mask pointers, cross-attended at each frame to fuse temporal context without per-video fine-tuning.\n• **Promptable Visual Segmentation (PVS) Task** – defines a general interactive segmentation task over video (“masklets”) using clicks, boxes or masks on any frame, unifying image and video segmentation under one interface.\n• **Data Engine & SA-V Dataset** – builds a model-in-the-loop annotation pipeline to collect 35.5 M masks across 50.9 K videos (manual + auto), 53× larger than any prior VOS dataset, with minimal semantic constraints.\n• **Transformer-Based Architecture** – adapts SAM’s mask decoder to videos via hierarchical image encoder (MAE-pretrained Hiera) + memory-attention blocks, supporting real-time inference (43.8 FPS on A100) at 1024² resolution.\n• **Zero-Shot & Interactive Performance** – outperforms prior video segmentation systems (XMem++, Cutie) with >3× fewer interactions, and exceeds SAM on 37 zero-shot image benchmarks (1 click mIoU 61.9% vs 58.1%) while being 6× faster.\n\nOriginally published as “arXiv:2408.00714v2 [cs.CV] (Oct 2024)” by Nikhila Ravi et al., Meta FAIR.",
+      "difficulty": 3,
+      "domain": "research-papers"
+    },
+    {
+      "id": 10,
+      "label": "Segment Anything (SAM)",
+      "type": "paper",
+      "description": "Segment Anything (SAM) is a promptable foundation model for image segmentation that, when given user prompts (points, boxes, masks or text), produces valid segmentation masks in real time without any downstream fine-tuning.\n\n Novel Contributions:\n• **Promptable Segmentation Task** – formulates segmentation as a “promptable” task, where any spatial or textual cue can be used to specify what to segment, enabling zero-shot transfer via prompt engineering.\n• **Efficient Model Architecture** – designs SAM as a heavy Vision Transformer image encoder + lightweight prompt encoder + mask decoder that runs in ∼50 ms per prompt and outputs multiple ambiguity-aware masks with confidence scores.\n• **Data Engine & SA-1B Dataset** – introduces a model-in-the-loop annotation pipeline (assisted-manual → semi-automatic → fully-automatic) to collect over 1.1 billion masks on 11 million licensed, privacy-protected images.\n• **Largest Segmentation Dataset** – releases SA-1B with 1.1 B high-quality masks, 11 M high-resolution images, privacy safeguards (blurred faces/license plates), and broad geographic diversity.\n• **Extensive Zero-Shot Evaluation** – demonstrates SAM’s competitive or superior zero-shot performance on 23 segmentation benchmarks, edge detection, object proposals, instance segmentation, and text-to-mask tasks.\n\nOriginally published as “arXiv:2304.02643v1 [cs.CV] (Apr 2023)” by Alexander Kirillov et al., Meta AI Research.",
+      "difficulty": 3,
+      "domain": "research-papers"
+    },
+    {
+      "id": 11,
+      "label": "Streaming Memory",
+      "type": "concept",
+      "description": "**What it is**: Streaming Memory is a lightweight memory module that maintains a sliding history of the most recent N frames’ embeddings and mask tokens, enabling temporally-aware video processing without growing compute costs.\n\n**How it works**:\n• Keeps a fixed-size FIFO buffer of image features and semantic pointers (mask tokens)\n• On each frame:\n  1. Drops the oldest entry and appends the newest features\n  2. Cross-attends into this buffer to fuse recent context\n  3. Writes back refined embeddings for future use\n\n**Example in practice**:\nIn SAM 2, Streaming Memory allows interactive mask prompts on one frame to refine results on future frames automatically—without per-frame or per-video tuning.\n\n**Why it matters**:\n• Enables real-time video segmentation with fixed compute per frame\n• Leverages short-term history to stabilize predictions and reduce flicker\n• Supports long-horizon inference without storing entire video histories\n\n**Bottom line**: Streaming Memory gives SAM 2 the power to reason over time—efficiently, adaptively, and interactively—by compressing recent context into a rolling, updatable memory.",
       "difficulty": 2,
-      "domain": "statistics"
+      "domain": "tech"
+    },
+    {
+      "id": 12,
+      "label": "Transformer",
+      "type": "concept",
+      "description": "**What it is**: A Transformer is a deep learning architecture based on self-attention, where each input element can directly attend to all others. Originally designed for language, it's now used widely across vision, audio, and multimodal tasks for its flexibility and scalability.\n\n**How it works**:\n• **Self-Attention**: computes weighted interactions between all input tokens, enabling context-aware feature refinement\n• **Multi-Head Attention**: runs several attention mechanisms in parallel to learn diverse relationships\n• **Feedforward Layers**: position-wise MLPs applied to each token for further transformation\n• **Positional Encoding**: adds order or spatial structure, since attention alone doesn’t model sequence\n\n**Example in practice**:\nGiven a sentence or a grid of image patches, a Transformer builds contextual embeddings where each token reflects information from the entire input. For example, a word embedding may incorporate syntax and semantics from the full sentence.\n\n**Why it matters**:\n• Captures long-range dependencies without recurrence\n• Scales well with data and compute—ideal for large models\n• Forms the backbone of modern models like GPT, BERT, ViT, SAM, and many multimodal systems\n\n**Bottom line**: Transformers generalize sequence modeling through attention. Their modularity and parallelism make them foundational for state-of-the-art results across AI domains.",
+      "difficulty": 2,
+      "domain": "tech"
+    },
+    {
+      "id": 13,
+      "label": "Deep Learning",
+      "type": "foundation",
+      "description": "**What it is**: Deep learning is a subfield of machine learning that uses neural networks with many layers to learn complex patterns from raw data. Each layer transforms input into increasingly abstract representations, enabling models to understand and predict from images, text, and more.\n\n**How it works**:\n• Built from layers of neurons—each neuron applies a weighted sum followed by a nonlinear activation\n• Trained via backpropagation: compute the gradient of a loss function and update weights with gradient descent\n• Early layers capture low-level features (e.g., edges); deeper layers learn higher-level concepts (e.g., faces, objects, actions)\n\n**Example in practice**:\nIn SAM 2, deep encoders process image frames and prompts to generate embeddings. These flow through Transformer layers and memory blocks to produce high-quality segmentation masks.\n\n**Why it matters**:\n• Learns rich feature hierarchies directly from data, reducing hand-engineering\n• Enables end-to-end optimization across components (e.g., prompt-to-mask pipeline)\n• Supports modular, flexible architectures like attention and memory for real-time vision tasks\n\n**Bottom line**: Deep learning extracts powerful representations by stacking simple transformations. It enables systems like SAM 2 to learn from massive data and generalize across segmentation tasks.",
+      "difficulty": 1,
+      "domain": "tech"
+    },
+    {
+      "id": 14,
+      "label": "Image Encoder",
+      "type": "concept",
+      "description": "**What it is**: An image encoder is a neural network module that transforms a raw image into a compact numerical representation. This output—usually a feature map or vector—captures the image’s key visual patterns in a form usable by downstream models.\n\n**How it works**:\n• Takes pixel data as input and outputs feature maps or vectors\n• Encodes both local (e.g. edges, textures) and global (e.g. object layout) information\n• Often built from CNNs or transformers, and pretrained on large datasets for generalization\n\n**Example in practice**:\nAn image of a dog is passed through the encoder, producing a feature map that highlights its fur texture, body outline, and context (e.g., park vs. living room). These features are then used for tasks like classification or segmentation.\n\n**Why it matters**:\n• Raw pixels are too high-dimensional and unstructured for most models\n• Encoders extract meaningful patterns in a format that other modules—like decoders or classifiers—can use\n• Central to nearly all vision pipelines, from segmentation (SAM) to captioning (VLMs)\n\n**Bottom line**: Image encoders turn images into machine-readable structure. They are the gateway from raw visual data to high-level visual understanding.",
+      "difficulty": 1,
+      "domain": "tech"
+    },
+    {
+      "id": 15,
+      "label": "Foundational Model",
+      "type": "concept",
+      "description": "**What it is**: A foundation model is a large neural network pretrained on broad, diverse data to learn general-purpose representations. It can be adapted to many downstream tasks with minimal additional supervision.\n\n**How it works**:\n• **Pretraining**: learns patterns from large datasets using self-supervised or weakly-supervised signals\n• **Transferability**: develops features that generalize across tasks, domains, and modalities\n• **Adaptation**: fine-tuned, prompted, or extended with small modules (e.g., adapters) for new tasks\n\n**Example in practice**:\nGPT is pretrained on internet text to predict the next word. Without retraining, it can write essays, answer questions, or translate languages by conditioning on the right prompt. SAM and CLIP work similarly for images.\n\n**Why it matters**:\n• Eliminates the need to train new models from scratch for every task\n• Enables zero-shot and few-shot performance (generalization from no or few examples)\n• Forms a modular base for rapid prototyping, productization, and scientific research\n\n**Bottom line**: Foundation models flip the paradigm—from training a model per task to adapting a general model per task. They power today’s most versatile AI systems.",
+      "difficulty": 1,
+      "domain": "tech"
+    },
+    {
+      "id": 16,
+      "label": "Rolling Window",
+      "type": "concept",
+      "description": "**What it is**: A rolling window is a fixed-size buffer that continuously updates to store the most recent N elements—like a moving snapshot of recent history.\n\n**How it works**:\n• Every new item pushes out the oldest one, keeping the buffer size constant\n• Acts like a queue: append new data, remove the oldest\n• Models can attend over this window to stay temporally aware without growing memory or compute\n\n**Example in practice**:\nIn SAM 2, a rolling window holds past frame embeddings and mask tokens. When a new video frame arrives, it’s added to the window, and the oldest one is dropped—enabling temporal fusion with only the recent context.\n\n**Why it matters**:\n• Provides bounded memory usage for streaming tasks\n• Retains enough recent information for context-aware predictions\n• Enables real-time, coherent reasoning across frames (e.g., video segmentation)\n\n**Bottom line**: Rolling windows give models a compact and efficient memory of the recent past, essential for processing sequences without growing resource costs.",
+      "difficulty": 1,
+      "domain": "tech"
+    },
+    {
+      "id": 17,
+      "label": "Buffer",
+      "type": "concept",
+      "description": "**What it is**: A buffer is a temporary storage area that holds data as it moves between a producer (writer) and a consumer (reader). It manages mismatches in data flow rates and ensures smooth, lossless transfer.\n\n**How it works**:\n• Data is written into the buffer by a producer and read by a consumer\n• Supports bursty input by absorbing spikes without overwhelming the consumer\n• Implementations include FIFO queues and ring buffers for constant-time access and reuse\n• Handles edge cases with overflow (drop, overwrite, or pause) and underflow (wait or fallback)\n\n**Example in practice**:\nStreaming Memory uses a rolling buffer of the last N frame embeddings to maintain a fixed-size context window across time. Video pipelines use buffers to decouple camera input from processing modules.\n\n**Why it matters**:\n• Prevents data loss when input arrives faster than it can be processed\n• Enables consistent throughput in real-time systems (vision, audio, networking)\n• Simplifies modular design by isolating producer and consumer timing\n\n**Bottom line**: Buffers are foundational for managing time-based or asynchronous data. They stabilize flow, prevent overloads, and power higher-level tools like rolling windows and streaming memory.",
+      "difficulty": 0,
+      "domain": "tech"
+    },
+    {
+      "id": 18,
+      "label": "Machine Learning Model",
+      "type": "concept",
+      "description": "**What it is**: A machine learning model is a function with adjustable parameters trained on data to make predictions or decisions. Instead of relying on fixed rules, it learns patterns from examples.\n\n**How it works**:\n• Architecture: the model’s structure (e.g. linear, tree, neural net) defines what relationships it can represent\n• Training: adjusts parameters using data to minimize a loss function that measures prediction error\n• Generalization: the goal is to perform well on unseen data, not just memorize the training set\n• Inference: once trained, the model applies learned patterns to new inputs to make predictions\n\n**Example in practice**:\nA neural network trained on labeled images learns to classify cats vs dogs by adjusting internal weights to reduce mistakes on training examples. When deployed, it uses those weights to classify new, unseen photos.\n\n**Why it matters**:\n• Automates decisions across domains like vision, speech, text, and recommendation\n• Core engine behind systems like GPT (text generation), CLIP (vision-language matching), and SAM (segmentation)\n• Enables data-driven intelligence that improves as more data is gathered\n\n**Bottom line**: Machine learning models are the core engines that let computers learn from data and generalize to new situations—powering nearly every modern AI system.",
+      "difficulty": 1,
+      "domain": "tech"
+    },
+    {
+      "id": 19,
+      "label": "Feature Vector",
+      "type": "concept",
+      "description": "**What it is**: A feature vector is a fixed-length list of numbers that encodes essential information about an object—like an image, sentence, or user state—so that machines can process and compare it efficiently.\n\n**How it works**:\n• Each number (dimension) represents a specific latent attribute\n• Similar objects map to similar vectors in high-dimensional space\n• Typically generated by encoders (e.g., CNNs for images, transformers for text)\n• Can be normalized (e.g., unit length) for cosine similarity or distance-based tasks\n\n**Example in practice**:\nA face image is passed through an image encoder and outputs a 512-dimensional vector. Another face gives a second vector. If the cosine similarity between them is high, the system concludes they’re likely the same person.\n\n**Why it matters**:\n• Converts raw, messy inputs into structured numerical form\n• Powers tasks like classification, search, clustering, and recommendation\n• Enables generalization—models don’t see raw pixels or words, they see feature representations\n\n**Bottom line**: Feature vectors are how models “understand” the world. They distill complex objects into comparable forms that downstream systems can reason over, forming the backbone of modern ML pipelines.",
+      "difficulty": 1,
+      "domain": "tech"
+    },
+    {
+      "id": 20,
+      "label": "Vector",
+      "type": "concept",
+      "description": "**What it is**: A vector is an ordered list of numbers that represent both direction and magnitude in space. Vectors are fundamental to expressing movement, relationships, and data in mathematics and machine learning.\n\n**How it works**:\n• Components: each number is a coordinate along a basis direction (e.g., x, y, z)\n• Operations: you can add vectors, scale them, compute their length (norm), or measure alignment using the dot product\n• Basis & combinations: any vector can be rebuilt as a weighted sum of basis vectors; changing the basis reorients how the same object is described\n\n**Example in practice**:\nA 3D vector [3, 4, 0] has length √(3² + 4² + 0²) = 5. Adding it to another vector [1, –2, 0] gives [4, 2, 0], combining direction and magnitude.\n\n**Why it matters**:\n• Vectors encode everything from spatial positions to abstract features in ML\n• They are used in linear transformations, geometric modeling, and similarity comparisons\n• Feature vectors and embeddings are just high-dimensional vectors representing complex information\n\n**Bottom line**: Vectors are the language of geometry and data—they let you describe, manipulate, and compare entities in any space.",
+      "difficulty": 0,
+      "domain": "math"
+    },
+    {
+      "id": 21,
+      "label": "SmolVLA",
+      "type": "paper",
+      "description": "Overview: SmolVLA is a compact, efficient vision-language-action (VLA) model that controls robots by fusing visual observations, natural language instructions, and sensorimotor state into continuous action chunks. It achieves high generalization and responsiveness on real and simulated robotics tasks while drastically reducing compute and data requirements.  \n\nNovel Contributions:  \n• **Lightweight multimodal backbone:** Builds on a pretrained vision-language model (SmolVLM-2) with layer skipping (keeping roughly the first half of layers) and aggressive visual token reduction to cut inference cost without losing critical perceptual signal.  \n• **Flow-matching action expert with interleaved attention:** A conditional Flow Matching Transformer predicts overlapping chunks of low-level actions; it interleaves cross-attention (conditioning on environment features) and causal self-attention (ensuring temporal consistency) for smooth control.  \n• **Asynchronous inference stack:** Decouples perception, action prediction, and execution via an action queue with thresholding and near-duplicate observation filtering to eliminate idle lags and maintain high control responsiveness under latency constraints.  \n• **Community-driven efficient pretraining:** Trains end-to-end on a small, publicly contributed set of robotics datasets (∼22.9K episodes, 10.6M frames) to learn generalizable visuomotor skills, matching or exceeding much larger baselines.  \n\nSystem-level Design: Uses sensorimotor state and language instructions to condition the vision-language model; projects and aggregates features into the action expert; predicts action chunks with overlap; and updates the robot via asynchronous execution.  \n\nRelevance: Shows that open, affordable generalist robotic policies can be built by combining efficient foundational visual-language representations, flow-matched action generation, and latency-aware inference engineering.",
+      "difficulty": 3,
+      "domain": "robotics"
+    },
+    {
+      "id": 22,
+      "label": "Vision-Language Model",
+      "type": "concept",
+      "description": "**What it is**: A vision-language model is a system that processes both visual inputs (like images) and language (like text prompts) to produce a joint understanding. It enables machines to interpret language in the context of what they see.\n\n**How it works**:\n• Visual inputs are encoded using an image encoder; text is encoded with a language model\n• The two streams are fused into a shared space via cross-attention or joint transformers\n• The combined representation supports multimodal reasoning and output generation\n\n**Example in practice**:\nGiven an image of a table and the prompt “which object is edible?”, the model identifies visual regions, aligns them with the language query, and points to a piece of fruit.\n\n**Why it matters**:\n• Grounds language in perception—machines can understand and act based on both\n• Enables flexible, prompt-driven tasks (e.g., captioning, answering, locating)\n• Critical for applications in robotics, assistive tools, and interactive agents like SmolVLA\n\n**Bottom line**: Vision-language models fuse sight and language, enabling intelligent systems to reason about the world through both modalities.",
+      "difficulty": 2,
+      "domain": "machine-learning"
+    },
+    {
+      "id": 23,
+      "label": "Flow Matching",
+      "type": "concept",
+      "description": "**What it is**: Flow matching is a training method where a model learns to transform corrupted data back into its clean version by predicting the correction direction. Instead of outputting a full solution in one step, it gradually denoises the input.\n\n**How it works**:\n• Start with clean data, then add controlled noise to create distorted samples\n• Train the model to predict a vector (direction + magnitude) that moves the noisy input closer to the original\n• At inference, start from a noisy input and apply the predicted corrections iteratively to generate a smooth, coherent output\n\n**Example in practice**:\nIn SmolVLA, robot action sequences are corrupted and the model learns to reverse the corruption. During execution, it generates stable actions step by step by applying these learned corrections.\n\n**Why it matters**:\n• Produces smoother, more stable sequences than one-shot predictions\n• Aligns with how real-world processes (like physical motion) evolve over time\n• Handles uncertainty and noise robustly during both training and inference\n\n**Bottom line**: Flow matching teaches models to denoise corrupted inputs over time—enabling coherent, stepwise generation of complex outputs like movement, speech, or control sequences.",
+      "difficulty": 2,
+      "domain": "machine-learning"
+    },
+    {
+      "id": 24,
+      "label": "Asynchronous Inference",
+      "type": "concept",
+      "description": "**What it is**: Asynchronous inference is a runtime strategy that decouples thinking from acting. It allows robots to keep executing actions while new ones are still being predicted. It avoids stalls by overlapping perception, planning, and control.\n\n**How it works**:\n• Keeps an action queue with predicted future steps\n• Triggers new model predictions when the queue drops below a threshold (g)\n• Skips redundant recomputation by filtering out near-identical observations\n• Allows inference to run on a different thread, device, or remote server\n\n**Example in practice**:\nIn SmolVLA, as a robot executes action chunk A₁, the system is already computing A₂ based on recent camera frames. By the time A₁ finishes, A₂ is ready to go, keeping movement fluid.\n\n**Why it matters**:\n• Prevents idle gaps due to model or network latency\n• Enables responsive real-time control, even with large models\n• Supports deployment on edge-cloud hybrid systems or asynchronous hardware\n\n**Bottom line**: Asynchronous inference ensures continuous, smooth robot behavior by overlapping action prediction and execution. This is critical for latency-tolerant real-time AI systems.",
+      "difficulty": 2,
+      "domain": "robotics"
     }
+
   ],
   "links": [
+    {
+      "source": 24,
+      "target": 21,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 23,
+      "target": 21,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 14,
+      "target": 22,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 22,
+      "target": 21,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 20,
+      "target": 19,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 19,
+      "target": 14,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 18,
+      "target": 15,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 17,
+      "target": 16,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 16,
+      "target": 11,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 15,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 14,
+      "target": 10,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 13,
+      "target": 12,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 12,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 11,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 10,
+      "target": 9,
+      "relation": "prerequisite",
+      "value": 1
+    },
     {
       "source": 8,
       "target": 4,
