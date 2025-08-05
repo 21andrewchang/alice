@@ -592,7 +592,7 @@
 	.boxy-btn,
 	.glow-btn {
 		background: rgba(0, 0, 0, 0.7);
-		border: 2px solid rgba(255, 255, 255, 0.1);
+		border: 2px solid rgba(255, 255, 255, 0.2);
 		color: #e0e0e0;
 		text-transform: uppercase;
 		letter-spacing: 0.12em;
@@ -609,9 +609,11 @@
 		overflow: hidden;
 		z-index: 1;
 	}
-	.glow-btn {
-		border: 2px solid #343434; /* crisp dark inner border */
+	.glow-btn:hover,
+	.glow-btn:focus {
+		border: 2px solid rgba(255, 255, 255, 0.7);
 	}
+
 	.glow-btn::before {
 		display: none;
 	}
@@ -639,47 +641,6 @@
 	.glow-btn[data-hover='true']::after {
 		opacity: 1;
 	}
-	.boxy-btn:hover,
-	.boxy-btn:focus {
-		border: 2px solid #fff;
-		color: #fff;
-		background: rgba(30, 30, 30, 0.9);
-	}
-	.login-modal-bg {
-		position: absolute;
-		inset: 0;
-		z-index: 50;
-		background: rgba(0, 0, 0, 0.18);
-		backdrop-filter: blur(16px);
-	}
-	.login-modal {
-		background: #111;
-		border: 1.5px solid rgba(255, 255, 255, 0.18);
-		border-radius: 1.25rem;
-		box-shadow: 0 4px 32px rgba(0, 0, 0, 0.18);
-		padding: 2.5rem 2rem 2rem 2rem;
-		min-width: 320px;
-		max-width: 95vw;
-		width: 100%;
-		color: #fff;
-		position: relative;
-		opacity: 1;
-	}
-	.login-close {
-		position: absolute;
-		top: 1.25rem;
-		right: 1.25rem;
-		background: none;
-		border: none;
-		color: #fff;
-		font-size: 1.5rem;
-		cursor: pointer;
-		opacity: 0.7;
-		transition: opacity 0.15s;
-	}
-	.login-close:hover {
-		opacity: 1;
-	}
 	.cursor-aberration-canvas {
 		position: fixed;
 		left: 0;
@@ -689,88 +650,6 @@
 		pointer-events: none;
 		z-index: 10001;
 	}
-	.glitch-text {
-		position: relative;
-		color: #fff;
-		z-index: 1;
-		cursor: pointer;
-		transition: color 0.2s;
-	}
-	.glitch-text::before,
-	.glitch-text::after {
-		content: attr(data-text);
-		position: absolute;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		z-index: -1;
-		opacity: 0.7;
-		pointer-events: none;
-		transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-	}
-	.glitch-text::before {
-		color: #00aaff;
-		transform: translate(0, 0);
-		mix-blend-mode: lighten;
-	}
-	.glitch-text::after {
-		color: #ff003c;
-		transform: translate(0, 0);
-		mix-blend-mode: lighten;
-	}
-	.glitch-text:hover::before {
-		transform: translate(-2px, -1px);
-	}
-	.glitch-text:hover::after {
-		transform: translate(2px, 1px);
-	}
-	.aberration-heading {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		align-items: center;
-		font-size: clamp(2.2rem, 5vw, 3.5rem);
-		font-weight: bold;
-		position: relative;
-		z-index: 3;
-		/* Remove drop-shadow glow */
-		/* filter: drop-shadow(0 2px 16px #fff) drop-shadow(0 0px 32px #aaf); */
-	}
-	.aberration-char {
-		position: relative;
-		display: inline-block;
-		color: #fff;
-		transition: color 0.18s;
-	}
-	.aberration-char::before,
-	.aberration-char::after {
-		content: attr(data-char);
-		position: absolute;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		pointer-events: none;
-		z-index: -1;
-		opacity: var(--aberration-alpha, 0.5);
-		transition: opacity 0.18s;
-	}
-	.aberration-char::before {
-		color: #00aaff;
-		transform: translateX(calc(-1 * var(--aberration, 0px)));
-		mix-blend-mode: lighten;
-	}
-	.aberration-char::after {
-		color: #ff003c;
-		transform: translateX(var(--aberration, 0px));
-		mix-blend-mode: lighten;
-	}
-	.aberration-char-wrapper {
-		position: relative;
-		display: inline-block;
-	}
-	/* define the fade-in animation */
 	@keyframes fadeIn {
 		from {
 			opacity: 0;
@@ -789,5 +668,16 @@
                  │   │         └─ run once, keep final state
                  │   └─ 0.5s delay before starting
                  └─ 1s duration */
+	}
+	* {
+		-webkit-user-select: none; /* Safari */
+		-moz-user-select: none; /* Firefox */
+		-ms-user-select: none; /* IE10+ */
+		user-select: none; /* standard */
+	}
+
+	/* make any accidental selection invisible */
+	::selection {
+		background: transparent;
 	}
 </style>
