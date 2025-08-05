@@ -18,19 +18,15 @@
 	let cursorSpawned = false;
 	let cursorScale = 0;
 	let cursorSpawnedOnce = false;
-	let cursorTimer: ReturnType<typeof setTimeout>;
 	let cursorGravityScale = 0;
 
 	const dotSpacing = 24; // was 24, fewer dots, more spread out
 	const dotRadius = 0.7; // was 1.0, smaller dots
 	const minBrightness = 0.1; // was 0.18, brighter dots
 	const maxBrightness = 0.5; // was 0.38, brighter dots
-	const cursorEffectRadius = 420; // very large radius for global shift
-	const cursorAttractStrength = 0.22; // strong enough to move the grid
 	const cursorDeceleration = 0.9; // was 0.82, higher = more floaty
-	const maxDotDisplacement = 32;
+	const maxDotDisplacement = 28;
 	const springK = 0.07; // was 0.12, lower = softer spring
-	const damping = 0.75;
 
 	// Glow dots background
 	let glowCanvasEl: HTMLCanvasElement;
@@ -182,7 +178,7 @@
 	// Custom cursor lag
 	let lagCursorX = 0;
 	let lagCursorY = 0;
-	const cursorLag = 0.12; // 0.1-0.2 is a good range
+	const cursorLag = 0.4; // 0.1-0.2 is a good range
 
 	function animate() {
 		if (!ctx) return;
@@ -287,7 +283,7 @@
 			drawCursorAberration();
 			await tick();
 			updateHeadingRect();
-			animateHeadingAberration();
+			//animateHeadingAberration();
 		})();
 		window.addEventListener('resize', handleResize);
 		window.addEventListener('resize', resizeCursorCanvas);
@@ -332,7 +328,7 @@
 		const minOffset = 0;
 		const maxOffset = 18;
 		const aberrationOffset = Math.max(minOffset, Math.min(maxOffset, velocity * 1.2));
-		const circleRadius = 16 * cursorScale;
+		const circleRadius = 8 * cursorScale;
 
 		function drawAberrationCircle(offsetX: number, offsetY: number, color: string, rad: number) {
 			if (!cursorCtx) return;
@@ -475,24 +471,16 @@
 </div>
 
 <div class="landing-content flex min-h-screen flex-col items-center justify-center px-4">
-	<div
-		class="aberration-heading mt-20"
-		bind:this={headingRef}
-		on:mousemove={handleHeadingMouseMove}
-		on:mouseleave={handleHeadingMouseLeave}
-	>
-		{#each headingText.split('') as char, i (i)}
-			<span class="aberration-char-wrapper" style="position:relative;display:inline-block;">
-				<span
-					class="aberration-char"
-					data-char={char === ' ' ? '\u00a0' : char}
-					bind:this={headingSpanRefs[i]}
-					style="--aberration:0px; --aberration-alpha:0;">{char === ' ' ? '\u00a0' : char}</span
-				>
+	<div class="heading-words mt-12">
+		{#each headingText.split(' ') as word, i}
+			<span class="text-neutral-200">
+				{word}
 			</span>
 		{/each}
 	</div>
-	<div class="text-neutral-400">This is the subheading its really fucking useless right now</div>
+	<div class="text-lg text-neutral-400">
+		You follow your interests, Alice will take care of the rest.
+	</div>
 	<button
 		class="glow-btn mt-12"
 		data-hover={btnHover}
@@ -535,10 +523,35 @@
 {/if}
 
 <style>
-	body,
-	html,
-	#svelte {
-		cursor: none !important;
+	.heading-words {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		font-size: clamp(2.2rem, 5vw, 3.5rem);
+		font-weight: bold;
+		gap: 0.5ch;
+		/* ensure it sits above your canvases: */
+		position: relative;
+		z-index: 3;
+	}
+
+	.heading-word {
+		display: inline-block;
+		opacity: 0;
+		filter: blur(8px);
+		/* optional right-margin if you don’t use &nbsp; */
+		/* margin-right: 0.25ch; */
+	}
+
+	@keyframes wordFadeIn {
+		from {
+			opacity: 0;
+			filter: blur(8px);
+		}
+		to {
+			opacity: 1;
+			filter: blur(0);
+		}
 	}
 	.landing-bg {
 		position: fixed;
@@ -560,8 +573,8 @@
 		position: fixed;
 		left: 0;
 		top: 0;
-		width: 32px;
-		height: 32px;
+		width: 16px;
+		height: 16px;
 		pointer-events: none;
 		z-index: 10000;
 		transform: translate(-50%, -50%) scale(0);
@@ -579,7 +592,7 @@
 	.boxy-btn,
 	.glow-btn {
 		background: rgba(0, 0, 0, 0.7);
-		border: 2px solid rgba(255, 255, 255, 0.18);
+		border: 2px solid rgba(255, 255, 255, 0.1);
 		color: #e0e0e0;
 		text-transform: uppercase;
 		letter-spacing: 0.12em;
@@ -756,5 +769,25 @@
 	.aberration-char-wrapper {
 		position: relative;
 		display: inline-block;
+	}
+	/* define the fade-in animation */
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	/* apply it to your grid + glow canvases */
+	.landing-bg canvas,
+	.landing-glow-bg canvas {
+		opacity: 0; /* start hidden */
+		animation: fadeIn 1s ease-out 0.2s 1 forwards;
+		/*           ↑   ↑         ↑  ↑
+                 │   │         └─ run once, keep final state
+                 │   └─ 0.5s delay before starting
+                 └─ 1s duration */
 	}
 </style>
