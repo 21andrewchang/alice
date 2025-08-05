@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy, tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import { scale, fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
@@ -18,20 +18,15 @@
 	let cursorSpawned = false;
 	let cursorScale = 0;
 	let cursorSpawnedOnce = false;
-	let cursorTimer: ReturnType<typeof setTimeout>;
 	let cursorGravityScale = 0;
 
-	const dotSpacing = 32; // was 24, fewer dots, more spread out
+	const dotSpacing = 24; // was 24, fewer dots, more spread out
 	const dotRadius = 0.7; // was 1.0, smaller dots
-	const minBrightness = 0.24; // was 0.18, brighter dots
-	const maxBrightness = 0.48; // was 0.38, brighter dots
-	const cursorEffectRadius = 420; // very large radius for global shift
-	const cursorAttractStrength = 0.22; // strong enough to move the grid
-	// Make the dots more bouncy and smooth
+	const minBrightness = 0.1; // was 0.18, brighter dots
+	const maxBrightness = 0.5; // was 0.38, brighter dots
 	const cursorDeceleration = 0.9; // was 0.82, higher = more floaty
-	const maxDotDisplacement = 32;
+	const maxDotDisplacement = 28;
 	const springK = 0.07; // was 0.12, lower = softer spring
-	const damping = 0.75;
 
 	// Glow dots background
 	let glowCanvasEl: HTMLCanvasElement;
@@ -183,7 +178,7 @@
 	// Custom cursor lag
 	let lagCursorX = 0;
 	let lagCursorY = 0;
-	const cursorLag = 0.12; // 0.1-0.2 is a good range
+	const cursorLag = 0.4; // 0.1-0.2 is a good range
 
 	function animate() {
 		if (!ctx) return;
@@ -288,7 +283,7 @@
 			drawCursorAberration();
 			await tick();
 			updateHeadingRect();
-			animateHeadingAberration();
+			//animateHeadingAberration();
 		})();
 		window.addEventListener('resize', handleResize);
 		window.addEventListener('resize', resizeCursorCanvas);
@@ -333,7 +328,7 @@
 		const minOffset = 0;
 		const maxOffset = 18;
 		const aberrationOffset = Math.max(minOffset, Math.min(maxOffset, velocity * 1.2));
-		const circleRadius = 16 * cursorScale;
+		const circleRadius = 8 * cursorScale;
 
 		function drawAberrationCircle(offsetX: number, offsetY: number, color: string, rad: number) {
 			if (!cursorCtx) return;
@@ -456,27 +451,38 @@
 		style="left: {lagCursorX}px; top: {lagCursorY}px; transform: translate(-50%, -50%) scale({cursorScale});"
 	></div>
 {/if}
+<div
+	class="absolute top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/10
+         p-4 px-24 backdrop-blur-sm"
+>
+	<div class="text-white">Alice</div>
+
+	<div class="flex items-center justify-center gap-x-4">
+		<a class="text-xs text-neutral-400">How It Works</a>
+		<a class="text-xs text-neutral-400">Our Mission</a>
+	</div>
+
+	<div class="flex items-center justify-end gap-x-4">
+		<a class="text-xs text-neutral-400">Log in</a>
+		<div class="rounded-md bg-neutral-200 px-2 py-1 text-[10px] font-medium text-black">
+			Sign up
+		</div>
+	</div>
+</div>
 
 <div class="landing-content flex min-h-screen flex-col items-center justify-center px-4">
-	<div
-		class="aberration-heading"
-		bind:this={headingRef}
-		on:mousemove={handleHeadingMouseMove}
-		on:mouseleave={handleHeadingMouseLeave}
-	>
-		{#each headingText.split('') as char, i (i)}
-			<span class="aberration-char-wrapper" style="position:relative;display:inline-block;">
-				<span
-					class="aberration-char"
-					data-char={char === ' ' ? '\u00a0' : char}
-					bind:this={headingSpanRefs[i]}
-					style="--aberration:0px; --aberration-alpha:0;">{char === ' ' ? '\u00a0' : char}</span
-				>
+	<div class="heading-words mt-12">
+		{#each headingText.split(' ') as word, i}
+			<span class="text-neutral-200">
+				{word}
 			</span>
 		{/each}
 	</div>
+	<div class="text-lg text-neutral-400">
+		You follow your interests, Alice will take care of the rest.
+	</div>
 	<button
-		class="glow-btn mb-3"
+		class="glow-btn mt-12"
 		data-hover={btnHover}
 		style="--glow-x: {btnGlowX}%; --glow-y: {btnGlowY}%"
 		on:mousemove={handleBtnMouseMove}
@@ -517,10 +523,35 @@
 {/if}
 
 <style>
-	body,
-	html,
-	#svelte {
-		cursor: none !important;
+	.heading-words {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		font-size: clamp(2.2rem, 5vw, 3.5rem);
+		font-weight: bold;
+		gap: 0.5ch;
+		/* ensure it sits above your canvases: */
+		position: relative;
+		z-index: 3;
+	}
+
+	.heading-word {
+		display: inline-block;
+		opacity: 0;
+		filter: blur(8px);
+		/* optional right-margin if you don’t use &nbsp; */
+		/* margin-right: 0.25ch; */
+	}
+
+	@keyframes wordFadeIn {
+		from {
+			opacity: 0;
+			filter: blur(8px);
+		}
+		to {
+			opacity: 1;
+			filter: blur(0);
+		}
 	}
 	.landing-bg {
 		position: fixed;
@@ -542,8 +573,8 @@
 		position: fixed;
 		left: 0;
 		top: 0;
-		width: 32px;
-		height: 32px;
+		width: 16px;
+		height: 16px;
 		pointer-events: none;
 		z-index: 10000;
 		transform: translate(-50%, -50%) scale(0);
@@ -561,14 +592,14 @@
 	.boxy-btn,
 	.glow-btn {
 		background: rgba(0, 0, 0, 0.7);
-		border: 2px solid rgba(255, 255, 255, 0.18);
+		border: 2px solid rgba(255, 255, 255, 0.2);
 		color: #e0e0e0;
 		text-transform: uppercase;
 		letter-spacing: 0.12em;
 		font-weight: 600;
 		font-size: 1rem;
 		padding: 0.5rem 1.5rem;
-		border-radius: 2px;
+		border-radius: 200px;
 		transition:
 			border 0.15s,
 			background 0.15s,
@@ -578,9 +609,11 @@
 		overflow: hidden;
 		z-index: 1;
 	}
-	.glow-btn {
-		border: 2px solid #343434; /* crisp dark inner border */
+	.glow-btn:hover,
+	.glow-btn:focus {
+		border: 2px solid rgba(255, 255, 255, 0.7);
 	}
+
 	.glow-btn::before {
 		display: none;
 	}
@@ -608,47 +641,6 @@
 	.glow-btn[data-hover='true']::after {
 		opacity: 1;
 	}
-	.boxy-btn:hover,
-	.boxy-btn:focus {
-		border: 2px solid #fff;
-		color: #fff;
-		background: rgba(30, 30, 30, 0.9);
-	}
-	.login-modal-bg {
-		position: absolute;
-		inset: 0;
-		z-index: 50;
-		background: rgba(0, 0, 0, 0.18);
-		backdrop-filter: blur(16px);
-	}
-	.login-modal {
-		background: #111;
-		border: 1.5px solid rgba(255, 255, 255, 0.18);
-		border-radius: 1.25rem;
-		box-shadow: 0 4px 32px rgba(0, 0, 0, 0.18);
-		padding: 2.5rem 2rem 2rem 2rem;
-		min-width: 320px;
-		max-width: 95vw;
-		width: 100%;
-		color: #fff;
-		position: relative;
-		opacity: 1;
-	}
-	.login-close {
-		position: absolute;
-		top: 1.25rem;
-		right: 1.25rem;
-		background: none;
-		border: none;
-		color: #fff;
-		font-size: 1.5rem;
-		cursor: pointer;
-		opacity: 0.7;
-		transition: opacity 0.15s;
-	}
-	.login-close:hover {
-		opacity: 1;
-	}
 	.cursor-aberration-canvas {
 		position: fixed;
 		left: 0;
@@ -658,85 +650,34 @@
 		pointer-events: none;
 		z-index: 10001;
 	}
-	.glitch-text {
-		position: relative;
-		color: #fff;
-		z-index: 1;
-		cursor: pointer;
-		transition: color 0.2s;
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
 	}
-	.glitch-text::before,
-	.glitch-text::after {
-		content: attr(data-text);
-		position: absolute;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		z-index: -1;
-		opacity: 0.7;
-		pointer-events: none;
-		transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+	/* apply it to your grid + glow canvases */
+	.landing-bg canvas,
+	.landing-glow-bg canvas {
+		opacity: 0; /* start hidden */
+		animation: fadeIn 1s ease-out 0.2s 1 forwards;
+		/*           ↑   ↑         ↑  ↑
+                 │   │         └─ run once, keep final state
+                 │   └─ 0.5s delay before starting
+                 └─ 1s duration */
 	}
-	.glitch-text::before {
-		color: #00aaff;
-		transform: translate(0, 0);
-		mix-blend-mode: lighten;
+	* {
+		-webkit-user-select: none; /* Safari */
+		-moz-user-select: none; /* Firefox */
+		-ms-user-select: none; /* IE10+ */
+		user-select: none; /* standard */
 	}
-	.glitch-text::after {
-		color: #ff003c;
-		transform: translate(0, 0);
-		mix-blend-mode: lighten;
-	}
-	.glitch-text:hover::before {
-		transform: translate(-2px, -1px);
-	}
-	.glitch-text:hover::after {
-		transform: translate(2px, 1px);
-	}
-	.aberration-heading {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		align-items: center;
-		font-size: clamp(2.2rem, 5vw, 3.5rem);
-		font-weight: bold;
-		position: relative;
-		z-index: 3;
-		/* Remove drop-shadow glow */
-		/* filter: drop-shadow(0 2px 16px #fff) drop-shadow(0 0px 32px #aaf); */
-	}
-	.aberration-char {
-		position: relative;
-		display: inline-block;
-		color: #fff;
-		transition: color 0.18s;
-	}
-	.aberration-char::before,
-	.aberration-char::after {
-		content: attr(data-char);
-		position: absolute;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		pointer-events: none;
-		z-index: -1;
-		opacity: var(--aberration-alpha, 0.5);
-		transition: opacity 0.18s;
-	}
-	.aberration-char::before {
-		color: #00aaff;
-		transform: translateX(calc(-1 * var(--aberration, 0px)));
-		mix-blend-mode: lighten;
-	}
-	.aberration-char::after {
-		color: #ff003c;
-		transform: translateX(var(--aberration, 0px));
-		mix-blend-mode: lighten;
-	}
-	.aberration-char-wrapper {
-		position: relative;
-		display: inline-block;
+
+	/* make any accidental selection invisible */
+	::selection {
+		background: transparent;
 	}
 </style>
