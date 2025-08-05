@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy, tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import { scale, fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
@@ -21,13 +21,12 @@
 	let cursorTimer: ReturnType<typeof setTimeout>;
 	let cursorGravityScale = 0;
 
-	const dotSpacing = 32; // was 24, fewer dots, more spread out
+	const dotSpacing = 24; // was 24, fewer dots, more spread out
 	const dotRadius = 0.7; // was 1.0, smaller dots
-	const minBrightness = 0.24; // was 0.18, brighter dots
-	const maxBrightness = 0.48; // was 0.38, brighter dots
+	const minBrightness = 0.1; // was 0.18, brighter dots
+	const maxBrightness = 0.5; // was 0.38, brighter dots
 	const cursorEffectRadius = 420; // very large radius for global shift
 	const cursorAttractStrength = 0.22; // strong enough to move the grid
-	// Make the dots more bouncy and smooth
 	const cursorDeceleration = 0.9; // was 0.82, higher = more floaty
 	const maxDotDisplacement = 32;
 	const springK = 0.07; // was 0.12, lower = softer spring
@@ -456,10 +455,28 @@
 		style="left: {lagCursorX}px; top: {lagCursorY}px; transform: translate(-50%, -50%) scale({cursorScale});"
 	></div>
 {/if}
+<div
+	class="absolute top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/10
+         p-4 px-24 backdrop-blur-sm"
+>
+	<div class="text-white">Alice</div>
+
+	<div class="flex items-center justify-center gap-x-4">
+		<a class="text-xs text-neutral-400">How It Works</a>
+		<a class="text-xs text-neutral-400">Our Mission</a>
+	</div>
+
+	<div class="flex items-center justify-end gap-x-4">
+		<a class="text-xs text-neutral-400">Log in</a>
+		<div class="rounded-md bg-neutral-200 px-2 py-1 text-[10px] font-medium text-black">
+			Sign up
+		</div>
+	</div>
+</div>
 
 <div class="landing-content flex min-h-screen flex-col items-center justify-center px-4">
 	<div
-		class="aberration-heading"
+		class="aberration-heading mt-20"
 		bind:this={headingRef}
 		on:mousemove={handleHeadingMouseMove}
 		on:mouseleave={handleHeadingMouseLeave}
@@ -475,8 +492,9 @@
 			</span>
 		{/each}
 	</div>
+	<div class="text-neutral-400">This is the subheading its really fucking useless right now</div>
 	<button
-		class="glow-btn mb-3"
+		class="glow-btn mt-12"
 		data-hover={btnHover}
 		style="--glow-x: {btnGlowX}%; --glow-y: {btnGlowY}%"
 		on:mousemove={handleBtnMouseMove}
@@ -568,7 +586,7 @@
 		font-weight: 600;
 		font-size: 1rem;
 		padding: 0.5rem 1.5rem;
-		border-radius: 2px;
+		border-radius: 200px;
 		transition:
 			border 0.15s,
 			background 0.15s,
