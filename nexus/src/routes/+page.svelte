@@ -482,9 +482,7 @@
 		You follow your interests, Alice will take care of the rest.
 	</div>
 	<button
-		class="glow-btn mt-12"
-		data-hover={btnHover}
-		style="--glow-x: {btnGlowX}%; --glow-y: {btnGlowY}%"
+		class="relative mt-12 inline-flex overflow-hidden rounded-full p-px"
 		on:mousemove={handleBtnMouseMove}
 		on:mouseleave={handleBtnMouseLeave}
 		on:mouseenter={handleBtnMouseMove}
@@ -492,7 +490,16 @@
 			showLoginModal = true;
 		}}
 	>
-		Start learning
+		<span
+			class="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#c2c2c2_0%,#505050_50%,#bebebe_100%)]"
+		/>
+		<span
+			class="glow-btn inline-flex h-full w-full cursor-pointer items-center justify-center rounded-[11px] bg-neutral-950 px-4 py-2 text-sm font-medium text-neutral-200 backdrop-blur-3xl"
+			data-hover={btnHover}
+			style="--glow-x: {btnGlowX}%; --glow-y: {btnGlowY}%"
+		>
+			Start Learning
+		</span>
 	</button>
 </div>
 
@@ -589,15 +596,11 @@
 			box-shadow 0.15s,
 			transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 	}
-	.boxy-btn,
 	.glow-btn {
-		background: rgba(0, 0, 0, 0.7);
-		border: 2px solid rgba(255, 255, 255, 0.2);
-		color: #e0e0e0;
 		text-transform: uppercase;
 		letter-spacing: 0.12em;
-		font-weight: 600;
-		font-size: 1rem;
+		font-weight: 500;
+		font-size: 0.9rem;
 		padding: 0.5rem 1.5rem;
 		border-radius: 200px;
 		transition:
@@ -609,11 +612,6 @@
 		overflow: hidden;
 		z-index: 1;
 	}
-	.glow-btn:hover,
-	.glow-btn:focus {
-		border: 2px solid rgba(255, 255, 255, 0.7);
-	}
-
 	.glow-btn::before {
 		display: none;
 	}
