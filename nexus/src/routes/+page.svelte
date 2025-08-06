@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { cubicOut, cubicIn } from 'svelte/easing';
+	import { cubicOut, cubicIn, cubicInOut } from 'svelte/easing';
 	import { scale, fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
@@ -74,10 +74,16 @@
 	function setupGrid() {
 		width = window.innerWidth;
 		height = window.innerHeight;
+
+		// compute midpoint and a reduced “jitter” range
+		const midB = (0.2 + maxBrightness) / 2;
+		const jitter = (maxBrightness - minBrightness) * 0.1; // only ±10%
+
 		dots = [];
 		for (let y = 0; y <= height; y += dotSpacing) {
 			for (let x = 0; x <= width; x += dotSpacing) {
-				const baseB = minBrightness + Math.random() * (maxBrightness - minBrightness);
+				// base brightness is close to midB, plus or minus up to jitter/2
+				const baseB = midB + (Math.random() - 0.5) * jitter;
 				dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0, baseB });
 			}
 		}
@@ -318,13 +324,20 @@
 	function animateCursorScale() {
 		if (cursorScale < 1) {
 			cursorScale += (1 - cursorScale) * 0.22 + 0.01;
-			cursorGravityScale += (1 - cursorGravityScale) * 0.22 + 0.01;
 			if (cursorScale > 0.995) cursorScale = 1;
-			if (cursorGravityScale > 0.995) cursorGravityScale = 1;
 			requestAnimationFrame(animateCursorScale);
 		}
 	}
 
+	function rampUpGravity() {
+		const start = performance.now();
+		function frame(now: number) {
+			const t = Math.min((now - start) / 3000, 1);
+			cursorGravityScale = cubicInOut(t);
+			if (t < 1) requestAnimationFrame(frame);
+		}
+		requestAnimationFrame(frame);
+	}
 	function handleMouseMove(e: MouseEvent) {
 		mouse.x = e.clientX;
 		mouse.y = e.clientY;
@@ -333,10 +346,11 @@
 		if (!cursorSpawnedOnce) {
 			lagCursorX = cursorX;
 			lagCursorY = cursorY;
-			showCustomCursor = true;
 			cursorSpawned = true;
 			cursorScale = 0.01;
-			cursorGravityScale = 0; // reset gravity ramp
+			cursorGravityScale = 0;
+			rampUpGravity();
+			showCustomCursor = true;
 			animateCursorScale();
 			cursorSpawnedOnce = true;
 		}
