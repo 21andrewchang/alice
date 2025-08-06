@@ -416,25 +416,37 @@
 	></div>
 {/if}
 <div
-	class="absolute top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/10
+	class="sticky top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/10
          p-4 px-24 backdrop-blur-sm"
 >
-	<div class="text-white">Synapse</div>
+	<div class="text-white">Alice</div>
 
 	<div class="flex items-center justify-center gap-x-4">
-		<a class="text-xs text-neutral-400">How It Works</a>
-		<a class="text-xs text-neutral-400">Our Mission</a>
+		<a class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
+			>How It Works</a
+		>
+		<a class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
+			>Our Mission</a
+		>
 	</div>
 
-	<div class="flex items-center justify-end gap-x-4">
-		<a class="text-xs text-neutral-400">Log in</a>
-		<div class="rounded-md bg-neutral-200 px-2 py-1 text-[10px] font-medium text-black">
+	<div class="flex items-center justify-end gap-x-2">
+		<button
+			on:click={() => (showLoginModal = true)}
+			class="rounded-md px-2 py-1 font-medium transition hover:bg-neutral-800"
+		>
+			<div class="text-[12px] text-neutral-400">Log in</div>
+		</button>
+		<button
+			on:click={() => (showLoginModal = true)}
+			class="rounded-md bg-neutral-200 px-2 py-1 text-[12px] text-black transition hover:bg-white"
+		>
 			Sign up
-		</div>
+		</button>
 	</div>
 </div>
 
-<div class="landing-content flex min-h-screen flex-col items-center justify-center px-4">
+<div class="landing-content flex min-h-screen flex-col items-center justify-center">
 	<div
 		class="heading-wrapper"
 		bind:this={headingRef}
@@ -476,6 +488,9 @@
 	<div class="fixed inset-0 z-[999] flex items-center justify-center p-4">
 		<div
 			class="absolute inset-0 bg-black/60"
+			on:click={() => {
+				showLoginModal = false;
+			}}
 			in:fade={{ duration: 180, easing: cubicOut }}
 			out:fade={{ duration: 140, easing: cubicIn }}
 		/>
@@ -489,7 +504,7 @@
 				Login to your account
 			</h1>
 			<button
-				class=" mb-4 rounded-lg bg-[#E5E5E5] px-4 py-2 font-semibold text-black"
+				class=" mb-4 rounded-full bg-neutral-200 px-4 py-2 font-semibold text-black"
 				on:click={signInWithGoogle}
 			>
 				Continue with Google
