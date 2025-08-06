@@ -68,69 +68,8 @@
 	let headingMouse = { x: -1000, y: -1000 };
 	let animId: number;
 
-	function updateHeadingRect() {
-		if (headingRef) {
-			const rect = headingRef.getBoundingClientRect();
-			headingRect = {
-				left: rect.left,
-				top: rect.top,
-				width: rect.width,
-				height: rect.height
-			};
-		}
-	}
-
-	function handleHeadingMouseMove(e: MouseEvent) {
-		headingMouse.x = e.clientX;
-		headingMouse.y = e.clientY;
-	}
-	function handleHeadingMouseLeave() {
-		headingMouse.x = -1000;
-		headingMouse.y = -1000;
-	}
-
 	// Optimize heading animation: only update visible spans and throttle frame rate
 	let lastAberrationUpdate = 0;
-	function animateHeadingAberration() {
-		const now = performance.now();
-		if (now - lastAberrationUpdate < 32) {
-			// ~30fps
-			animId = requestAnimationFrame(animateHeadingAberration);
-			return;
-		}
-		lastAberrationUpdate = now;
-		for (let i = 0; i < headingSpans.length; i++) {
-			const span = headingSpans[i];
-			if (!span || span.offsetParent === null) continue;
-			const rect = span.getBoundingClientRect();
-			const cx = rect.left + rect.width / 2;
-			// If mouse is off-screen, treat as far left
-			let mouseX = headingMouse.x;
-			if (mouseX < 0) mouseX = 0;
-			if (mouseX > window.innerWidth) mouseX = window.innerWidth;
-			const dx = Math.abs(mouseX - cx);
-			const maxDist = window.innerWidth;
-			let proximity = Math.max(0, 1 - dx / maxDist);
-			// Use linear fade for now to guarantee effect is visible
-			const t = now / 1000 + i * 0.13;
-			const vibrate = Math.sin(t * (48 + 64 * proximity) + i) * (0.5 + 1.2 * proximity);
-			const split = proximity > 0.01 ? 0.5 + proximity * 2 + vibrate * proximity * 1.2 : 0;
-			const alpha = proximity > 0.01 ? 0.5 * proximity + 0.5 * proximity : 0;
-			span.style.setProperty('--aberration', `${split}px`);
-			span.style.setProperty('--aberration-alpha', `${alpha}`);
-			// Update green layer (vertical split)
-			const greenSpan = span.parentElement?.querySelector(
-				'.aberration-green'
-			) as HTMLElement | null;
-			if (greenSpan) {
-				greenSpan.style.setProperty('--aberration', `${split}px`);
-				greenSpan.style.setProperty('--aberration-alpha', `${alpha}`);
-				// Alternate up/down for green for visual interest
-				greenSpan.style.transform = `translateY(${i % 2 === 0 ? '-' : ''}${split}px)`;
-			}
-		}
-		animId = requestAnimationFrame(animateHeadingAberration);
-	}
 
 	function setupGrid() {
 		width = window.innerWidth;
@@ -264,6 +203,30 @@
 		}
 		drawGlowDots();
 	}
+	const words = headingText.split(' ');
+	let wordRefs: HTMLElement[] = [];
+
+	let headingMouseX = -1;
+
+	function updateHeadingRect() {
+		const el = document.querySelector('.heading-words');
+		if (!el) return;
+		const r = el.getBoundingClientRect();
+		headingRect = { left: r.left, width: r.width };
+	}
+
+	function handleHeadingMouseMove(e: MouseEvent) {
+		const { left, width } = headingRef.getBoundingClientRect();
+		// normalize mouse X from –1 (far left) to +1 (far right)
+		const xNorm = (e.clientX - (left + width / 2)) / (width / 2);
+		const maxAngle = 4; // gentler ±8°
+
+		headingRef.style.setProperty('--y-tilt', `${-xNorm * maxAngle}deg`);
+	}
+
+	function resetHeadingTilt() {
+		headingRef.style.setProperty('--y-tilt', `0deg`);
+	}
 
 	onMount(() => {
 		(async () => {
@@ -282,8 +245,9 @@
 			resizeCursorCanvas();
 			drawCursorAberration();
 			await tick();
+			wordRefs = Array.from(headingRef.querySelectorAll('.heading-word'));
 			updateHeadingRect();
-			//animateHeadingAberration();
+			window.addEventListener('resize', updateHeadingRect);
 		})();
 		window.addEventListener('resize', handleResize);
 		window.addEventListener('resize', resizeCursorCanvas);
@@ -455,7 +419,7 @@
 	class="absolute top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/10
          p-4 px-24 backdrop-blur-sm"
 >
-	<div class="text-white">Alice</div>
+	<div class="text-white">Synapse</div>
 
 	<div class="flex items-center justify-center gap-x-4">
 		<a class="text-xs text-neutral-400">How It Works</a>
@@ -471,18 +435,23 @@
 </div>
 
 <div class="landing-content flex min-h-screen flex-col items-center justify-center px-4">
-	<div class="heading-words mt-12">
-		{#each headingText.split(' ') as word, i}
-			<span class="text-neutral-200">
-				{word}
-			</span>
-		{/each}
+	<div
+		class="heading-wrapper"
+		bind:this={headingRef}
+		on:mousemove={handleHeadingMouseMove}
+		on:mouseleave={resetHeadingTilt}
+	>
+		<div class="heading-words">
+			{#each headingText.split(' ') as word}
+				<span class="heading-word">{word}</span>
+			{/each}
+		</div>
 	</div>
 	<div class="text-lg text-neutral-400">
 		You follow your interests, Alice will take care of the rest.
 	</div>
 	<button
-		class="relative mt-12 inline-flex overflow-hidden rounded-full p-px"
+		class="magnet relative mt-12 inline-flex overflow-hidden rounded-full p-px"
 		on:mousemove={handleBtnMouseMove}
 		on:mouseleave={handleBtnMouseLeave}
 		on:mouseenter={handleBtnMouseMove}
@@ -530,24 +499,38 @@
 {/if}
 
 <style>
-	.heading-words {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		font-size: clamp(2.2rem, 5vw, 3.5rem);
-		font-weight: bold;
-		gap: 0.5ch;
-		/* ensure it sits above your canvases: */
+	.magnet {
+		/* start un-scaled */
+		transform: scale(1);
+		/* floaty spring easing (same as your heading) */
+		transition: transform 3s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	/* 3) Scale the whole thing on hover */
+	.magnet:hover {
+		transform: scale(1.05);
+	}
+	.heading-wrapper {
+		perspective: 800px;
+		/* ensure it's above everything else */
 		position: relative;
-		z-index: 3;
+		z-index: 10;
+	}
+
+	.heading-words {
+		display: inline-flex;
+		flex-wrap: wrap;
+		gap: 0.5ch;
+		transform-style: preserve-3d;
+		transform: rotateY(var(--y-tilt, 0deg));
+		/* floaty spring easing and longer duration */
+		transition: transform 3s cubic-bezier(0.22, 1, 0.36, 1);
 	}
 
 	.heading-word {
-		display: inline-block;
-		opacity: 0;
-		filter: blur(8px);
-		/* optional right-margin if you don’t use &nbsp; */
-		/* margin-right: 0.25ch; */
+		font-size: clamp(2.2rem, 5vw, 3.5rem);
+		font-weight: bold;
+		color: white;
 	}
 
 	@keyframes wordFadeIn {
