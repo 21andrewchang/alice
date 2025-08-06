@@ -219,7 +219,7 @@
 		const { left, width } = headingRef.getBoundingClientRect();
 		// normalize mouse X from –1 (far left) to +1 (far right)
 		const xNorm = (e.clientX - (left + width / 2)) / (width / 2);
-		const maxAngle = 6; // gentler ±8°
+		const maxAngle = 4; // gentler ±8°
 
 		headingRef.style.setProperty('--y-tilt', `${xNorm * maxAngle}deg`);
 	}
@@ -513,7 +513,7 @@
 		transform-style: preserve-3d;
 		transform: rotateY(var(--y-tilt, 0deg));
 		/* floaty spring easing and longer duration */
-		transition: transform 2s cubic-bezier(0.22, 1, 0.36, 1);
+		transition: transform 3s cubic-bezier(0.22, 1, 0.36, 1);
 	}
 
 	.heading-word {
