@@ -221,7 +221,7 @@
 		const xNorm = (e.clientX - (left + width / 2)) / (width / 2);
 		const maxAngle = 4; // gentler ±8°
 
-		headingRef.style.setProperty('--y-tilt', `${xNorm * maxAngle}deg`);
+		headingRef.style.setProperty('--y-tilt', `${-xNorm * maxAngle}deg`);
 	}
 
 	function resetHeadingTilt() {
@@ -451,7 +451,7 @@
 		You follow your interests, Alice will take care of the rest.
 	</div>
 	<button
-		class="relative mt-12 inline-flex overflow-hidden rounded-full p-px"
+		class="magnet relative mt-12 inline-flex overflow-hidden rounded-full p-px"
 		on:mousemove={handleBtnMouseMove}
 		on:mouseleave={handleBtnMouseLeave}
 		on:mouseenter={handleBtnMouseMove}
@@ -499,6 +499,17 @@
 {/if}
 
 <style>
+	.magnet {
+		/* start un-scaled */
+		transform: scale(1);
+		/* floaty spring easing (same as your heading) */
+		transition: transform 3s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	/* 3) Scale the whole thing on hover */
+	.magnet:hover {
+		transform: scale(1.05);
+	}
 	.heading-wrapper {
 		perspective: 800px;
 		/* ensure it's above everything else */
