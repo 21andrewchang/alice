@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { scale } from 'svelte/transition';
 	import Challenge from '../../components/Challenge.svelte';
+	import BracketProgress from '../../components/BracketProgress.svelte';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
@@ -1409,8 +1411,10 @@
 	});
 
 	$: currentHistoryIndex = navigationHistory.findIndex((n) => n.id === focusedNode?.id);
+	let showProgress = false;
 	function handleUserProfileClick() {
 		handleLogout();
+		showProgress = !showProgress;
 	}
 
 	function prevStack() {
@@ -1425,26 +1429,23 @@
 	}
 </script>
 
-<div class="fixed top-4 left-4 z-50 flex flex-row gap-2 bg-black">
+<div class="fixed top-4 left-4 z-50 grid w-fit grid-cols-[auto_auto] gap-2">
 	<div
-		class="user-profile-debug flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
-		style="
-    background-color: rgba(0,0,0,.95);
-    border: 2px solid {borderColorAlpha};
-    backdrop-filter: blur(10px);
-  "
+		class="flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
+		style="background-color: rgba(0,0,0,.95); border: 2px solid {borderColorAlpha}; backdrop-filter: blur(10px);"
 		on:click={handleUserProfileClick}
 	>
 		<p
-			class="flex items-center gap-x-2 text-xs font-semibold capitalize"
-			style="color: {borderColor}; "
+			class="flex items-center gap-x-2 text-xs font-semibold capitalize select-none"
+			style="color: {borderColor};"
 		>
 			{userBracket}
 		</p>
 	</div>
+
 	{#if recommendedNode && recommendedNode.node}
 		<div
-			class="flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
+			class="flex items-center gap-2 rounded-sm px-4 py-2 text-xs select-none"
 			style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
 		>
 			<span class="font-semibold text-neutral-50">Next Step:</span>
@@ -1459,6 +1460,17 @@
 			>
 				{recommendedNode.node.label}
 			</span>
+		</div>
+	{/if}
+
+	{#if showProgress}
+		<div
+			class="col-span-2 flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
+			style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
+			in:scale={{ start: 0.9, duration: 200 }}
+			out:scale={{ start: 0.9, duration: 200 }}
+		>
+			<BracketProgress {userBracket} mastery={2} total={5} />
 		</div>
 	{/if}
 </div>
