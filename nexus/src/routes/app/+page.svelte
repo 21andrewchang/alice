@@ -269,6 +269,7 @@
 		});
 		if (data?.newBracket) {
 			userBracket = data.newBracket;
+			borderColor = bracketColors[userBracket] ?? '#333333';
 		}
 		nodeStatusService.updateNodeStatus(nodeId, {
 			exp: data.newExp,
@@ -1561,9 +1562,9 @@
 				<span aria-hidden="true">?</span>
 			</div>
 		{:else}
-			<div class="panel">
+			<div class="panel flex h-full flex-col">
 				{#if showContent}
-					<div class="panel-inner">
+					<div class="panel-inner flex h-full flex-col">
 						<div class="panel-header">
 							<div class="panel-title">{tutorialSlides[slideIndex].title}</div>
 							<button
@@ -1574,11 +1575,11 @@
 								×
 							</button>
 						</div>
-						<div class="panel-body">
+						<div class="panel-body flex-1 overflow-auto">
 							<div class="step-indicator">Step {slideIndex + 1} of {tutorialSlides.length}</div>
 							<div class="slide-content">{tutorialSlides[slideIndex].body}</div>
 						</div>
-						<div class="panel-footer">
+						<div class="panel-footer sticky bottom-0 flex justify-between bg-black/50">
 							<button on:click={prevSlide} disabled={slideIndex === 0} class="nav-btn">
 								← Previous
 							</button>
