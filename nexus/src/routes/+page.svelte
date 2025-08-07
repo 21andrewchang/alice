@@ -433,14 +433,23 @@
 	class="sticky top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/10
          p-4 px-24 backdrop-blur-sm"
 >
-	<div class="text-white">Alice</div>
+	<a href="/" class="text-white">Alice</a>
 
 	<div class="flex items-center justify-center gap-x-4">
-		<a class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
+		<a
+			href="#how-it-works"
+			class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
 			>How It Works</a
 		>
-		<a class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
+		<a
+			href="#mission"
+			class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
 			>Our Mission</a
+		>
+		<a
+			href="#contact"
+			class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
+			>Contact Us</a
 		>
 	</div>
 
@@ -460,42 +469,66 @@
 	</div>
 </div>
 
-<div class="landing-content flex min-h-screen flex-col items-center justify-center">
-	<div
-		class="heading-wrapper"
-		bind:this={headingRef}
-		on:mousemove={handleHeadingMouseMove}
-		on:mouseleave={resetHeadingTilt}
-	>
-		<div class="heading-words">
-			{#each headingText.split(' ') as word}
-				<span class="heading-word">{word}</span>
-			{/each}
-		</div>
-	</div>
-	<div class="text-lg text-neutral-400">
-		You follow your interests, Alice will take care of the rest.
-	</div>
-	<button
-		class="magnet relative mt-12 inline-flex overflow-hidden rounded-full p-px"
-		on:mousemove={handleBtnMouseMove}
-		on:mouseleave={handleBtnMouseLeave}
-		on:mouseenter={handleBtnMouseMove}
-		on:click={() => {
-			showLoginModal = true;
-		}}
-	>
-		<span
-			class="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#c2c2c2_0%,#505050_50%,#bebebe_100%)]"
-		/>
-		<span
-			class="glow-btn inline-flex h-full w-full cursor-pointer items-center justify-center rounded-[11px] bg-neutral-950 px-4 py-2 text-sm font-medium text-neutral-200 backdrop-blur-3xl"
-			data-hover={btnHover}
-			style="--glow-x: {btnGlowX}%; --glow-y: {btnGlowY}%"
+<div class="landing-content flex min-h-screen flex-col items-center pt-52">
+	<section class="mb-40 flex flex-col items-center">
+		<div
+			class="heading-wrapper"
+			bind:this={headingRef}
+			on:mousemove={handleHeadingMouseMove}
+			on:mouseleave={resetHeadingTilt}
 		>
-			Start Learning
-		</span>
-	</button>
+			<div class="heading-words">
+				{#each headingText.split(' ') as word}
+					<span class="heading-word">{word}</span>
+				{/each}
+			</div>
+		</div>
+		<div class="text-lg text-neutral-400">
+			You follow your interests, Alice will take care of the rest.
+		</div>
+		<button
+			class="magnet relative mt-12 inline-flex overflow-hidden rounded-full p-px"
+			on:mousemove={handleBtnMouseMove}
+			on:mouseleave={handleBtnMouseLeave}
+			on:mouseenter={handleBtnMouseMove}
+			on:click={() => {
+				showLoginModal = true;
+			}}
+		>
+			<span
+				class="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#c2c2c2_0%,#505050_50%,#bebebe_100%)]"
+			/>
+			<span
+				class="glow-btn inline-flex h-full w-full cursor-pointer items-center justify-center rounded-[11px] bg-neutral-950 px-4 py-2 text-sm font-medium text-neutral-200 backdrop-blur-3xl"
+				data-hover={btnHover}
+				style="--glow-x: {btnGlowX}%; --glow-y: {btnGlowY}%"
+			>
+				Start Learning
+			</span>
+		</button>
+	</section>
+	<section id="how-it-works" class="container mx-auto grid gap-12 px-6 py-20">
+		<div
+			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+		>
+			🚧 Demo Coming Soon 🚧
+		</div>
+	</section>
+	<section id="mission" class="container mx-auto grid gap-12 px-6 py-20">
+		<div
+			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+		>
+			🚧 Mission Coming Soon 🚧
+		</div>
+	</section>
+	<section id="contact" class="container mx-auto grid gap-12 px-6 py-20">
+		<div
+			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+		>
+			🚧 Contact Us 🚧
+		</div>
+	</section>
+	<section id="footer" class="container mx-auto grid gap-12 px-6 py-20"></section>
 </div>
 
 {#if showLoginModal}
@@ -689,5 +722,8 @@
 	/* make any accidental selection invisible */
 	::selection {
 		background: transparent;
+	}
+	html {
+		scroll-behavior: smooth;
 	}
 </style>
