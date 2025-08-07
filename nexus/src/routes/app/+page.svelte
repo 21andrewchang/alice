@@ -65,6 +65,7 @@
 	}
 	function closeTutorial() {
 		tutorialExpanded = false;
+		slideIndex = 0;
 	}
 	let mergedGraphLoaded = false;
 	let challengeOpen = false;
@@ -1584,16 +1585,19 @@
 								← Previous
 							</button>
 							<div class="spacer"></div>
-							<button
-								disabled={slideIndex === 4}
-								on:click={() => {
-									if (slideIndex === 4) closeTutorial();
-									else nextSlide();
-								}}
-								class="nav-btn"
-							>
-								Next →
-							</button>
+							{#if slideIndex === tutorialSlides.length - 1}
+								<!-- Last slide: show Done -->
+								<button
+									on:click|stopPropagation={closeTutorial}
+									class="nav-btn"
+									aria-label="Finish tutorial"
+								>
+									Done ✓
+								</button>
+							{:else}
+								<!-- Otherwise: show Next -->
+								<button on:click={nextSlide} class="nav-btn"> Next → </button>
+							{/if}
 						</div>
 					</div>
 				{/if}
