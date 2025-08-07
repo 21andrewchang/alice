@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { cubicOut, cubicIn } from 'svelte/easing';
+	import { cubicOut, cubicIn, cubicInOut } from 'svelte/easing';
 	import { scale, fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
@@ -74,10 +74,16 @@
 	function setupGrid() {
 		width = window.innerWidth;
 		height = window.innerHeight;
+
+		// compute midpoint and a reduced “jitter” range
+		const midB = (0.2 + maxBrightness) / 2;
+		const jitter = (maxBrightness - minBrightness) * 0.1; // only ±10%
+
 		dots = [];
 		for (let y = 0; y <= height; y += dotSpacing) {
 			for (let x = 0; x <= width; x += dotSpacing) {
-				const baseB = minBrightness + Math.random() * (maxBrightness - minBrightness);
+				// base brightness is close to midB, plus or minus up to jitter/2
+				const baseB = midB + (Math.random() - 0.5) * jitter;
 				dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0, baseB });
 			}
 		}
@@ -318,13 +324,20 @@
 	function animateCursorScale() {
 		if (cursorScale < 1) {
 			cursorScale += (1 - cursorScale) * 0.22 + 0.01;
-			cursorGravityScale += (1 - cursorGravityScale) * 0.22 + 0.01;
 			if (cursorScale > 0.995) cursorScale = 1;
-			if (cursorGravityScale > 0.995) cursorGravityScale = 1;
 			requestAnimationFrame(animateCursorScale);
 		}
 	}
 
+	function rampUpGravity() {
+		const start = performance.now();
+		function frame(now: number) {
+			const t = Math.min((now - start) / 3000, 1);
+			cursorGravityScale = cubicInOut(t);
+			if (t < 1) requestAnimationFrame(frame);
+		}
+		requestAnimationFrame(frame);
+	}
 	function handleMouseMove(e: MouseEvent) {
 		mouse.x = e.clientX;
 		mouse.y = e.clientY;
@@ -333,10 +346,11 @@
 		if (!cursorSpawnedOnce) {
 			lagCursorX = cursorX;
 			lagCursorY = cursorY;
-			showCustomCursor = true;
 			cursorSpawned = true;
 			cursorScale = 0.01;
-			cursorGravityScale = 0; // reset gravity ramp
+			cursorGravityScale = 0;
+			rampUpGravity();
+			showCustomCursor = true;
 			animateCursorScale();
 			cursorSpawnedOnce = true;
 		}
@@ -416,66 +430,114 @@
 	></div>
 {/if}
 <div
-	class="absolute top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/10
+	class="sticky top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/10
          p-4 px-24 backdrop-blur-sm"
 >
-	<div class="text-white">Synapse</div>
+	<a href="/" class="text-white">Alice</a>
 
 	<div class="flex items-center justify-center gap-x-4">
-		<a class="text-xs text-neutral-400">How It Works</a>
-		<a class="text-xs text-neutral-400">Our Mission</a>
+		<a
+			href="#how-it-works"
+			class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
+			>How It Works</a
+		>
+		<a
+			href="#mission"
+			class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
+			>Our Mission</a
+		>
+		<a
+			href="#contact"
+			class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
+			>Contact Us</a
+		>
 	</div>
 
-	<div class="flex items-center justify-end gap-x-4">
-		<a class="text-xs text-neutral-400">Log in</a>
-		<div class="rounded-md bg-neutral-200 px-2 py-1 text-[10px] font-medium text-black">
+	<div class="flex items-center justify-end gap-x-2">
+		<button
+			on:click={() => (showLoginModal = true)}
+			class="rounded-md px-2 py-1 font-medium transition hover:bg-neutral-800"
+		>
+			<div class="text-[12px] text-neutral-400">Log in</div>
+		</button>
+		<button
+			on:click={() => (showLoginModal = true)}
+			class="rounded-md bg-neutral-200 px-2 py-1 text-[12px] text-black transition hover:bg-white"
+		>
 			Sign up
-		</div>
+		</button>
 	</div>
 </div>
 
-<div class="landing-content flex min-h-screen flex-col items-center justify-center px-4">
-	<div
-		class="heading-wrapper"
-		bind:this={headingRef}
-		on:mousemove={handleHeadingMouseMove}
-		on:mouseleave={resetHeadingTilt}
-	>
-		<div class="heading-words">
-			{#each headingText.split(' ') as word}
-				<span class="heading-word">{word}</span>
-			{/each}
-		</div>
-	</div>
-	<div class="text-lg text-neutral-400">
-		You follow your interests, Alice will take care of the rest.
-	</div>
-	<button
-		class="magnet relative mt-12 inline-flex overflow-hidden rounded-full p-px"
-		on:mousemove={handleBtnMouseMove}
-		on:mouseleave={handleBtnMouseLeave}
-		on:mouseenter={handleBtnMouseMove}
-		on:click={() => {
-			showLoginModal = true;
-		}}
-	>
-		<span
-			class="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#c2c2c2_0%,#505050_50%,#bebebe_100%)]"
-		/>
-		<span
-			class="glow-btn inline-flex h-full w-full cursor-pointer items-center justify-center rounded-[11px] bg-neutral-950 px-4 py-2 text-sm font-medium text-neutral-200 backdrop-blur-3xl"
-			data-hover={btnHover}
-			style="--glow-x: {btnGlowX}%; --glow-y: {btnGlowY}%"
+<div class="landing-content flex min-h-screen flex-col items-center pt-52">
+	<section class="mb-40 flex flex-col items-center">
+		<div
+			class="heading-wrapper"
+			bind:this={headingRef}
+			on:mousemove={handleHeadingMouseMove}
+			on:mouseleave={resetHeadingTilt}
 		>
-			Start Learning
-		</span>
-	</button>
+			<div class="heading-words">
+				{#each headingText.split(' ') as word}
+					<span class="heading-word">{word}</span>
+				{/each}
+			</div>
+		</div>
+		<div class="text-lg text-neutral-400">
+			You follow your interests, Alice will take care of the rest.
+		</div>
+		<button
+			class="magnet relative mt-12 inline-flex overflow-hidden rounded-full p-px"
+			on:mousemove={handleBtnMouseMove}
+			on:mouseleave={handleBtnMouseLeave}
+			on:mouseenter={handleBtnMouseMove}
+			on:click={() => {
+				showLoginModal = true;
+			}}
+		>
+			<span
+				class="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#c2c2c2_0%,#505050_50%,#bebebe_100%)]"
+			/>
+			<span
+				class="glow-btn inline-flex h-full w-full cursor-pointer items-center justify-center rounded-[11px] bg-neutral-950 px-4 py-2 text-sm font-medium text-neutral-200 backdrop-blur-3xl"
+				data-hover={btnHover}
+				style="--glow-x: {btnGlowX}%; --glow-y: {btnGlowY}%"
+			>
+				Start Learning
+			</span>
+		</button>
+	</section>
+	<section id="how-it-works" class="container mx-auto grid gap-12 px-6 py-20">
+		<div
+			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+		>
+			🚧 Demo Coming Soon 🚧
+		</div>
+	</section>
+	<section id="mission" class="container mx-auto grid gap-12 px-6 py-20">
+		<div
+			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+		>
+			🚧 Mission Coming Soon 🚧
+		</div>
+	</section>
+	<section id="contact" class="container mx-auto grid gap-12 px-6 py-20">
+		<div
+			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+		>
+			🚧 Contact Us 🚧
+		</div>
+	</section>
+	<section id="footer" class="container mx-auto grid gap-12 px-6 py-20"></section>
 </div>
 
 {#if showLoginModal}
 	<div class="fixed inset-0 z-[999] flex items-center justify-center p-4">
 		<div
 			class="absolute inset-0 bg-black/60"
+			on:click={() => {
+				showLoginModal = false;
+			}}
 			in:fade={{ duration: 180, easing: cubicOut }}
 			out:fade={{ duration: 140, easing: cubicIn }}
 		/>
@@ -489,7 +551,7 @@
 				Login to your account
 			</h1>
 			<button
-				class=" mb-4 rounded-lg bg-[#E5E5E5] px-4 py-2 font-semibold text-black"
+				class=" mb-4 rounded-full bg-neutral-200 px-4 py-2 font-semibold text-black"
 				on:click={signInWithGoogle}
 			>
 				Continue with Google
@@ -660,5 +722,8 @@
 	/* make any accidental selection invisible */
 	::selection {
 		background: transparent;
+	}
+	html {
+		scroll-behavior: smooth;
 	}
 </style>
