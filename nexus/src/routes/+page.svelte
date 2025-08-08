@@ -5,6 +5,16 @@
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
 
+	let videoEl: HTMLVideoElement;
+	let showOverlay = true;
+
+	function handlePlay() {
+		if (!videoEl) return;
+		videoEl.controls = true; // reveal native controls after play
+		videoEl.play();
+		showOverlay = false; // hide the thumbnail overlay
+	}
+
 	let canvasEl: HTMLCanvasElement;
 	let ctx: CanvasRenderingContext2D | null = null;
 	let animationId: number;
@@ -67,9 +77,6 @@
 	let headingRect = { left: 0, top: 0, width: 0, height: 0 };
 	let headingMouse = { x: -1000, y: -1000 };
 	let animId: number;
-
-	// Optimize heading animation: only update visible spans and throttle frame rate
-	let lastAberrationUpdate = 0;
 
 	function setupGrid() {
 		width = window.innerWidth;
@@ -430,7 +437,7 @@
 	></div>
 {/if}
 <div
-	class="sticky top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/10
+	class="sticky top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/70
          p-4 px-24 backdrop-blur-sm"
 >
 	<a href="/" class="text-white">Alice</a>
@@ -470,7 +477,7 @@
 </div>
 
 <div class="landing-content flex min-h-screen flex-col items-center pt-52">
-	<section class="mb-40 flex flex-col items-center">
+	<section class="mb-20 flex flex-col items-center">
 		<div
 			class="heading-wrapper"
 			bind:this={headingRef}
@@ -507,11 +514,55 @@
 			</span>
 		</button>
 	</section>
-	<section id="how-it-works" class="container mx-auto grid gap-12 px-6 py-20">
+	<section id="how-it-works" class="container mx-auto grid gap-2 px-6 py-20">
 		<div
-			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+			class="relative mb-12 aspect-video w-full max-w-5xl overflow-hidden rounded-lg border border-white/10 bg-white/5"
 		>
-			🚧 Demo Coming Soon 🚧
+			<video
+				bind:this={videoEl}
+				class="absolute inset-0 h-full w-full object-cover"
+				src="/demo.mp4"
+				preload="none"
+				playsinline
+			></video>
+
+			{#if showOverlay}
+				<button
+					class="absolute inset-0 grid place-items-center"
+					on:click={handlePlay}
+					aria-label="Play demo video"
+					in:fade={{ duration: 120 }}
+					out:fade={{ duration: 120 }}
+				>
+					<video
+						src="/demo-thumb.mp4"
+						autoplay
+						loop
+						muted
+						playsinline
+						class="absolute inset-0 z-10 h-full w-full object-cover"
+					></video>
+					<div
+						class="relative z-20 rounded-full border border-white/20 bg-black/50 p-[18px] backdrop-blur"
+					>
+						<svg viewBox="0 0 24 24" class="h-10 w-10 text-white">
+							<path fill="currentColor" d="M8 5v14l11-7z" />
+						</svg>
+					</div>
+				</button>
+			{/if}
+		</div>
+		<div
+			class="mb-12 flex h-128 w-full max-w-5xl flex-col rounded-lg bg-white/8 p-4 text-neutral-200"
+		>
+			<div class="text-3xl text-neutral-200">Skill Brackets</div>
+			<div class="ml-8 text-2xl text-[#9CA3AF]">Beginner: 5 Mastery 1 Nodes to rank up</div>
+			<div class="ml-8 text-2xl text-[#E0AF67]">Intermediate: 5 Mastery 2 Nodes to rank up</div>
+			<div class="ml-8 text-2xl text-[#BA9AF7]">Advanced: 5 Mastery 3 Nodes to rank up</div>
+			<div class="ml-8 text-2xl text-[#F7768E]">Expert: Current highest rank</div>
+			<div class="ml-8 text-2xl text-neutral-200">
+				Earn 100 Exp by completing questions to level up in Mastery.
+			</div>
 		</div>
 	</section>
 	<section id="mission" class="container mx-auto grid gap-12 px-6 py-20">
@@ -525,7 +576,7 @@
 		<div
 			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
 		>
-			🚧 Contact Us 🚧
+			21andrewch@gmail.com
 		</div>
 	</section>
 	<section id="footer" class="container mx-auto grid gap-12 px-6 py-20"></section>
@@ -725,5 +776,32 @@
 	}
 	html {
 		scroll-behavior: smooth;
+	}
+	.overlay-btn {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		border: 0;
+		background: transparent;
+		padding: 0;
+		cursor: pointer;
+	}
+	.overlay-btn:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: 4px;
+	}
+	.play-puck {
+		display: grid;
+		place-items: center;
+		border-radius: 9999px;
+		padding: 12px;
+		background: rgba(0, 0, 0, 0.5);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		backdrop-filter: blur(6px);
+		transition: transform 120ms ease-out;
+	}
+	.overlay-btn:hover .play-puck {
+		transform: scale(1.05);
 	}
 </style>
