@@ -4,7 +4,7 @@
 	import BracketProgress from '../../components/BracketProgress.svelte';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { fly } from 'svelte/transition';
+	import { fade, fly } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import * as d3 from 'd3';
 	import PaginatedContent from '../../components/PaginatedContent.svelte';
@@ -43,7 +43,7 @@
 		},
 		{
 			title: 'Nodes',
-			body: `Clicking a Node in the graph or through a link opens the Node's detailed view on the right. The graph centers the Node and focuses it's connections on the left.`
+			body: `Clicking a Node in the graph or through a link opens the Node's detailed view on the right. The graph centers the Node and focuses it's connections on the left. If you don’t see something you’re interested in, use the form on the right to request it.`
 		},
 		{
 			title: 'Your First Node',
@@ -1508,6 +1508,34 @@
 			navigateToStackIndex(currentHistoryIndex + 1);
 		}
 	}
+	let showRequestModal = false;
+	let requestedTopic = '';
+
+	async function submitTopicRequest() {
+		try {
+			const { data: sessionData } = await supabase.auth.getSession();
+			const user = sessionData.session?.user;
+
+			if (!user) {
+				alert('Please sign in to request a topic.');
+				return;
+			}
+
+			const { error } = await supabase.from('requests').insert({
+				created_by: user.id,
+				request: requestedTopic
+			});
+
+			if (error) throw error;
+
+			requestedTopic = '';
+			showRequestModal = false;
+			alert('Thanks! Your topic request was submitted.');
+		} catch (e) {
+			console.error(e);
+			alert('Could not submit right now. Try again later.');
+		}
+	}
 </script>
 
 <div class="fixed top-4 left-4 z-50 grid w-fit grid-cols-[auto_auto] gap-2">
@@ -1652,63 +1680,120 @@
 			{/each}
 		</div>
 	{/if}
-	<!-- Expanding tutorial panel -->
-	<div
-		class="tutorial-container border-2 border-neutral-800"
-		class:expanded={tutorialExpanded}
-		on:click={() => {
-			if (!tutorialExpanded) tutorialExpanded = true;
-		}}
-		on:transitionend={handleTutorialTransitionEnd}
-		aria-label="Tutorial"
-	>
-		{#if !tutorialExpanded}
-			<!-- Collapsed circle -->
-			<div class="circle text-neutral-600 transition hover:text-neutral-200">
-				<span aria-hidden="true">?</span>
-			</div>
-		{:else}
-			<div class="panel flex h-full flex-col">
-				{#if showContent}
-					<div class="panel-inner flex h-full flex-col">
-						<div class="panel-header">
-							<div class="panel-title">{tutorialSlides[slideIndex].title}</div>
-							<button
-								class="close"
-								aria-label="Close tutorial"
-								on:click|stopPropagation={closeTutorial}
-							>
-								×
-							</button>
-						</div>
-						<div class="panel-body flex-1 overflow-auto">
-							<div class="step-indicator">Step {slideIndex + 1} of {tutorialSlides.length}</div>
-							<div class="slide-content">{tutorialSlides[slideIndex].body}</div>
-						</div>
-						<div class="panel-footer sticky bottom-0 flex justify-between bg-black/50">
-							<button on:click={prevSlide} disabled={slideIndex === 0} class="nav-btn">
-								← Previous
-							</button>
-							<div class="spacer"></div>
-							{#if slideIndex === tutorialSlides.length - 1}
-								<!-- Last slide: show Done -->
+	<div class="fab-row">
+		<div
+			class="tutorial-container border-2 border-neutral-800"
+			class:expanded={tutorialExpanded}
+			on:click={() => {
+				if (!tutorialExpanded) tutorialExpanded = true;
+			}}
+			on:transitionend={handleTutorialTransitionEnd}
+			aria-label="Tutorial"
+		>
+			{#if !tutorialExpanded}
+				<!-- Collapsed circle -->
+				<div class="circle px-1 py-1 text-neutral-600 transition hover:text-neutral-200">
+					<span aria-hidden="true">?</span>
+				</div>
+			{:else}
+				<div class="panel flex h-full flex-col">
+					{#if showContent}
+						<div class="panel-inner flex h-full flex-col">
+							<div class="panel-header">
+								<div class="panel-title">{tutorialSlides[slideIndex].title}</div>
 								<button
+									class="close"
+									aria-label="Close tutorial"
 									on:click|stopPropagation={closeTutorial}
-									class="nav-btn"
-									aria-label="Finish tutorial"
 								>
-									Done ✓
+									×
 								</button>
-							{:else}
-								<!-- Otherwise: show Next -->
-								<button on:click={nextSlide} class="nav-btn"> Next → </button>
-							{/if}
+							</div>
+							<div class="panel-body flex-1 overflow-auto">
+								<div class="step-indicator">Step {slideIndex + 1} of {tutorialSlides.length}</div>
+								<div class="slide-content">{tutorialSlides[slideIndex].body}</div>
+							</div>
+							<div class="panel-footer sticky bottom-0 flex justify-between bg-black/50">
+								<button on:click={prevSlide} disabled={slideIndex === 0} class="nav-btn">
+									← Previous
+								</button>
+								<div class="spacer"></div>
+								{#if slideIndex === tutorialSlides.length - 1}
+									<button
+										on:click|stopPropagation={closeTutorial}
+										class="nav-btn"
+										aria-label="Finish tutorial"
+									>
+										Done ✓
+									</button>
+								{:else}
+									<button on:click={nextSlide} class="nav-btn">Next →</button>
+								{/if}
+							</div>
 						</div>
-					</div>
-				{/if}
-			</div>
-		{/if}
+					{/if}
+				</div>
+			{/if}
+		</div>
+
+		<button
+			type="button"
+			class="inline-flex items-center rounded-full border-2 border-neutral-800/80 bg-black/20 px-2 py-1
+            font-medium text-neutral-500 backdrop-blur-md transition
+            hover:text-white focus:outline-none"
+			aria-label="Request a topic"
+			title="Request a topic"
+			on:click={() => (showRequestModal = true)}
+		>
+			<span class="text-[10px]">Request Topic</span>
+		</button>
 	</div>
+
+	{#if showRequestModal}
+		<div class="fixed inset-0 z-[80] flex items-center justify-center p-4">
+			<!-- overlay -->
+			<div
+				class="absolute inset-0 bg-black/60"
+				on:click={() => (showRequestModal = false)}
+				in:fade={{ duration: 180, easing: cubicOut }}
+				out:fade={{ duration: 140, easing: cubicIn }}
+			/>
+
+			<div
+				class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border-[2px] border-white/10 bg-black/70 p-6 backdrop-blur-2xl"
+				style="-webkit-backdrop-filter: blur(24px);"
+				transition:scale={{ start: 0.9, duration: 200, easing: cubicOut }}
+			>
+				<h3 class="mb-2 text-xl font-semibold text-neutral-50">Request a Topic</h3>
+				<textarea
+					class="mt-1 w-full resize-y rounded-md border border-neutral-800 bg-neutral-900/70 p-2
+               text-sm text-neutral-100 placeholder-neutral-600 outline-none
+               focus:border-neutral-600 focus:ring-0"
+					rows="4"
+					bind:value={requestedTopic}
+					placeholder="What would you like to learn next?"
+				/>
+				<div class="mt-3 flex justify-end gap-2">
+					<button
+						type="button"
+						class="rounded-md border border-neutral-800 px-3 py-1.5 text-sm text-neutral-200 hover:bg-white/5"
+						on:click={() => (showRequestModal = false)}
+					>
+						Cancel
+					</button>
+					<button
+						type="button"
+						class="rounded-md border border-neutral-700 bg-white/10 px-3 py-1.5 text-sm
+                 text-white hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
+						on:click={submitTopicRequest}
+						disabled={!requestedTopic.trim()}
+					>
+						Submit
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 	{#if challengeOpen}
 		<Challenge on:finish={(e) => closeChallenge(e.detail)} {challengeNode} />
 	{/if}
@@ -1760,12 +1845,65 @@
 		background: #0a0a0a;
 	}
 
-	/* Glow animation for Next Step box */
-	.tutorial-container {
+	/* Row container for floating buttons (bottom-left) */
+	.fab-row {
 		position: fixed;
-		bottom: 16px;
 		left: 16px;
+		bottom: 16px;
 		z-index: 70;
+		display: flex;
+		align-items: flex-end;
+		gap: 12px;
+	}
+
+	.request-topic-btn {
+		width: 60px;
+		height: 32px;
+		padding: 0 10px;
+		border-radius: 16px;
+		gap: 6px;
+		font-size: 12px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.request-topic-btn .icon {
+		width: 14px;
+		height: 14px;
+	}
+	/* Request Topic small circle — matches tutorial’s visual language */
+	.request-btn {
+		width: auto;
+		height: 25px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		border: 0;
+		cursor: pointer;
+		font-size: 12px;
+		line-height: 1;
+		color: #e0e0e0;
+		background: rgba(0, 0, 0, 0.08);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.5);
+		transition:
+			transform 0.15s ease,
+			color 0.15s ease,
+			background 0.15s ease;
+		border: 2px solid #222;
+	}
+	.request-btn:hover {
+		transform: scale(1.06);
+		color: #ffffff;
+		background: rgba(255, 255, 255, 0.06);
+	}
+
+	/* Tutorial container no longer fixed — the wrapper positions it */
+	.tutorial-container {
+		/* removed: position, bottom, left */
 		overflow: hidden;
 		cursor: pointer;
 		transition:
@@ -1801,6 +1939,71 @@
 		-webkit-backdrop-filter: blur(12px);
 	}
 
+	/* Request topic modal */
+	.request-overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.6);
+		z-index: 80;
+	}
+
+	.request-modal {
+		position: fixed;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		width: min(92vw, 460px);
+		background: rgba(0, 0, 0, 0.7);
+		border: 1px solid #222;
+		border-radius: 8px;
+		padding: 16px;
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		z-index: 81;
+		color: #e8e8e8;
+	}
+
+	.request-title {
+		margin: 0 0 10px 0;
+		font-size: 16px;
+		font-weight: 600;
+	}
+
+	.request-input {
+		width: 100%;
+		background: #0b0b0b;
+		border: 1px solid #2a2a2a;
+		border-radius: 6px;
+		padding: 10px;
+		color: #e0e0e0;
+		resize: vertical;
+	}
+
+	.request-actions {
+		margin-top: 12px;
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+	}
+
+	.req-btn {
+		border: 1px solid #2a2a2a;
+		background: rgba(255, 255, 255, 0.06);
+		border-radius: 6px;
+		padding: 6px 12px;
+		cursor: pointer;
+		color: #e0e0e0;
+	}
+	.req-btn.ghost {
+		background: transparent;
+	}
+	.req-btn.primary {
+		border-color: #444;
+	}
+	.req-btn[disabled] {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
 	.circle {
 		width: 100%;
 		height: 100%;

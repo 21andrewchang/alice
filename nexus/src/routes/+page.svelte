@@ -69,16 +69,13 @@
 	let cursorAberrationAnimId: number;
 	let prevCursor = { x: 0, y: 0, time: Date.now() };
 
-	// --- Chromatic Aberration Animated Heading ---
 	const headingText = 'Unleash Your Intellectual Potential';
 	let headingSpanRefs: HTMLSpanElement[] = new Array(headingText.length);
-	let headingSpans: HTMLSpanElement[] = headingSpanRefs;
 	let headingRef: HTMLDivElement;
 	let headingRect = { left: 0, top: 0, width: 0, height: 0 };
-	let headingMouse = { x: -1000, y: -1000 };
 	let animId: number;
 
-	const TARGET_DOTS = 2000; // pick a number your machine likes
+	const TARGET_DOTS = 2000;
 	function clamp(n: number, a: number, b: number) {
 		return Math.max(a, Math.min(b, n));
 	}
@@ -482,7 +479,7 @@
 	></div>
 {/if}
 <div
-	class="sticky top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/70
+	class="sticky top-0 left-0 z-50 grid w-full grid-cols-[1fr_2fr_1fr] items-center bg-black/70
          p-4 px-24 backdrop-blur-sm"
 >
 	<a href="/" class="text-white">Alice</a>
@@ -499,7 +496,12 @@
 			>Our Mission</a
 		>
 		<a
-			href="#contact"
+			href="/updates"
+			class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
+			>Updates</a
+		>
+		<a
+			href="/contact"
 			class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
 			>Contact Us</a
 		>
@@ -563,9 +565,7 @@
 		id="how-it-works"
 		class="mx-auto grid max-w-screen-2xl gap-8 px-6 py-20 sm:px-10 lg:px-16"
 	>
-		<div
-			class="relative mx-auto aspect-video w-full max-w-screen-xl overflow-hidden rounded-lg border border-white/10 bg-white/5"
-		>
+		<div class="relative mx-auto aspect-video w-full max-w-screen-xl overflow-hidden rounded-lg">
 			<video
 				bind:this={videoEl}
 				class="absolute inset-0 h-full w-full object-cover"
@@ -597,11 +597,9 @@
 				</button>
 			{/if}
 		</div>
-		<div
-			class="mb-12 flex h-128 w-full max-w-5xl flex-col rounded-lg bg-white/8 p-4 text-neutral-200"
-		>
-			<div class="text-3xl text-neutral-200">What is Alice?</div>
-			<div class="mb-8 text-lg text-neutral-200">
+		<div class="mb-12 flex h-128 w-full max-w-5xl flex-col rounded-lg p-4 text-neutral-200">
+			<div class="text-5xl font-medium text-neutral-200">Curiosity-Based Learning</div>
+			<div class="mb-8 text-lg text-neutral-400">
 				Alice is a curiosity-based education platform that adapts to your evolving interests and
 				skill as you explore and provides the best material at each step to keep you engaged.
 			</div>
@@ -617,16 +615,9 @@
 	</section>
 	<section id="mission" class="mx-auto w-full max-w-screen-xl px-6 py-20 sm:px-10 lg:px-16">
 		<div
-			class="mx-auto mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+			class="mx-auto mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg text-neutral-200"
 		>
 			🚧 Mission Coming Soon 🚧
-		</div>
-	</section>
-	<section id="contact" class="mx-auto w-full max-w-screen-xl px-6 py-20 sm:px-10 lg:px-16">
-		<div
-			class="mx-auto mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
-		>
-			21andrewch@gmail.com
 		</div>
 	</section>
 	<section id="footer" class="container mx-auto grid gap-12 px-6 py-20"></section>
