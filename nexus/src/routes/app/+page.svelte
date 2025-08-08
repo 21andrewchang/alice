@@ -256,6 +256,15 @@
 			console.error('Failed to persist recommendation to users table:', upsertErr);
 		}
 	}
+	async function refreshBracketProgress() {
+		try {
+			const res = await getBracketProgress(userBracket as Bracket); // the helper we wrote earlier
+			masteryCounts = res.counts; // { M1, M2, M3 } if you want to show elsewhere
+			progress = res.progress; // { earned, total, requiredLevel, next }
+		} catch (e) {
+			console.error('Failed to refresh bracket progress', e);
+		}
+	}
 
 	async function updateNode(nodeId: string, exp: number) {
 		const prevStatus = nodeStatusService.getNodeStatus(nodeId) || { mastery: null };
@@ -285,6 +294,9 @@
 		updateNodeStyles();
 		const masteryChanged = data?.newMastery != null && data.newMastery !== prevMastery;
 
+		if (masteryChanged || data?.newBracket) {
+			await refreshBracketProgress();
+		}
 		if (masteryChanged) {
 			await newRecommendation(user.id);
 		}
@@ -1383,11 +1395,81 @@
 			updateNodeStyles();
 		}
 	}
+	type Bracket = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+
+	const bracketRules: Record<Bracket, { level: number; count: number; next: Bracket | null }> = {
+		beginner: { level: 1, count: 5, next: 'intermediate' },
+		intermediate: { level: 2, count: 5, next: 'advanced' },
+		advanced: { level: 3, count: 5, next: 'expert' },
+		expert: { level: 0, count: 0, next: null }
+	};
+
+	// helper: count nodes at least a mastery level
+	async function countAtLeast(level: number, userId: string): Promise<number> {
+		const { count, error } = await supabase
+			.from('user_nodes')
+			.select('node_id', { head: true, count: 'exact' })
+			.eq('user_id', userId)
+			.gte('mastery', level);
+		if (error) throw error;
+		return count ?? 0;
+	}
+
+	// fetch all mastery counts at once
+	export async function getMasteryCounts(): Promise<{ M1: number; M2: number; M3: number }> {
+		const { data: sessionData } = await supabase.auth.getSession();
+		const userId = sessionData.session?.user?.id;
+		if (!userId) throw new Error('Not signed in');
+
+		const [m1, m2, m3] = await Promise.all([
+			countAtLeast(1, userId),
+			countAtLeast(2, userId),
+			countAtLeast(3, userId)
+		]);
+
+		return { M1: m1, M2: m2, M3: m3 };
+	}
+
+	// derive progress for the current bracket (for BracketProgress)
+	export async function getBracketProgress(userBracket: Bracket) {
+		const counts = await getMasteryCounts();
+
+		const rule = bracketRules[userBracket];
+		if (!rule || !rule.next) {
+			return {
+				counts, // raw counts for M1/M2/M3 if you want to show them
+				progress: {
+					earned: rule?.count ?? 0,
+					total: rule?.count ?? 0,
+					requiredLevel: 0,
+					next: null
+				}
+			};
+		}
+
+		const key = `M${rule.level}` as 'M1' | 'M2' | 'M3';
+		const earned = Math.min(counts[key] ?? 0, rule.count); // clamp to total
+
+		return {
+			counts, // { M1, M2, M3 }
+			progress: {
+				earned, // 0..5 for your progress bar
+				total: rule.count, // always 5 per your rules
+				requiredLevel: rule.level, // 1/2/3
+				next: rule.next // 'intermediate' | 'advanced' | 'expert'
+			}
+		};
+	}
+	let masteryCounts = { M1: 0, M2: 0, M3: 0 };
+	let progress = { earned: 0, total: 5, requiredLevel: 1, next: 'intermediate' as Bracket | null };
 
 	onMount(async () => {
 		await loadMergedGraph();
 		await loadVisitedFromDb();
 		await loadUserFromDb();
+		const res = await getBracketProgress(userBracket as Bracket);
+		masteryCounts = res.counts;
+		progress = res.progress;
 		const key = userBracket.toString().trim().toLowerCase();
 		borderColor = bracketColors[key] ?? '#333333';
 		initializeSuggestionSystem();
@@ -1429,39 +1511,51 @@
 </script>
 
 <div class="fixed top-4 left-4 z-50 grid w-fit grid-cols-[auto_auto] gap-2">
-	<div
-		class="flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
-		style="background-color: rgba(0,0,0,.95); border: 2px solid {borderColorAlpha}; backdrop-filter: blur(10px);"
-		on:click={handleUserProfileClick}
-	>
-		<p
-			class="flex items-center gap-x-2 text-xs font-semibold capitalize select-none"
-			style="color: {borderColor};"
-		>
-			{userBracket}
-		</p>
-	</div>
-
-	{#if recommendedNode && recommendedNode.node}
+	<div class="flex flex-row gap-2">
 		<div
-			class="flex items-center gap-2 rounded-sm px-4 py-2 text-xs select-none"
-			style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
+			class="flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
+			style="background-color: rgba(0,0,0,.95); border: 2px solid {borderColorAlpha}; backdrop-filter: blur(10px);"
+			on:click={handleUserProfileClick}
 		>
-			<span class="font-semibold text-neutral-50">Next Step:</span>
-			<span
-				class="node-link cursor-pointer transition-all duration-200 hover:opacity-80"
-				data-node-id={recommendedNode.node.id}
-				style="color: {recommendedNode.node.type === 'paper'
-					? '#BFCAF3'
-					: getNodeDomainColor(
-							recommendedNode.node.domain
-						)}; font-weight:500; text-decoration:underline;"
+			<p
+				class="flex items-center gap-x-2 text-xs font-semibold capitalize select-none"
+				style="color: {borderColor};"
 			>
-				{recommendedNode.node.label}
-			</span>
+				{userBracket}
+			</p>
 		</div>
-	{/if}
 
+		{#if recommendedNode && recommendedNode.node}
+			<div
+				class="flex items-center gap-2 rounded-sm px-4 py-2 text-xs select-none"
+				style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
+			>
+				<span class="font-semibold text-neutral-50">Next Step:</span>
+				<span
+					class="node-link cursor-pointer transition-all duration-200 hover:opacity-80"
+					data-node-id={recommendedNode.node.id}
+					style="color: {recommendedNode.node.type === 'paper'
+						? '#BFCAF3'
+						: getNodeDomainColor(
+								recommendedNode.node.domain
+							)}; font-weight:500; text-decoration:underline;"
+				>
+					{recommendedNode.node.label}
+				</span>
+			</div>
+		{/if}
+		<div
+			class="flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
+			style="background-color: rgba(0,0,0,.95); border: 2px solid rgba(225,0,0,0.6); backdrop-filter: blur(10px);"
+			on:click={handleLogout}
+		>
+			<p
+				class="flex items-center gap-x-2 text-xs font-semibold text-red-500 capitalize select-none"
+			>
+				Log out
+			</p>
+		</div>
+	</div>
 	{#if showProgress}
 		<div
 			class="col-span-2 flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
@@ -1469,7 +1563,7 @@
 			in:scale={{ start: 0.9, duration: 200 }}
 			out:scale={{ start: 0.9, duration: 200 }}
 		>
-			<BracketProgress {userBracket} mastery={2} total={5} />
+			<BracketProgress {userBracket} mastery={progress.earned} total={progress.total} />
 		</div>
 	{/if}
 </div>
