@@ -1413,7 +1413,6 @@
 	$: currentHistoryIndex = navigationHistory.findIndex((n) => n.id === focusedNode?.id);
 	let showProgress = false;
 	function handleUserProfileClick() {
-		handleLogout();
 		showProgress = !showProgress;
 	}
 
