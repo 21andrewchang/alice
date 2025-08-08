@@ -78,9 +78,6 @@
 	let headingMouse = { x: -1000, y: -1000 };
 	let animId: number;
 
-	// Optimize heading animation: only update visible spans and throttle frame rate
-	let lastAberrationUpdate = 0;
-
 	function setupGrid() {
 		width = window.innerWidth;
 		height = window.innerHeight;
@@ -517,7 +514,7 @@
 			</span>
 		</button>
 	</section>
-	<section id="how-it-works" class="container mx-auto grid gap-12 px-6 py-20">
+	<section id="how-it-works" class="container mx-auto grid gap-2 px-6 py-20">
 		<div
 			class="relative mb-12 aspect-video w-full max-w-5xl overflow-hidden rounded-lg border border-white/10 bg-white/5"
 		>
@@ -554,6 +551,18 @@
 					</div>
 				</button>
 			{/if}
+		</div>
+		<div
+			class="mb-12 flex h-128 w-full max-w-5xl flex-col rounded-lg bg-white/8 p-4 text-neutral-200"
+		>
+			<div class="text-3xl text-neutral-200">Skill Brackets</div>
+			<div class="ml-8 text-2xl text-[#9CA3AF]">Beginner: 5 Mastery 1 Nodes to rank up</div>
+			<div class="ml-8 text-2xl text-[#E0AF67]">Intermediate: 5 Mastery 2 Nodes to rank up</div>
+			<div class="ml-8 text-2xl text-[#BA9AF7]">Advanced: 5 Mastery 3 Nodes to rank up</div>
+			<div class="ml-8 text-2xl text-[#F7768E]">Expert: Current highest rank</div>
+			<div class="ml-8 text-2xl text-neutral-200">
+				Earn 100 Exp by completing questions to level up in Mastery.
+			</div>
 		</div>
 	</section>
 	<section id="mission" class="container mx-auto grid gap-12 px-6 py-20">
