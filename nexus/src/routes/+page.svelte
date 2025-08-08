@@ -31,11 +31,11 @@
 	let cursorGravityScale = 0;
 
 	const dotSpacing = 24; // was 24, fewer dots, more spread out
-	const dotRadius = 0.7; // was 1.0, smaller dots
+	let dotRadius = 0.7; // instead of const
 	const minBrightness = 0.1; // was 0.18, brighter dots
 	const maxBrightness = 0.5; // was 0.38, brighter dots
 	const cursorDeceleration = 0.9; // was 0.82, higher = more floaty
-	const maxDotDisplacement = 28;
+	let maxDotDisplacement = 28;
 	const springK = 0.07; // was 0.12, lower = softer spring
 
 	// Glow dots background
@@ -69,30 +69,72 @@
 	let cursorAberrationAnimId: number;
 	let prevCursor = { x: 0, y: 0, time: Date.now() };
 
-	// --- Chromatic Aberration Animated Heading ---
 	const headingText = 'Unleash Your Intellectual Potential';
 	let headingSpanRefs: HTMLSpanElement[] = new Array(headingText.length);
-	let headingSpans: HTMLSpanElement[] = headingSpanRefs;
 	let headingRef: HTMLDivElement;
 	let headingRect = { left: 0, top: 0, width: 0, height: 0 };
-	let headingMouse = { x: -1000, y: -1000 };
 	let animId: number;
+
+	const TARGET_DOTS = 2000;
+	function clamp(n: number, a: number, b: number) {
+		return Math.max(a, Math.min(b, n));
+	}
 
 	function setupGrid() {
 		width = window.innerWidth;
 		height = window.innerHeight;
 
-		// compute midpoint and a reduced “jitter” range
-		const midB = (0.2 + maxBrightness) / 2;
-		const jitter = (maxBrightness - minBrightness) * 0.1; // only ±10%
+		// figure out a cols/rows grid that yields ~TARGET_DOTS respecting aspect
+		const aspect = width / Math.max(1, height);
+		let cols = Math.max(1, Math.round(Math.sqrt(TARGET_DOTS * aspect)));
+		let rows = Math.max(1, Math.ceil(TARGET_DOTS / cols));
+		// ensure rows*cols >= TARGET_DOTS
+		if (cols * rows < TARGET_DOTS) rows = Math.ceil(TARGET_DOTS / cols);
 
-		dots = [];
-		for (let y = 0; y <= height; y += dotSpacing) {
-			for (let x = 0; x <= width; x += dotSpacing) {
-				// base brightness is close to midB, plus or minus up to jitter/2
-				const baseB = midB + (Math.random() - 0.5) * jitter;
-				dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0, baseB });
+		const stepX = width / (cols + 1);
+		const stepY = height / (rows + 1);
+
+		// scale visuals with spacing
+		const spacing = Math.min(stepX, stepY);
+		// ~0.6 … 1.2 px, tweak to taste
+		(dotRadius as number) = clamp(spacing * 0.035, 0.6, 1.2);
+		(maxDotDisplacement as number) = spacing * 1.05;
+
+		// ensure dots array is exactly TARGET_DOTS
+		if (dots.length < TARGET_DOTS) {
+			// seed new dots with persistent base brightness
+			const midB = (0.2 + maxBrightness) / 2;
+			const jitter = (maxBrightness - minBrightness) * 0.1;
+			for (let i = dots.length; i < TARGET_DOTS; i++) {
+				dots.push({
+					x: 0,
+					y: 0,
+					ox: 0,
+					oy: 0,
+					vx: 0,
+					vy: 0,
+					baseB: midB + (Math.random() - 0.5) * jitter
+				});
 			}
+		} else if (dots.length > TARGET_DOTS) {
+			dots.length = TARGET_DOTS; // trim
+		}
+
+		// position exactly TARGET_DOTS dots on the grid
+		for (let i = 0; i < TARGET_DOTS; i++) {
+			const c = i % cols;
+			const r = Math.floor(i / cols);
+			// guard in case rows*cols > TARGET_DOTS (common) — we just won’t use the extras
+			if (r >= rows) break;
+
+			const x = (c + 1) * stepX;
+			const y = (r + 1) * stepY;
+
+			const d = dots[i];
+			d.x = d.ox = x;
+			d.y = d.oy = y;
+			d.vx = 0;
+			d.vy = 0;
 		}
 	}
 
@@ -437,7 +479,7 @@
 	></div>
 {/if}
 <div
-	class="sticky top-0 left-0 z-50 grid w-full grid-cols-3 items-center bg-black/70
+	class="sticky top-0 left-0 z-50 grid w-full grid-cols-[1fr_2fr_1fr] items-center bg-black/70
          p-4 px-24 backdrop-blur-sm"
 >
 	<a href="/" class="text-white">Alice</a>
@@ -454,7 +496,12 @@
 			>Our Mission</a
 		>
 		<a
-			href="#contact"
+			href="/updates"
+			class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
+			>Updates</a
+		>
+		<a
+			href="/contact"
 			class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
 			>Contact Us</a
 		>
@@ -514,25 +561,23 @@
 			</span>
 		</button>
 	</section>
-	<section id="how-it-works" class="container mx-auto grid gap-2 px-6 py-20">
-		<div
-			class="relative mb-12 aspect-video w-full max-w-5xl overflow-hidden rounded-lg border border-white/10 bg-white/5"
-		>
+	<section
+		id="how-it-works"
+		class="mx-auto grid max-w-screen-2xl gap-8 px-6 py-20 sm:px-10 lg:px-16"
+	>
+		<div class="relative mx-auto aspect-video w-full max-w-screen-xl overflow-hidden rounded-lg">
 			<video
 				bind:this={videoEl}
 				class="absolute inset-0 h-full w-full object-cover"
 				src="/demo.mp4"
 				preload="none"
 				playsinline
-			></video>
-
+			/>
 			{#if showOverlay}
 				<button
 					class="absolute inset-0 grid place-items-center"
 					on:click={handlePlay}
 					aria-label="Play demo video"
-					in:fade={{ duration: 120 }}
-					out:fade={{ duration: 120 }}
 				>
 					<video
 						src="/demo-thumb.mp4"
@@ -541,42 +586,38 @@
 						muted
 						playsinline
 						class="absolute inset-0 z-10 h-full w-full object-cover"
-					></video>
+					/>
 					<div
 						class="relative z-20 rounded-full border border-white/20 bg-black/50 p-[18px] backdrop-blur"
 					>
-						<svg viewBox="0 0 24 24" class="h-10 w-10 text-white">
-							<path fill="currentColor" d="M8 5v14l11-7z" />
-						</svg>
+						<svg viewBox="0 0 24 24" class="h-10 w-10 text-white"
+							><path fill="currentColor" d="M8 5v14l11-7z" /></svg
+						>
 					</div>
 				</button>
 			{/if}
 		</div>
-		<div
-			class="mb-12 flex h-128 w-full max-w-5xl flex-col rounded-lg bg-white/8 p-4 text-neutral-200"
-		>
+		<div class="mb-12 flex h-128 w-full max-w-5xl flex-col rounded-lg p-4 text-neutral-200">
+			<div class="text-5xl font-medium text-neutral-200">Curiosity-Based Learning</div>
+			<div class="mb-8 text-lg text-neutral-400">
+				Alice is a curiosity-based education platform that adapts to your evolving interests and
+				skill as you explore and provides the best material at each step to keep you engaged.
+			</div>
 			<div class="text-3xl text-neutral-200">Skill Brackets</div>
 			<div class="ml-8 text-2xl text-[#9CA3AF]">Beginner: 5 Mastery 1 Nodes to rank up</div>
 			<div class="ml-8 text-2xl text-[#E0AF67]">Intermediate: 5 Mastery 2 Nodes to rank up</div>
 			<div class="ml-8 text-2xl text-[#BA9AF7]">Advanced: 5 Mastery 3 Nodes to rank up</div>
 			<div class="ml-8 text-2xl text-[#F7768E]">Expert: Current highest rank</div>
-			<div class="ml-8 text-2xl text-neutral-200">
-				Earn 100 Exp by completing questions to level up in Mastery.
+			<div class="ml-8 self-center text-2xl text-neutral-200">
+				Challenge your Mastery, Earn EXP, and Rank Up.
 			</div>
 		</div>
 	</section>
-	<section id="mission" class="container mx-auto grid gap-12 px-6 py-20">
+	<section id="mission" class="mx-auto w-full max-w-screen-xl px-6 py-20 sm:px-10 lg:px-16">
 		<div
-			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+			class="mx-auto mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg text-neutral-200"
 		>
 			🚧 Mission Coming Soon 🚧
-		</div>
-	</section>
-	<section id="contact" class="container mx-auto grid gap-12 px-6 py-20">
-		<div
-			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
-		>
-			21andrewch@gmail.com
 		</div>
 	</section>
 	<section id="footer" class="container mx-auto grid gap-12 px-6 py-20"></section>
