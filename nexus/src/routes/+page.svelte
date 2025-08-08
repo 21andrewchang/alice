@@ -31,11 +31,11 @@
 	let cursorGravityScale = 0;
 
 	const dotSpacing = 24; // was 24, fewer dots, more spread out
-	const dotRadius = 0.7; // was 1.0, smaller dots
+	let dotRadius = 0.7; // instead of const
 	const minBrightness = 0.1; // was 0.18, brighter dots
 	const maxBrightness = 0.5; // was 0.38, brighter dots
 	const cursorDeceleration = 0.9; // was 0.82, higher = more floaty
-	const maxDotDisplacement = 28;
+	let maxDotDisplacement = 28;
 	const springK = 0.07; // was 0.12, lower = softer spring
 
 	// Glow dots background
@@ -78,21 +78,66 @@
 	let headingMouse = { x: -1000, y: -1000 };
 	let animId: number;
 
+	const TARGET_DOTS = 2000; // pick a number your machine likes
+	function clamp(n: number, a: number, b: number) {
+		return Math.max(a, Math.min(b, n));
+	}
+
 	function setupGrid() {
 		width = window.innerWidth;
 		height = window.innerHeight;
 
-		// compute midpoint and a reduced “jitter” range
-		const midB = (0.2 + maxBrightness) / 2;
-		const jitter = (maxBrightness - minBrightness) * 0.1; // only ±10%
+		// figure out a cols/rows grid that yields ~TARGET_DOTS respecting aspect
+		const aspect = width / Math.max(1, height);
+		let cols = Math.max(1, Math.round(Math.sqrt(TARGET_DOTS * aspect)));
+		let rows = Math.max(1, Math.ceil(TARGET_DOTS / cols));
+		// ensure rows*cols >= TARGET_DOTS
+		if (cols * rows < TARGET_DOTS) rows = Math.ceil(TARGET_DOTS / cols);
 
-		dots = [];
-		for (let y = 0; y <= height; y += dotSpacing) {
-			for (let x = 0; x <= width; x += dotSpacing) {
-				// base brightness is close to midB, plus or minus up to jitter/2
-				const baseB = midB + (Math.random() - 0.5) * jitter;
-				dots.push({ x, y, ox: x, oy: y, vx: 0, vy: 0, baseB });
+		const stepX = width / (cols + 1);
+		const stepY = height / (rows + 1);
+
+		// scale visuals with spacing
+		const spacing = Math.min(stepX, stepY);
+		// ~0.6 … 1.2 px, tweak to taste
+		(dotRadius as number) = clamp(spacing * 0.035, 0.6, 1.2);
+		(maxDotDisplacement as number) = spacing * 1.05;
+
+		// ensure dots array is exactly TARGET_DOTS
+		if (dots.length < TARGET_DOTS) {
+			// seed new dots with persistent base brightness
+			const midB = (0.2 + maxBrightness) / 2;
+			const jitter = (maxBrightness - minBrightness) * 0.1;
+			for (let i = dots.length; i < TARGET_DOTS; i++) {
+				dots.push({
+					x: 0,
+					y: 0,
+					ox: 0,
+					oy: 0,
+					vx: 0,
+					vy: 0,
+					baseB: midB + (Math.random() - 0.5) * jitter
+				});
 			}
+		} else if (dots.length > TARGET_DOTS) {
+			dots.length = TARGET_DOTS; // trim
+		}
+
+		// position exactly TARGET_DOTS dots on the grid
+		for (let i = 0; i < TARGET_DOTS; i++) {
+			const c = i % cols;
+			const r = Math.floor(i / cols);
+			// guard in case rows*cols > TARGET_DOTS (common) — we just won’t use the extras
+			if (r >= rows) break;
+
+			const x = (c + 1) * stepX;
+			const y = (r + 1) * stepY;
+
+			const d = dots[i];
+			d.x = d.ox = x;
+			d.y = d.oy = y;
+			d.vx = 0;
+			d.vy = 0;
 		}
 	}
 
@@ -514,9 +559,12 @@
 			</span>
 		</button>
 	</section>
-	<section id="how-it-works" class="container mx-auto grid gap-2 px-6 py-20">
+	<section
+		id="how-it-works"
+		class="mx-auto grid max-w-screen-2xl gap-8 px-6 py-20 sm:px-10 lg:px-16"
+	>
 		<div
-			class="relative mb-12 aspect-video w-full max-w-5xl overflow-hidden rounded-lg border border-white/10 bg-white/5"
+			class="relative mx-auto aspect-video w-full max-w-screen-xl overflow-hidden rounded-lg border border-white/10 bg-white/5"
 		>
 			<video
 				bind:this={videoEl}
@@ -524,15 +572,12 @@
 				src="/demo.mp4"
 				preload="none"
 				playsinline
-			></video>
-
+			/>
 			{#if showOverlay}
 				<button
 					class="absolute inset-0 grid place-items-center"
 					on:click={handlePlay}
 					aria-label="Play demo video"
-					in:fade={{ duration: 120 }}
-					out:fade={{ duration: 120 }}
 				>
 					<video
 						src="/demo-thumb.mp4"
@@ -541,13 +586,13 @@
 						muted
 						playsinline
 						class="absolute inset-0 z-10 h-full w-full object-cover"
-					></video>
+					/>
 					<div
 						class="relative z-20 rounded-full border border-white/20 bg-black/50 p-[18px] backdrop-blur"
 					>
-						<svg viewBox="0 0 24 24" class="h-10 w-10 text-white">
-							<path fill="currentColor" d="M8 5v14l11-7z" />
-						</svg>
+						<svg viewBox="0 0 24 24" class="h-10 w-10 text-white"
+							><path fill="currentColor" d="M8 5v14l11-7z" /></svg
+						>
 					</div>
 				</button>
 			{/if}
@@ -570,16 +615,16 @@
 			</div>
 		</div>
 	</section>
-	<section id="mission" class="container mx-auto grid gap-12 px-6 py-20">
+	<section id="mission" class="mx-auto w-full max-w-screen-xl px-6 py-20 sm:px-10 lg:px-16">
 		<div
-			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+			class="mx-auto mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
 		>
 			🚧 Mission Coming Soon 🚧
 		</div>
 	</section>
-	<section id="contact" class="container mx-auto grid gap-12 px-6 py-20">
+	<section id="contact" class="mx-auto w-full max-w-screen-xl px-6 py-20 sm:px-10 lg:px-16">
 		<div
-			class="mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
+			class="mx-auto mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg bg-white/10 text-neutral-200"
 		>
 			21andrewch@gmail.com
 		</div>
