@@ -1572,17 +1572,6 @@
 				</span>
 			</div>
 		{/if}
-		<div
-			class="flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
-			style="background-color: rgba(0,0,0,.95); border: 2px solid rgba(225,0,0,0.6); backdrop-filter: blur(10px);"
-			on:click={handleLogout}
-		>
-			<p
-				class="flex items-center gap-x-2 text-xs font-semibold text-red-500 capitalize select-none"
-			>
-				Log out
-			</p>
-		</div>
 	</div>
 	{#if showProgress}
 		<div
@@ -1746,6 +1735,17 @@
 			on:click={() => (showRequestModal = true)}
 		>
 			<span class="text-[10px]">Request Topic</span>
+		</button>
+		<button
+			type="button"
+			class="inline-flex items-center rounded-full border-2 border-red-500/40 bg-black/20 px-2 py-1
+            font-medium text-red-800 backdrop-blur-md transition
+            hover:text-red-500 focus:outline-none"
+			aria-label="Request a topic"
+			title="Request a topic"
+			on:click={handleLogout}
+		>
+			<span class="text-[10px]">Log out</span>
 		</button>
 	</div>
 
