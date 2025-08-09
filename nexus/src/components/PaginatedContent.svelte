@@ -50,7 +50,8 @@
 			tech: '#73DACA',
 			sciences: '#BA6FFF',
 			humanities: '#F88951',
-			art: '#F7768E',
+			ai: '#FF6B9D',
+			hardware: '#FFD93D',
 			'research-papers': '#BFCAF3'
 		};
 		return domainColors[domain as keyof typeof domainColors] || '#3A5A8F';
