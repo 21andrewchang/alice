@@ -562,6 +562,24 @@
 			else if (l.target === centralId) relationMap[l.source as string] = l.relation;
 		});
 
+		const anchors: Record<string, [number, number]> = {
+			math: [-width / 2.8, height / 6], // bottom-left (your original intent)
+			hardware: [-width / 4.2, -height / 8], // upper-left (separate from math)
+			physics: [-width / 5.0, height / 5], // lower-left middle (optional)
+			ai: [width / 4.0, -height / 10], // right/top-right
+			tech: [width / 6.0, 0], // near center-right
+			biology: [width / 5.0, height / 6],
+			chemistry: [width / 5.0, -height / 6],
+			default: [0, 0]
+		};
+
+		function anchorX(d: any) {
+			return anchors[d.domain]?.[0] ?? anchors.default[0];
+		}
+		function anchorY(d: any) {
+			return anchors[d.domain]?.[1] ?? anchors.default[1];
+		}
+
 		// Simulation with domain-aware clustering
 		const simulation = d3
 			.forceSimulation(nodes)
@@ -574,45 +592,8 @@
 			)
 			.force('charge', d3.forceManyBody().strength(-200))
 			.force('center', d3.forceCenter(0, 0))
-			.force(
-				'x',
-				d3
-					.forceX((d: any) => {
-						// Domain-based positioning with relation override
-						const r = relationMap[d.id];
-
-						// Math domain gets extra leftward positioning (deeper prerequisites)
-						if (d.domain === 'math') {
-							return -width / 2.5; // Math concepts go further left
-						}
-
-						// Standard relation-based positioning for other domains
-						if (r === 'prerequisite') return -width / 4;
-						if (r === 'advance') return width / 4;
-						return 0;
-					})
-					.strength((d: any) => {
-						// Stronger positioning force for math domain to separate from tech
-						return d.domain === 'math' ? 0.15 : 0.1;
-					})
-			)
-			.force(
-				'y',
-				d3
-					.forceY((d: any) => {
-						const r = relationMap[d.id];
-
-						// Math domain gets slight downward offset for visual separation
-						if (d.domain === 'math') {
-							return height / 6; // Slight downward positioning
-						}
-
-						return r === 'lateral' ? height / 4 : 0;
-					})
-					.strength((d: any) => {
-						return d.domain === 'math' ? 0.12 : 0.1;
-					})
-			)
+			.force('x', d3.forceX((d: any) => anchorX(d)).strength(0.25))
+			.force('y', d3.forceY((d: any) => anchorY(d)).strength(0.22))
 			.force(
 				'collide',
 				d3
@@ -1742,7 +1723,7 @@
             font-medium text-red-800 backdrop-blur-md transition
             hover:text-red-500 focus:outline-none"
 			aria-label="Request a topic"
-			title="Request a topic"
+			title="Log out"
 			on:click={handleLogout}
 		>
 			<span class="text-[10px]">Log out</span>
