@@ -212,52 +212,12 @@
       "id": 26,
       "label": "Short Circuits",
       "type": "concept",
-      "description": "What it is: A short circuit is a very low-resistance path between a driven node and ground (or between two rails). With near-zero resistance, current spikes and power becomes heat fast.\n\nHow it happens:\n• Wire or solder bridge from a powered net to ground/another rail\n• Miswired connectors or reversed parts (e.g., polarized caps)\n• Faulty footprints/silkscreen causing rotated parts\n\nWhy it’s dangerous:\n• Power = I²·R (in conductors) and V·I across devices; large current means huge heat\n• Tiny resistances in traces, connectors, batteries, or inside chips dissipate tens of watts\n• Results: burnt traces, latched regulators, blown fuses, venting cells\n\nHow to limit damage:\n• Use a current-limited bench supply for first power-on\n• Insert series resistors on risky nets (LEDs, test lines) during bring-up\n• Add protection: fuses or resettable fuses, reverse-polarity guard (diode or ideal-diode MOSFET)\n• Design for inspection: clearances, solder mask dams, good silkscreen/Pin-1 marks\n\nDiagnose fast:\n• Supply hits current limit or collapses; device runs hot\n• Unexpected near-zero output or massive ripple; thermal smell/visible discoloration\n• Isolate by pulling jumpers, measuring resistance to ground with power off\n\nExample in practice:\nA 5 V rail shorted through 0.15 Ω of total path resistance draws ≈33 A. Heat in just 0.05 Ω of copper is ≈56 W (I²·R) → scorched traces in seconds.\n\nBottom line: A resistor to ground is a controlled load; a wire to ground is (nearly) a short. Plan for faults, current-limit first power-on, and add simple protection so mistakes don’t destroy hardware.",
+      "description": "What it is: A short circuit is a very low-<node id=\"29\">resistance</node> path between a driven node and ground (or between two rails). With near-zero resistance, current spikes and power becomes heat fast.\n\nHow it happens:\n• Wire or solder bridge from a powered net to ground/another rail\n• Miswired connectors or reversed parts (e.g., polarized caps)\n• Faulty footprints/silkscreen causing rotated parts\n\nWhy it’s dangerous:\n• Power = I²·R (in conductors) and V·I across devices; large current means huge heat\n• Tiny resistances in traces, connectors, batteries, or inside chips dissipate tens of watts\n• Results: burnt traces, latched regulators, blown fuses, venting cells\n\nHow to limit damage:\n• Use a current-limited bench supply for first power-on\n• Insert series resistors on risky nets (LEDs, test lines) during bring-up\n• Add protection: fuses or resettable fuses, reverse-polarity guard (diode or ideal-diode MOSFET)\n• Design for inspection: clearances, solder mask dams, good silkscreen/Pin-1 marks\n\nDiagnose fast:\n• Supply hits current limit or collapses; device runs hot\n• Unexpected near-zero output or massive ripple; thermal smell/visible discoloration\n• Isolate by pulling jumpers, measuring resistance to ground with power off\n\nExample in practice:\nA 5 V rail shorted through 0.15 Ω of total path resistance draws ≈33 A. Heat in just 0.05 Ω of copper is ≈56 W (I²·R) → scorched traces in seconds.\n\nBottom line: A resistor to ground is a controlled load; a wire to ground is (nearly) a short. Plan for faults, current-limit first power-on, and add simple protection so mistakes don’t destroy hardware.",
       "difficulty": 0,
       "domain": "hardware"
     },
     {
       "id": 27,
-      "label": "Ceramic Capacitor",
-      "type": "component",
-      "description": "**What it is**: A small, non-polarized capacitor used for local energy storage and noise filtering. It stabilizes supply rails and smooths fast changes in current near a chip.\n\n**How it behaves**:\n• Stores charge: Q = C·V; more capacitance (C) stores more charge at a given voltage (V).  \n• Impedance falls as frequency rises until a minimum, then rises (due to internal inductance).  \n• Real parts have internal resistance and inductance, and a maximum voltage rating.  \n• Dielectrics: C0G/NP0 (very stable, lower values), X7R/X5R (higher values but lose capacitance under direct-current bias).\n\n**How to use it (decoupling basics)**:\n• Place one small ceramic (commonly 0.1 µF) **at each power pin** of a chip; keep the loop (pin → capacitor → ground) as short as possible.  \n• Add a nearby larger ceramic (1–10 µF) per rail for local bulk.  \n• Choose a voltage rating with comfortable margin (≈2× the rail).  \n• Check that effective capacitance under bias is still enough (higher-value, bigger packages drop more).  \n• Prefer a direct via to the ground plane next to the capacitor pad.\n\n**Example in practice**:\nA 3.3 V microcontroller with four power pins: place one 0.1 µF ceramic at each pin and one 4.7 µF ceramic near the device or regulator output. Keep traces short; one ground via per decoupler.\n\n**Common mistakes**:\n• Putting one shared capacitor far from the pins.  \n• Using only electrolytics for fast decoupling (they’re too inductive).  \n• Choosing a part with a voltage rating too close to the rail.  \n• Ignoring capacitance loss under bias and temperature.\n\n**Why it matters**:\nGood ceramic decoupling prevents resets, data errors, and noise by supplying fast bursts of current locally and keeping the rail voltage steady.\n\n**Bottom line**: Use small ceramics at each power pin, a larger ceramic per rail, short loops to ground, and adequate voltage and effective capacitance margins.",
-      "difficulty": 0,
-      "domain": "hardware"
-    },
-    {
-      "id": 28,
-      "label": "Silicon Diode",
-      "type": "component",
-      "description": "**What it is**: A two-terminal part that conducts mainly in one direction. Used for protection, rectification, and steering currents.\n\n**How it behaves**:\n• Forward drop ≈ 0.6–0.8 V at rated current (varies with current and temperature).  \n• Blocks reverse voltage up to its rating; small reverse leakage still flows.  \n• Real parts have current and reverse-voltage limits; switching speed varies by type.\n\n**How to use it**:\n• Orientation matters: the banded end is the cathode (current flows from anode → cathode when forward-biased).  \n• Choose reverse-voltage rating comfortably above worst-case (≥2× the rail is a safe start).  \n• Check power: P ≈ I · V_forward; ensure package can dissipate it.  \n• For inductive loads (relays, motors), place a diode across the coil (cathode to supply) to provide a flyback path.  \n• For reverse-polarity protection, use a series diode (simple but loses V_forward) or consider a MOSFET “ideal diode” later.\n\n**Example in practice**:\nProtect a 12 V relay coil: place a general diode across the coil, cathode to +12 V, anode to the transistor side. When the coil turns off, the diode conducts and clamps the voltage.\n\n**Common mistakes**:\n• Reversing polarity (band on the wrong side).  \n• Under-rating reverse voltage or current.  \n• Ignoring heat from V_forward at high current.  \n• Using a slow diode where fast switching is needed.\n\n**Why it matters**:\nPrevents voltage spikes, guards against wiring errors, and turns alternating current into direct current in simple supplies.\n\n**Related**: Light-emitting diode.\n\n**Bottom line**: Point the diode the right way, meet reverse-voltage and current ratings, and verify power dissipation.",
-      "difficulty": 0,
-      "domain": "hardware"
-    },
-    {
-      "id": 29,
-      "label": "Light-Emitting Diode (LED)",
-      "type": "component",
-      "description": "**What it is**: A <node id=\"28\">diode</node> that emits light when forward-biased. It needs a current-limiting element (usually a resistor). Used as indicators and simple visual feedback.\n\n**How it behaves**:\n• Has a forward voltage (approx.): red ≈ 1.8–2.2 V, green ≈ 2.0–3.0 V, blue/white ≈ 2.7–3.3 V (varies by part and current).  \n• Brightness scales with current; exceeding the rated current overheats and kills the device.  \n• Very low reverse-voltage rating—do not reverse-bias.\n\n**How to use it**:\n• Put a resistor in series to set current: R = (V_supply − V_forward) / I_target.  \n• Check power in the resistor (I²·R) and in the LED (≈ I · V_forward).  \n• Observe polarity: anode to positive, cathode to negative (flat edge or shorter lead is usually the cathode; check footprint pin-1/marking).  \n• Driving from a microcontroller: ensure the pin’s current limit isn’t exceeded; use a transistor if higher current is needed.  \n• For dimming, use pulse-width modulation rather than running continuously at low current.\n\n**Example in practice**:\nFrom 3.3 V with a red LED (V_forward ≈ 2.0 V) at 8 mA: R ≈ (3.3 − 2.0)/0.008 = 162.5 Ω → choose 160 Ω or 180 Ω.  \nResistor power ≈ 0.008²·160 ≈ 0.010 W → a 0.125 W part is fine.\n\n**Common mistakes**:\n• No series resistor (or too small) → overcurrent and failure.  \n• Wrong polarity; placing the resistor far from the LED.  \n• Exceeding microcontroller pin current limits.\n\n**Why it matters**:\nClear visual status with minimal cost; teaches current limiting and polarity discipline used everywhere. Leads to more advanced topics in Semiconductors such as band-gap and optics.\n\n**Bottom line**: Always use a series resistor, get polarity right, and verify current and power are within limits.",
-      "difficulty": 0,
-      "domain": "hardware"
-    },
-    {
-      "id": 30,
-      "label": "Capacitor — Electrolytic / Polymer",
-      "type": "component",
-      "description": "**What it is**: A polarized, higher-value capacitor used for bulk energy storage and smoothing on power rails. Polymer types handle ripple better than traditional electrolytics.\n\n**How it behaves**:\n• Stores charge: Q = C·V; large C smooths slow changes in current and voltage.  \n• Has internal resistance and inductance; good for low-to-mid frequencies, not fast edges.  \n• Polarized: reversing it can damage the part (check +/− markings).  \n• Limited lifetime (electrolytic dries out); polymer parts have better ripple and life.\n\n**How to use it**:\n• Place near regulators and loads to reduce ripple and hold-up during steps.  \n• Choose voltage rating with comfortable margin (≈2× the rail).  \n• Check ripple current rating and temperature; ensure the part can handle expected ripple.  \n• Pair with small ceramic capacitors for fast edges; the ceramic handles high-frequency noise.\n\n**Example in practice**:\nOn a 5 V rail drawing up to 300 mA with 100 mA load steps, place a 47–220 µF electrolytic near the regulator output and add a 4.7–10 µF ceramic nearby for mid/high-frequency support.\n\n**Common mistakes**:\n• Reversed polarity or voltage rating too close to the rail.  \n• Using only electrolytics for decoupling fast digital chips.  \n• Ignoring ripple current and temperature—shortened life.\n\n**Why it matters**:\nKeeps rails stable during load changes and reduces visible ripple; essential for reliable power.\n\n**Bottom line**: Use polarized bulk capacitors for smoothing and hold-up, with enough voltage and ripple margin, and pair them with small ceramics for fast transients.",
-      "difficulty": 0,
-      "domain": "hardware"
-    },
-    {
-      "id": 31,
-      "label": "MOSFET — N-Channel",
-      "type": "component",
-      "description": "**What it is**: Metal Oxide Semiconductor Field-Effect Transistor. Functionally, it acts as a voltage-controlled switch. With gate driven by logic (3.3/5 V), it can turn loads on and off efficiently.\n\n**How it behaves**:\n• Gate voltage controls channel resistance; aim for a low on-resistance when fully enhanced.  \n• Threshold voltage is not the operating point; you need higher gate voltage than threshold for low loss.  \n• Has a body diode from source to drain; affects polarity and protection.\n\n**How to use it (low-side switch)**:\n• Source to ground, drain to load, other side of load to supply; drive gate from a microcontroller or driver.  \n• Verify the part reaches low on-resistance at your gate voltage (e.g., ≤100 mΩ at 3.3 V for modest currents).  \n• Add a gate resistor (10–100 Ω) to tame ringing; ensure a defined off state (pull-down).  \n• For inductive loads, add a diode across the load (flyback path).\n\n**Example in practice**:\nSwitch a 12 V, 500 mA load from a 3.3 V microcontroller: choose a logic-level MOSFET specified with low on-resistance at V_gate = 3.3 V; estimate loss P ≈ I²·R_on = 0.5²·0.05 = 0.125 W → check package thermal limits.\n\n**Common mistakes**:\n• Picking by threshold voltage instead of on-resistance at the actual gate drive.  \n• Forgetting the body diode orientation; using high-side without a proper gate driver.  \n• No flyback diode on inductive loads.\n\n**Why it matters**:\nProvides efficient, cool switching for LEDs, motors, heaters, and power rails under logic control.\n\n**Bottom line**: Ensure the MOSFET is truly logic-level at your gate voltage, check power loss, and add proper protection for inductive loads.",
-      "difficulty": 0,
-      "domain": "hardware"
-    },
-    {
-      "id": 32,
       "label": "Current",
       "type": "concept",
       "description": "**Concept**: The rate of electric charge flow. Unit: ampere (A). 1 A = 1 coulomb per second.\n\n**How to reason about it**:\n• Direction = conventional current (from higher potential to lower). Electrons move opposite; ignore that for circuit math.  \n• Sign comes from your chosen arrow. Current opposite your arrow is negative; that’s fine.  \n• Power link: P = V·I. Current appears squared in I²R heating.\n\n**How to measure it**:\n• Put the meter **in series** with the path. Start at a high range.  \n• Meters in current mode have low resistance—across a source they act like a short. Double-check lead position before powering.\n\n**Why it matters**:\n• Sets heating (I²R), trace sizing, fuse selection, and device limits (e.g., microcontroller pin max current).  \n• Core input for sizing resistors and checking regulator headroom.\n\n**Common mistakes**:\n• Measuring current like voltage (in parallel) → short.  \n• Leaving the meter lead in the current jack and probing a voltage node.  \n• Ignoring peak vs average current when sizing.\n\n**Bottom line**: Current is charge per second. Treat it with respect—measure in series, size parts for I and I²R, and keep headroom.",
@@ -265,7 +225,7 @@
       "domain": "hardware"
     },
     {
-      "id": 33,
+      "id": 28,
       "label": "Voltage",
       "type": "concept",
       "description": "**Concept**: Electrical potential difference between two points. Unit: volt (V). Always defined as V(A,B) = V(A) − V(B).\n\n**How to reason about it**:\n• There is no voltage “at a point” without a reference—choose a reference node (often ground).  \n• Sources provide voltage; elements drop voltage. Signs follow your marked polarities.  \n• DC vs AC: AC values are often given as RMS; peak = √2 · RMS for a sine.\n\n**How to measure it**:\n• Put the meter **in parallel**: one probe to point A, the other to reference (or B).  \n• Verify the reference: wrong reference → wrong reading.  \n• Watch negative rails; a “−5 V” rail is 5 V below ground.\n\n**Why it matters**:\n• Sets logic thresholds, bias points, and power calculations (P = V·I).  \n• Required to size resistors and check regulator/dropout margins.\n\n**Common mistakes**:\n• Measuring to the wrong reference node.  \n• Mixing RMS with peak/peak-to-peak.  \n• Assuming two ground symbols are the same net when they’re not.\n\n**Bottom line**: Voltage is always between two points. Mark polarities, pick the right reference, and read the number that actually matters for your design.",
@@ -273,95 +233,64 @@
       "domain": "hardware"
     },
     {
-      "id": 34,
+      "id": 29,
       "label": "Resistance",
       "type": "concept",
-      "description": "**Concept**: Opposition to current flow. Unit: ohm (Ω). Ideal relation with direct current: V = I·R.\n\n**How to reason about it**:\n• Material/geometry set R; temperature changes R (positive or negative coefficient).  \n• Series adds (R_total = R1 + R2 + …). Parallel reduces (1/R_total = 1/R1 + 1/R2 + …).  \n• Real resistors have tolerance and a power rating; overheating changes value or destroys parts.\n\n**How to measure it**:\n• Power **off** the circuit; measure with the meter’s ohms mode. In-circuit readings can be wrong due to parallel paths.  \n• For low values, lead resistance matters; subtract it or use a better method later.\n\n**Why it matters**:\n• Sets currents/voltages, forms dividers and filters, limits fault current, and defines time constants with capacitors/inductors.\n\n**Common mistakes**:\n• Measuring resistance on a live circuit.  \n• Ignoring power: P = I²R or V²/R can exceed the part’s rating.  \n• Assuming parallel parts add like series.\n\n**Bottom line**: Resistance is the knob that sets current for a given voltage. Calculate, check power, and understand series/parallel effects.",
+      "description": "**Concept**: Opposition to current flow. Unit: ohm (Ω). Ideal relation with direct current: <node id=\"35\">V = I·R</node>.\n\n**How to reason about it**:\n• Material/geometry set R; temperature changes R (positive or negative coefficient).  \n• Series adds (R_total = R1 + R2 + …). Parallel reduces (1/R_total = 1/R1 + 1/R2 + …).  \n• Real resistors have tolerance and a power rating; overheating changes value or destroys parts.\n\n**How to measure it**:\n• Power **off** the circuit; measure with the meter’s ohms mode. In-circuit readings can be wrong due to parallel paths.  \n• For low values, lead resistance matters; subtract it or use a better method later.\n\n**Why it matters**:\n• Sets currents/voltages, forms dividers and filters, limits fault current, and defines time constants with capacitors/inductors.\n\n**Common mistakes**:\n• Measuring resistance on a live circuit.  \n• Ignoring power: P = I²R or V²/R can exceed the part’s rating.  \n• Assuming parallel parts add like series.\n\n**Bottom line**: Resistance is the knob that sets current for a given voltage. Calculate, check power, and understand series/parallel effects.",
       "difficulty": 0,
       "domain": "hardware"
     },
     {
-      "id": 35,
+      "id": 30,
       "label": "Ohm’s Law",
       "type": "concept",
-      "description": "**What it is**: The linear relation between voltage, current, and resistance: V = I·R.\n\n**How to use it**:\n• Solve the missing variable (I = V/R, R = V/I).  \n• Size parts: pick R for a target current or voltage.  \n• Combine with ratings: verify the result won’t exceed device limits.\n\n**Example**:\nNeed 8 mA from 3.3 V across an LED with 2.0 V drop → R = (3.3 − 2.0)/0.008 ≈ 162.5 Ω → choose 160 Ω or 180 Ω.\n\n**Relevance**:\n• First-pass sizing for almost every beginner circuit.  \n• Immediate plausibility check—catches nonsense before layout.  \n• Directly tied to cost/heat: wrong R burns parts or makes dim/slow circuits.\n\n**Common mistakes**:\n• Wrong units (mA vs A).  \n• Treating non-resistive parts as purely resistive at all frequencies.\n\n**Bottom line**: Use V = I·R to set currents and voltages. Then check power separately.",
+      "description": "**What it is**: The linear relation between <node id=\"28\">voltage</node>, <node id=\"27\">current</node>, and <node id=\"28\">resistance</node>: V = I·R.\n\n**How to use it**:\n• Solve the missing variable (I = V/R, R = V/I).  \n• Size parts: pick R for a target current or voltage.  \n• Combine with ratings: verify the result won’t exceed device limits.\n\n**Example**:\nNeed 8 mA from 3.3 V across an LED with 2.0 V drop → R = (3.3 − 2.0)/0.008 ≈ 162.5 Ω → choose 160 Ω or 180 Ω.\n\n**Relevance**:\n• First-pass sizing for almost every beginner circuit.  \n• Immediate plausibility check—catches nonsense before layout.  \n• Directly tied to cost/heat: wrong R burns parts or makes dim/slow circuits.\n\n**Common mistakes**:\n• Wrong units (mA vs A).  \n• Treating non-resistive parts as purely resistive at all frequencies.\n\n**Bottom line**: Use V = I·R to set currents and voltages. Then check power separately.",
       "difficulty": 0,
       "domain": "hardware"
     },
     {
-      "id": 36,
+      "id": 31,
       "label": "Power",
       "type": "concept",
-      "description": "**What it is**: The rate of energy transfer in a circuit. \n Formulas: P = V·I = I²·R = V²/R (for resistive paths).\n\n**How to use it**:\n• After choosing R or I from Ohm’s law, compute P for each part and the source.  \n• Select parts with comfortable power margin (≥2× recommended).  \n• Know where power goes: parts that *absorb* power must dissipate it—mostly as heat.\n\n**Relevance**:\n• Power drives temperature rise (ΔT ≈ P·θJA); overheating kills reliability.  \n• Determines package choice, copper area, and whether a design survives real loads.  \n• Prevents shorts and overloads from destroying boards.\n\n**Example**:\n5 V into 330 Ω → I ≈ 15 mA; resistor P ≈ I²·R ≈ 0.076 W → pick a 0.25 W part. The regulator and traces also dissipate some V·I—verify their limits.\n\n**Common mistakes**:\n• Checking current but skipping P—parts overheat silently.  \n• Forgetting that meters/regulators/traces also dissipate V·I.  \n• Zero headroom on power rating (noisy labs and hot enclosures push temps up).\n\n**Bottom line**: Compute P wherever there’s a voltage drop or significant current. Then give every heat-bearing part thermal headroom.",
-      "difficulty": 0,
-      "domain": "hardware"
-    },
-    {
-      "id": 37,
-      "label": "Kirchhoff’s Current Law",
-      "type": "concept",
-      "description": "**What it is**: At any node, the algebraic sum of currents is zero (current that leaves equals current that enters).\n\n**How to use it**:\n• Choose current directions; write a sum = 0 for the node.  \n• Detect floating nodes and missing return paths during schematic review.\n\n**Example**:\nThree branches at a node: I1 (leaving), I2 (leaving), I3 (entering). Sum: I1 + I2 − I3 = 0 → solve the unknown.\n\n**Relevance**:\n• Fastest way to spot “no return path” bugs before a board spin.  \n• Validates sensor and bias networks so inputs aren’t left floating.  \n• Turns messy schematics into solvable equations quickly.\n\n**Common mistakes**:\n• Mixing sign conventions mid-solution.  \n• Assuming a ground symbol guarantees a physical return path.\n\n**Bottom line**: Use node sums to answer “where does the current go?”—it exposes missing or wrong connections immediately.",
-      "difficulty": 0,
-      "domain": "hardware"
-    },
-    {
-      "id": 38,
-      "label": "Kirchhoff’s Voltage Law",
-      "type": "concept",
-      "description": "**What it is**: Around any closed loop, the algebraic sum of voltage drops is zero.\n\n**How to use it**:\n• Mark polarities; walk a loop and sum signed drops = 0.  \n• Catch impossible extra volts or missing connections.\n\n**Example**:\nSupply 5 V feeds R1 then R2 back to ground. Loop: +5 − V_R1 − V_R2 = 0 → solve drops and verify they add to 5 V.\n\n**Relevance**:\n• Exposes wiring mistakes that pass visual inspection.  \n• Confirms regulator or battery headroom across real paths.  \n• Anchors bring-up: measured drops must close the loop.\n\n**Common mistakes**:\n• Flipping polarity mid-loop.  \n• Ignoring source internal resistance when drops don’t add up.\n\n**Bottom line**: Loop sums verify consistency and catch bad nets before you burn time on layout.",
+      "description": "**What it is**: The rate of energy transfer in a circuit.\n **Unit: watt (W)** (1 W = 1 J/s = 1 V·A).\n **Formulas**: P = <node id=\"28\">V</node>·<node id=\"27\">I</node> = I²·<node id=\"29\">R</node> = V²/<node id=\"29\">R</node> (for resistive paths).\n\n**How to use it**:\n• After choosing R or I from <node id=\"30\">Ohm’s law</node>, compute P for each part and the source.  \n• Select parts with comfortable power margin (≥2× recommended).  \n• Know where power goes: parts that *absorb* power must dissipate it—mostly as heat.\n\n**Relevance**:\n• Power drives temperature rise (ΔT ≈ P·θJA); overheating kills reliability.  \n• Determines package choice, copper area, and whether a design survives real loads.  \n• Prevents shorts and overloads from destroying boards.\n\n**Example**:\n5 V into 330 Ω → I ≈ 15 mA; resistor P ≈ I²·R ≈ 0.076 W → pick a 0.25 W part. The regulator and traces also dissipate some V·I—verify their limits.\n\n**Common mistakes**:\n• Checking current but skipping P—parts overheat silently.  \n• Forgetting that meters/regulators/traces also dissipate V·I.  \n• Zero headroom on power rating (noisy labs and hot enclosures push temps up).\n\n**Bottom line**: Compute P wherever there’s a voltage drop or significant current. Then give every heat-bearing part thermal headroom.",
       "difficulty": 0,
       "domain": "hardware"
     }
-
-
-
   ],
   "links": [
     {
-      "source": 35,
-      "target": 36,
+      "source": 30,
+      "target": 31,
       "relation": "prerequisite",
       "value": 1
     },
     {
-      "source": 32,
-      "target": 36,
+      "source": 31,
+      "target": 26,
       "relation": "prerequisite",
       "value": 1
     },
     {
-      "source": 33,
-      "target": 36,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 33,
-      "target": 35,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 32,
-      "target": 35,
-      "relation": "prerequisite",
-      "value": 1
-    },
-    {
-      "source": 34,
-      "target": 25,
+      "source": 29,
+      "target": 30,
       "relation": "prerequisite",
       "value": 1
     },
     {
       "source": 28,
-      "target": 29,
+      "target": 30,
       "relation": "prerequisite",
       "value": 1
     },
     {
-      "source": 33,
-      "target": 38,
+      "source": 27,
+      "target": 30,
+      "relation": "prerequisite",
+      "value": 1
+    },
+    {
+      "source": 29,
+      "target": 25,
       "relation": "prerequisite",
       "value": 1
     },

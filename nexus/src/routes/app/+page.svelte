@@ -563,9 +563,9 @@
 		});
 
 		const anchors: Record<string, [number, number]> = {
-			math: [-width / 2.8, height / 6], // bottom-left (your original intent)
+			physics: [-width / 2.8, height / 6], // bottom-left (your original intent)
 			hardware: [-width / 4.2, -height / 8], // upper-left (separate from math)
-			physics: [-width / 5.0, height / 5], // lower-left middle (optional)
+			math: [-width / 5.0, height / 5], // lower-left middle (optional)
 			ai: [width / 4.0, -height / 10], // right/top-right
 			tech: [width / 6.0, 0], // near center-right
 			biology: [width / 5.0, height / 6],

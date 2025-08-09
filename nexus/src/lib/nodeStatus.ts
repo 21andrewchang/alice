@@ -102,7 +102,7 @@ export const nodeStatusService = new NodeStatusService();
 export function getDomainColor(domain: string): string {
   const domainColors: Record<string, string> = {
     ai: '#FF6B9D', math: '#5B8DF2', tech: '#73DACA',
-    hardware: '#FFD93D', physics: '#9A6BFF', biology: '#6BCF7F', chemistry: '#FF8C42',
+    hardware: '#FFD93D', physics: '#BA6FFF', biology: '#6BCF7F', chemistry: '#FF8C42',
     default: '#666'
   };
   return domainColors[domain] || domainColors.default;
