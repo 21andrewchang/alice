@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { cubicOut, cubicIn, cubicInOut } from 'svelte/easing';
-	import { fade } from 'svelte/transition';
+	import { fade, scale } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
 
@@ -490,6 +490,8 @@
 		/>
 		<div
 			class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border-1 border-white/10 bg-black p-6"
+			in:scale={{ duration: 200, easing: cubicOut, start: 0.9 }}
+			out:scale={{ duration: 140, easing: cubicIn, start: 0.9 }}
 		>
 			<h1 class="mb-6 self-start text-center text-xl font-semibold text-neutral-200">
 				Login to your account
