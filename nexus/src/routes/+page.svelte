@@ -1,59 +1,27 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { cubicOut, cubicIn, cubicInOut } from 'svelte/easing';
-	import { scale, fade } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
 
 	let videoEl: HTMLVideoElement;
 	let showOverlay = true;
-
 	function handlePlay() {
 		if (!videoEl) return;
-		videoEl.controls = true; // reveal native controls after play
+		videoEl.controls = true;
 		videoEl.play();
-		showOverlay = false; // hide the thumbnail overlay
+		showOverlay = false;
 	}
 
-	let canvasEl: HTMLCanvasElement;
+	let canvasEl: HTMLCanvasElement; // dots
 	let ctx: CanvasRenderingContext2D | null = null;
-	let animationId: number;
 
 	let width = 0;
 	let height = 0;
-	let mouse = { x: -1000, y: -1000 };
-	let cursorX = 0;
-	let cursorY = 0;
-	let showCustomCursor = false;
-	let cursorSpawned = false;
-	let cursorScale = 0;
-	let cursorSpawnedOnce = false;
-	let cursorGravityScale = 0;
+	let dpr = 1;
 
-	const dotSpacing = 24; // was 24, fewer dots, more spread out
-	let dotRadius = 0.7; // instead of const
-	const minBrightness = 0.1; // was 0.18, brighter dots
-	const maxBrightness = 0.5; // was 0.38, brighter dots
-	const cursorDeceleration = 0.9; // was 0.82, higher = more floaty
-	let maxDotDisplacement = 28;
-	const springK = 0.07; // was 0.12, lower = softer spring
-
-	// Glow dots background
-	let glowCanvasEl: HTMLCanvasElement;
-	let glowCtx: CanvasRenderingContext2D | null = null;
-	const glowDotCount = 18;
-	let glowDots: { x: number; y: number; r: number; color: string; a: number }[] = [];
-
-	let showLoginModal = false;
-	let email = '';
-
-	// For button glow
-	let btnGlowX = 50;
-	let btnGlowY = 50;
-	let btnHover = false;
-	let btnGlowFadeTimer: ReturnType<typeof setTimeout> | null = null;
-
-	// Each dot gets a random base brightness
+	const TARGET_DOTS = 2000;
 	let dots: {
 		x: number;
 		y: number;
@@ -64,18 +32,38 @@
 		baseB: number;
 	}[] = [];
 
-	let cursorCanvasEl: HTMLCanvasElement;
-	let cursorCtx: CanvasRenderingContext2D | null = null;
-	let cursorAberrationAnimId: number;
-	let prevCursor = { x: 0, y: 0, time: Date.now() };
+	let dotRadius = 0.7;
+	const minBrightness = 0.1;
+	const maxBrightness = 0.4;
+	const cursorDeceleration = 0.9;
+	let maxDotDisplacement = 28;
+	const springK = 0.07;
+
+	let mouse = { x: -1000, y: -1000 };
+	let cursorX = 0;
+	let cursorY = 0;
+	let lagCursorX = 0;
+	let lagCursorY = 0;
+	let showCustomCursor = false;
+	let cursorScale = 0;
+	let cursorSpawnedOnce = false;
+	let cursorGravityScale = 0;
+
+	const glowDotCount = 18;
+	let glowDots: { x: number; y: number; r: number; color: string; a: number }[] = [];
+
+	// UI
+	let showLoginModal = false;
+	let btnGlowX = 50;
+	let btnGlowY = 50;
+	let btnHover = false;
+	let btnGlowFadeTimer: ReturnType<typeof setTimeout> | null = null;
 
 	const headingText = 'Unleash Your Intellectual Potential';
-	let headingSpanRefs: HTMLSpanElement[] = new Array(headingText.length);
 	let headingRef: HTMLDivElement;
-	let headingRect = { left: 0, top: 0, width: 0, height: 0 };
-	let animId: number;
+	let wordRefs: HTMLElement[] = [];
+	let headingRect = { left: 0, width: 0 };
 
-	const TARGET_DOTS = 2000;
 	function clamp(n: number, a: number, b: number) {
 		return Math.max(a, Math.min(b, n));
 	}
@@ -84,25 +72,21 @@
 		width = window.innerWidth;
 		height = window.innerHeight;
 
-		// figure out a cols/rows grid that yields ~TARGET_DOTS respecting aspect
+		// same grid logic as your previous version: solve cols/rows from TARGET_DOTS
 		const aspect = width / Math.max(1, height);
 		let cols = Math.max(1, Math.round(Math.sqrt(TARGET_DOTS * aspect)));
 		let rows = Math.max(1, Math.ceil(TARGET_DOTS / cols));
-		// ensure rows*cols >= TARGET_DOTS
 		if (cols * rows < TARGET_DOTS) rows = Math.ceil(TARGET_DOTS / cols);
 
 		const stepX = width / (cols + 1);
 		const stepY = height / (rows + 1);
 
-		// scale visuals with spacing
+		// keep look: radius tied gently to spacing (but clamp to your old ~0.7 baseline)
 		const spacing = Math.min(stepX, stepY);
-		// ~0.6 … 1.2 px, tweak to taste
-		(dotRadius as number) = clamp(spacing * 0.035, 0.6, 1.2);
-		(maxDotDisplacement as number) = spacing * 1.05;
+		dotRadius = clamp(spacing * 0.035, 0.6, 1.2);
+		maxDotDisplacement = spacing * 1.05;
 
-		// ensure dots array is exactly TARGET_DOTS
 		if (dots.length < TARGET_DOTS) {
-			// seed new dots with persistent base brightness
 			const midB = (0.2 + maxBrightness) / 2;
 			const jitter = (maxBrightness - minBrightness) * 0.1;
 			for (let i = dots.length; i < TARGET_DOTS; i++) {
@@ -117,16 +101,14 @@
 				});
 			}
 		} else if (dots.length > TARGET_DOTS) {
-			dots.length = TARGET_DOTS; // trim
+			dots.length = TARGET_DOTS;
 		}
 
-		// position exactly TARGET_DOTS dots on the grid
+		// place dots on grid
 		for (let i = 0; i < TARGET_DOTS; i++) {
 			const c = i % cols;
 			const r = Math.floor(i / cols);
-			// guard in case rows*cols > TARGET_DOTS (common) — we just won’t use the extras
 			if (r >= rows) break;
-
 			const x = (c + 1) * stepX;
 			const y = (r + 1) * stepY;
 
@@ -138,84 +120,69 @@
 		}
 	}
 
-	function setupGlowDots() {
+	function resizeAll() {
+		const MAX_DPR = 1.75;
+		dpr = Math.min(MAX_DPR, window.devicePixelRatio || 1);
+
 		width = window.innerWidth;
 		height = window.innerHeight;
-		glowDots = [];
-		for (let i = 0; i < glowDotCount; i++) {
-			const x = Math.random() * width;
-			const y = Math.random() * height;
-			const r = 60 + Math.random() * 80;
-			const color = Math.random() > 0.5 ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.10)';
-			const a = 0.18 + Math.random() * 0.12;
-			glowDots.push({ x, y, r, color, a });
+
+		if (canvasEl) {
+			canvasEl.width = Math.max(1, Math.floor(width * dpr));
+			canvasEl.height = Math.max(1, Math.floor(height * dpr));
+			canvasEl.style.width = `${width}px`;
+			canvasEl.style.height = `${height}px`;
+			ctx?.setTransform(1, 0, 0, 1, 0, 0);
+			ctx?.scale(dpr, dpr);
 		}
+
+		setupGrid();
 	}
 
-	function drawGlowDots() {
-		if (!glowCtx) return;
-		glowCtx.clearRect(0, 0, width, height);
-		for (const dot of glowDots) {
-			const grad = glowCtx.createRadialGradient(dot.x, dot.y, 0, dot.x, dot.y, dot.r);
-			grad.addColorStop(
-				0,
-				dot.color.replace('0.12', dot.a.toFixed(2)).replace('0.10', dot.a.toFixed(2))
-			);
-			grad.addColorStop(1, 'rgba(0,0,0,0)');
-			glowCtx.beginPath();
-			glowCtx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2);
-			glowCtx.fillStyle = grad;
-			glowCtx.fill();
-		}
-	}
-
-	// Custom cursor lag
-	let lagCursorX = 0;
-	let lagCursorY = 0;
-	const cursorLag = 0.4; // 0.1-0.2 is a good range
-
-	function animate() {
+	let rafId = 0;
+	function loop() {
 		if (!ctx) return;
+
+		lagCursorX += (cursorX - lagCursorX) * 0.4;
+		lagCursorY += (cursorY - lagCursorY) * 0.4;
+
 		ctx.clearRect(0, 0, width, height);
+
 		for (const dot of dots) {
-			// Spring force toward original position
+			// spring back
 			let springFx = (dot.ox - dot.x) * springK;
 			let springFy = (dot.oy - dot.y) * springK;
 
-			// Only apply repelling force if cursor has spawned
+			// same repel shape you had (exp falloff) gated by gravity ramp
 			if (cursorSpawnedOnce) {
 				const dx = dot.x - mouse.x;
 				const dy = dot.y - mouse.y;
 				const dist = Math.sqrt(dx * dx + dy * dy);
-				const maxDist = Math.max(width, height); // as big as the page
+				const maxDist = 5000;
 				if (dist < maxDist) {
-					// Strong repelling force near center, much less farther away
-					const repelStrength = 0.18 * Math.exp(-dist / (maxDist * 0.22)); // exponential falloff
+					const repelStrength = 0.18 * Math.exp(-dist / (maxDist * 0.22));
 					springFx += (dx / (dist + 1e-6)) * repelStrength * maxDist * cursorGravityScale;
 					springFy += (dy / (dist + 1e-6)) * repelStrength * maxDist * cursorGravityScale;
 				}
 			}
 
-			// More physically realistic spring-damper (for bounciness)
+			// integrate (same damping feel)
 			dot.vx = (dot.vx + springFx) * cursorDeceleration;
 			dot.vy = (dot.vy + springFy) * cursorDeceleration;
-
 			dot.x += dot.vx;
 			dot.y += dot.vy;
 
-			// Clamp dot displacement
+			// clamp displacement (same)
 			const odx = dot.x - dot.ox;
 			const ody = dot.y - dot.oy;
 			const odist = Math.sqrt(odx * odx + ody * ody);
 			if (odist > maxDotDisplacement) {
-				const clampAngle = Math.atan2(ody, odx);
-				dot.x = dot.ox + Math.cos(clampAngle) * maxDotDisplacement;
-				dot.y = dot.oy + Math.sin(clampAngle) * maxDotDisplacement;
-				// Do NOT reset dot.vx or dot.vy to zero; let them decay naturally
+				const a = Math.atan2(ody, odx);
+				dot.x = dot.ox + Math.cos(a) * maxDotDisplacement;
+				dot.y = dot.oy + Math.sin(a) * maxDotDisplacement;
 			}
 
-			// Draw dot with dynamic brightness (brighter when closer to cursor)
-			// Add twinkle: randomize brightness a bit each frame
+			// brightness + twinkle (same pattern)
 			let brightness = dot.baseB + (Math.random() - 0.5) * 0.12;
 			if (cursorSpawnedOnce) {
 				const dx = dot.x - mouse.x;
@@ -226,148 +193,19 @@
 					brightness += (maxBrightness - dot.baseB) * (1 - dist / maxDist);
 				}
 			}
-			const b = Math.min(1, Math.max(0, brightness));
+			const b = clamp(brightness, 0, 1);
+
 			ctx.beginPath();
 			ctx.arc(dot.x, dot.y, dotRadius, 0, Math.PI * 2);
-			ctx.fillStyle = `rgba(255,255,255,${b})`;
+			// subtle halo like before
 			ctx.shadowColor = `rgba(255,255,255,${b * 0.7})`;
 			ctx.shadowBlur = 2;
+			ctx.fillStyle = `rgba(255,255,255,${b})`;
 			ctx.fill();
 			ctx.shadowBlur = 0;
 		}
-		animationId = requestAnimationFrame(animate);
-	}
 
-	// Custom cursor lag update
-	function updateLagCursor() {
-		lagCursorX += (cursorX - lagCursorX) * cursorLag;
-		lagCursorY += (cursorY - lagCursorY) * cursorLag;
-		requestAnimationFrame(updateLagCursor);
-	}
-
-	function handleResize() {
-		setupGrid();
-		setupGlowDots();
-		if (canvasEl) {
-			canvasEl.width = width;
-			canvasEl.height = height;
-		}
-		if (glowCanvasEl) {
-			glowCanvasEl.width = width;
-			glowCanvasEl.height = height;
-		}
-		drawGlowDots();
-	}
-	const words = headingText.split(' ');
-	let wordRefs: HTMLElement[] = [];
-
-	let headingMouseX = -1;
-
-	function updateHeadingRect() {
-		const el = document.querySelector('.heading-words');
-		if (!el) return;
-		const r = el.getBoundingClientRect();
-		headingRect = { left: r.left, width: r.width };
-	}
-
-	function handleHeadingMouseMove(e: MouseEvent) {
-		const { left, width } = headingRef.getBoundingClientRect();
-		// normalize mouse X from –1 (far left) to +1 (far right)
-		const xNorm = (e.clientX - (left + width / 2)) / (width / 2);
-		const maxAngle = 4; // gentler ±8°
-
-		headingRef.style.setProperty('--y-tilt', `${-xNorm * maxAngle}deg`);
-	}
-
-	function resetHeadingTilt() {
-		headingRef.style.setProperty('--y-tilt', `0deg`);
-	}
-
-	onMount(() => {
-		(async () => {
-			const {
-				data: { session }
-			} = await supabase.auth.getSession();
-			if (session) {
-				goto('/app');
-			}
-			ctx = canvasEl.getContext('2d');
-			glowCtx = glowCanvasEl.getContext('2d');
-			cursorCtx = cursorCanvasEl.getContext('2d');
-			handleResize();
-			animate();
-			updateLagCursor();
-			resizeCursorCanvas();
-			drawCursorAberration();
-			await tick();
-			wordRefs = Array.from(headingRef.querySelectorAll('.heading-word'));
-			updateHeadingRect();
-			window.addEventListener('resize', updateHeadingRect);
-		})();
-		window.addEventListener('resize', handleResize);
-		window.addEventListener('resize', resizeCursorCanvas);
-		window.addEventListener('mousemove', handleMouseMove);
-		window.addEventListener('touchmove', handleTouchMove, { passive: false });
-		window.addEventListener('resize', updateHeadingRect);
-		return () => {
-			window.removeEventListener('resize', handleResize);
-			window.removeEventListener('resize', resizeCursorCanvas);
-			window.removeEventListener('mousemove', handleMouseMove);
-			window.removeEventListener('touchmove', handleTouchMove);
-			window.cancelAnimationFrame(animationId);
-			cancelAnimationFrame(cursorAberrationAnimId);
-			window.removeEventListener('resize', updateHeadingRect);
-			cancelAnimationFrame(animId);
-		};
-	});
-
-	function resizeCursorCanvas() {
-		const dpr = window.devicePixelRatio || 1;
-		cursorCanvasEl.width = window.innerWidth * dpr;
-		cursorCanvasEl.height = window.innerHeight * dpr;
-		cursorCanvasEl.style.width = `${window.innerWidth}px`;
-		cursorCanvasEl.style.height = `${window.innerHeight}px`;
-		cursorCtx?.setTransform(1, 0, 0, 1, 0, 0);
-		cursorCtx?.scale(dpr, dpr);
-	}
-
-	function drawCursorAberration() {
-		if (!cursorCtx) return;
-		cursorCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-		// Aberration logic
-		const now = Date.now();
-		const dt = now - prevCursor.time;
-		const dx = lagCursorX - prevCursor.x;
-		const dy = lagCursorY - prevCursor.y;
-		const velocity = Math.sqrt(dx * dx + dy * dy) / (dt || 1);
-		prevCursor = { x: lagCursorX, y: lagCursorY, time: now };
-
-		// Use the same radius as the main white cursor (16px at scale 1)
-		const minOffset = 0;
-		const maxOffset = 18;
-		const aberrationOffset = Math.max(minOffset, Math.min(maxOffset, velocity * 1.2));
-		const circleRadius = 8 * cursorScale;
-
-		function drawAberrationCircle(offsetX: number, offsetY: number, color: string, rad: number) {
-			if (!cursorCtx) return;
-			cursorCtx.save();
-			cursorCtx.shadowColor = color;
-			cursorCtx.shadowBlur = 8;
-			cursorCtx.beginPath();
-			cursorCtx.arc(lagCursorX + offsetX, lagCursorY + offsetY, rad, 0, Math.PI * 2);
-			cursorCtx.fillStyle = color;
-			cursorCtx.fill();
-			cursorCtx.restore();
-		}
-
-		// Draw colored circles first (so they hide behind the white core)
-		drawAberrationCircle(aberrationOffset, 0, 'rgba(254, 0, 0, 0.7)', circleRadius);
-		drawAberrationCircle(-aberrationOffset, 0, 'rgba(0, 128, 255, 0.7)', circleRadius);
-		// Draw the white core last, always on top, same size as color circles
-		drawAberrationCircle(0, 0, 'rgba(255,255,255,0.95)', circleRadius);
-
-		cursorAberrationAnimId = requestAnimationFrame(drawCursorAberration);
+		rafId = requestAnimationFrame(loop);
 	}
 
 	function animateCursorScale() {
@@ -377,7 +215,6 @@
 			requestAnimationFrame(animateCursorScale);
 		}
 	}
-
 	function rampUpGravity() {
 		const start = performance.now();
 		function frame(now: number) {
@@ -387,6 +224,7 @@
 		}
 		requestAnimationFrame(frame);
 	}
+
 	function handleMouseMove(e: MouseEvent) {
 		mouse.x = e.clientX;
 		mouse.y = e.clientY;
@@ -395,16 +233,13 @@
 		if (!cursorSpawnedOnce) {
 			lagCursorX = cursorX;
 			lagCursorY = cursorY;
-			cursorSpawned = true;
 			cursorScale = 0.01;
-			cursorGravityScale = 0;
-			rampUpGravity();
 			showCustomCursor = true;
 			animateCursorScale();
+			rampUpGravity();
 			cursorSpawnedOnce = true;
 		}
 	}
-
 	function handleTouchMove(e: TouchEvent) {
 		if (e.touches.length > 0) {
 			const t = e.touches[0];
@@ -415,11 +250,10 @@
 			if (!cursorSpawnedOnce) {
 				lagCursorX = cursorX;
 				lagCursorY = cursorY;
-				showCustomCursor = true;
-				cursorSpawned = true;
 				cursorScale = 0.01;
-				cursorGravityScale = 0; // reset gravity ramp
+				showCustomCursor = true;
 				animateCursorScale();
+				rampUpGravity();
 				cursorSpawnedOnce = true;
 			}
 		}
@@ -441,49 +275,74 @@
 		btnHover = false;
 	}
 
+	function updateHeadingRect() {
+		const el = document.querySelector('.heading-words');
+		if (!el) return;
+		const r = el.getBoundingClientRect();
+		headingRect = { left: r.left, width: r.width };
+	}
+	function handleHeadingMouseMove(e: MouseEvent) {
+		const { left, width } = headingRef.getBoundingClientRect();
+		const xNorm = (e.clientX - (left + width / 2)) / (width / 2);
+		const maxAngle = 4;
+		headingRef.style.setProperty('--y-tilt', `${-xNorm * maxAngle}deg`);
+	}
+	function resetHeadingTilt() {
+		headingRef.style.setProperty('--y-tilt', `0deg`);
+	}
+
 	async function signInWithGoogle() {
-		const { error } = await supabase.auth.signInWithOAuth({
-			provider: 'google'
-		});
+		const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
 		if (error) alert(error.message);
 	}
 
-	async function signInWithMagicLink() {
-		const { error } = await supabase.auth.signInWithOtp({
-			email,
-			options: { emailRedirectTo: `${location.origin}/app` }
-		});
-		if (!error) {
-			alert('Check your email for the login link!');
-			email = '';
-		} else {
-			alert(error.message);
-		}
-	}
+	onMount(() => {
+		(async () => {
+			const {
+				data: { session }
+			} = await supabase.auth.getSession();
+			if (session) goto('/app');
+
+			ctx = canvasEl.getContext('2d', { alpha: false });
+
+			resizeAll();
+			rafId = requestAnimationFrame(loop);
+
+			await tick();
+			wordRefs = Array.from(headingRef.querySelectorAll('.heading-word'));
+			updateHeadingRect();
+
+			window.addEventListener('resize', resizeAll);
+			window.addEventListener('resize', updateHeadingRect);
+			window.addEventListener('mousemove', handleMouseMove);
+			window.addEventListener('touchmove', handleTouchMove, { passive: false });
+		})();
+
+		return () => {
+			cancelAnimationFrame(rafId);
+			window.removeEventListener('resize', resizeAll);
+			window.removeEventListener('resize', updateHeadingRect);
+			window.removeEventListener('mousemove', handleMouseMove);
+			window.removeEventListener('touchmove', handleTouchMove);
+		};
+	});
 </script>
 
 <div class="landing-bg">
-	<canvas bind:this={canvasEl} {width} {height} style="display:block;width:100vw;height:100vh;"
-	></canvas>
+	<canvas bind:this={canvasEl}></canvas>
 </div>
-<div class="landing-glow-bg">
-	<canvas bind:this={glowCanvasEl} {width} {height} style="display:block;width:100vw;height:100vh;"
-	></canvas>
-</div>
-<canvas bind:this={cursorCanvasEl} class="cursor-aberration-canvas"></canvas>
-<!-- Custom cursor -->
+
 {#if showCustomCursor}
 	<div
 		class="custom-cursor"
 		style="left: {lagCursorX}px; top: {lagCursorY}px; transform: translate(-50%, -50%) scale({cursorScale});"
 	></div>
 {/if}
+
 <div
-	class="sticky top-0 left-0 z-50 grid w-full grid-cols-[1fr_2fr_1fr] items-center bg-black/70
-         p-4 px-24 backdrop-blur-sm"
+	class="sticky top-0 left-0 z-50 grid w-full grid-cols-[1fr_2fr_1fr] items-center bg-black/70 p-4 px-24 backdrop-blur-sm"
 >
 	<a href="/" class="text-white">Alice</a>
-
 	<div class="flex items-center justify-center gap-x-4">
 		<a
 			href="#how-it-works"
@@ -506,7 +365,6 @@
 			>Contact Us</a
 		>
 	</div>
-
 	<div class="flex items-center justify-end gap-x-2">
 		<button
 			on:click={() => (showLoginModal = true)}
@@ -523,6 +381,7 @@
 	</div>
 </div>
 
+<!-- Content -->
 <div class="landing-content flex min-h-screen flex-col items-center pt-52">
 	<section class="mb-20 flex flex-col items-center">
 		<div
@@ -555,12 +414,11 @@
 			<span
 				class="glow-btn inline-flex h-full w-full cursor-pointer items-center justify-center rounded-[11px] bg-neutral-950 px-4 py-2 text-sm font-medium text-neutral-200 backdrop-blur-3xl"
 				data-hover={btnHover}
-				style="--glow-x: {btnGlowX}%; --glow-y: {btnGlowY}%"
+				style="--glow-x: {btnGlowX}%; --glow-y: {btnGlowY}%">Start Learning</span
 			>
-				Start Learning
-			</span>
 		</button>
 	</section>
+
 	<section
 		id="how-it-works"
 		class="mx-auto grid max-w-screen-2xl gap-8 px-6 py-20 sm:px-10 lg:px-16"
@@ -574,11 +432,7 @@
 				playsinline
 			/>
 			{#if showOverlay}
-				<button
-					class="absolute inset-0 grid place-items-center"
-					on:click={handlePlay}
-					aria-label="Play demo video"
-				>
+				<button class="overlay-btn" on:click={handlePlay} aria-label="Play demo video">
 					<video
 						src="/demo-thumb.mp4"
 						autoplay
@@ -587,9 +441,7 @@
 						playsinline
 						class="absolute inset-0 z-10 h-full w-full object-cover"
 					/>
-					<div
-						class="relative z-20 rounded-full border border-white/20 bg-black/50 p-[18px] backdrop-blur"
-					>
+					<div class="play-puck z-20">
 						<svg viewBox="0 0 24 24" class="h-10 w-10 text-white"
 							><path fill="currentColor" d="M8 5v14l11-7z" /></svg
 						>
@@ -597,6 +449,7 @@
 				</button>
 			{/if}
 		</div>
+
 		<div class="mb-12 flex h-128 w-full max-w-5xl flex-col rounded-lg p-4 text-neutral-200">
 			<div class="text-5xl font-medium text-neutral-200">Curiosity-Based Learning</div>
 			<div class="mb-8 text-lg text-neutral-400">
@@ -613,6 +466,7 @@
 			</div>
 		</div>
 	</section>
+
 	<section id="mission" class="mx-auto w-full max-w-screen-xl px-6 py-20 sm:px-10 lg:px-16">
 		<div
 			class="mx-auto mb-12 flex h-128 w-full max-w-5xl items-center justify-center rounded-lg text-neutral-200"
@@ -620,6 +474,7 @@
 			🚧 Mission Coming Soon 🚧
 		</div>
 	</section>
+
 	<section id="footer" class="container mx-auto grid gap-12 px-6 py-20"></section>
 </div>
 
@@ -633,17 +488,14 @@
 			in:fade={{ duration: 180, easing: cubicOut }}
 			out:fade={{ duration: 140, easing: cubicIn }}
 		/>
-
 		<div
-			class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border-[2px] border-white/10 bg-black/70 p-6 backdrop-blur-2xl"
-			style="-webkit-backdrop-filter: blur(24px);"
-			transition:scale={{ start: 0.9, duration: 200, easing: cubicOut }}
+			class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border-1 border-white/10 bg-black p-6"
 		>
-			<h1 class="mb-6 self-start text-center text-xl font-semibold text-neutral-50">
+			<h1 class="mb-6 self-start text-center text-xl font-semibold text-neutral-200">
 				Login to your account
 			</h1>
 			<button
-				class=" mb-4 rounded-full bg-neutral-200 px-4 py-2 font-semibold text-black"
+				class="mb-4 rounded-full bg-neutral-200 px-4 py-2 font-semibold text-black"
 				on:click={signInWithGoogle}
 			>
 				Continue with Google
@@ -653,66 +505,25 @@
 {/if}
 
 <style>
-	.magnet {
-		/* start un-scaled */
-		transform: scale(1);
-		/* floaty spring easing (same as your heading) */
-		transition: transform 3s cubic-bezier(0.22, 1, 0.36, 1);
-	}
-
-	/* 3) Scale the whole thing on hover */
-	.magnet:hover {
-		transform: scale(1.05);
-	}
-	.heading-wrapper {
-		perspective: 800px;
-		/* ensure it's above everything else */
-		position: relative;
-		z-index: 10;
-	}
-
-	.heading-words {
-		display: inline-flex;
-		flex-wrap: wrap;
-		gap: 0.5ch;
-		transform-style: preserve-3d;
-		transform: rotateY(var(--y-tilt, 0deg));
-		/* floaty spring easing and longer duration */
-		transition: transform 3s cubic-bezier(0.22, 1, 0.36, 1);
-	}
-
-	.heading-word {
-		font-size: clamp(2.2rem, 5vw, 3.5rem);
-		font-weight: bold;
-		color: white;
-	}
-
-	@keyframes wordFadeIn {
-		from {
-			opacity: 0;
-			filter: blur(8px);
-		}
-		to {
-			opacity: 1;
-			filter: blur(0);
-		}
-	}
+	/* canvases */
 	.landing-bg {
 		position: fixed;
 		inset: 0;
 		z-index: 0;
-		background: #000;
 	}
-	.landing-glow-bg {
-		position: fixed;
-		inset: 0;
-		z-index: 0;
-		pointer-events: none;
+	.landing-bg canvas {
+		display: block;
+		width: 100vw;
+		height: 100vh;
 	}
 	.landing-content {
 		position: relative;
 		z-index: 3;
 	}
+	.landing-bg {
+		background: #000;
+	}
+
 	.custom-cursor {
 		position: fixed;
 		left: 0;
@@ -728,11 +539,37 @@
 			0 0 14px 4px #fff,
 			0 0 48px 18px rgba(255, 255, 255, 0.18);
 		opacity: 0.95;
-		transition:
-			background 0.15s,
-			box-shadow 0.15s,
-			transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+		transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 	}
+
+	/* nav + heading */
+	.magnet {
+		transform: scale(1);
+		transition: transform 3s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.magnet:hover {
+		transform: scale(1.05);
+	}
+	.heading-wrapper {
+		perspective: 800px;
+		position: relative;
+		z-index: 10;
+	}
+	.heading-words {
+		display: inline-flex;
+		flex-wrap: wrap;
+		gap: 0.5ch;
+		transform-style: preserve-3d;
+		transform: rotateY(var(--y-tilt, 0deg));
+		transition: transform 3s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.heading-word {
+		font-size: clamp(2.2rem, 5vw, 3.5rem);
+		font-weight: bold;
+		color: white;
+	}
+
+	/* button glow */
 	.glow-btn {
 		text-transform: uppercase;
 		letter-spacing: 0.12em;
@@ -748,9 +585,6 @@
 		position: relative;
 		overflow: hidden;
 		z-index: 1;
-	}
-	.glow-btn::before {
-		display: none;
 	}
 	.glow-btn::after {
 		content: '';
@@ -776,48 +610,8 @@
 	.glow-btn[data-hover='true']::after {
 		opacity: 1;
 	}
-	.cursor-aberration-canvas {
-		position: fixed;
-		left: 0;
-		top: 0;
-		width: 100vw;
-		height: 100vh;
-		pointer-events: none;
-		z-index: 10001;
-	}
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
 
-	/* apply it to your grid + glow canvases */
-	.landing-bg canvas,
-	.landing-glow-bg canvas {
-		opacity: 0; /* start hidden */
-		animation: fadeIn 1s ease-out 0.2s 1 forwards;
-		/*           ↑   ↑         ↑  ↑
-                 │   │         └─ run once, keep final state
-                 │   └─ 0.5s delay before starting
-                 └─ 1s duration */
-	}
-	* {
-		-webkit-user-select: none; /* Safari */
-		-moz-user-select: none; /* Firefox */
-		-ms-user-select: none; /* IE10+ */
-		user-select: none; /* standard */
-	}
-
-	/* make any accidental selection invisible */
-	::selection {
-		background: transparent;
-	}
-	html {
-		scroll-behavior: smooth;
-	}
+	/* video overlay */
 	.overlay-btn {
 		position: absolute;
 		inset: 0;
@@ -844,5 +638,12 @@
 	}
 	.overlay-btn:hover .play-puck {
 		transform: scale(1.05);
+	}
+
+	* {
+		user-select: none;
+	}
+	::selection {
+		background: transparent;
 	}
 </style>
