@@ -48,7 +48,7 @@
 		const domainColors = {
 			math: '#5B8DF2',
 			tech: '#73DACA',
-			sciences: '#BA6FFF',
+			physics: '#BA6FFF',
 			humanities: '#F88951',
 			ai: '#FF6B9D',
 			hardware: '#FFD93D',
