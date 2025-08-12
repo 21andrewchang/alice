@@ -21,7 +21,7 @@
 	let height = 0;
 	let dpr = 1;
 
-	const TARGET_DOTS = 2000;
+	const TARGET_DOTS = 900;
 	let dots: {
 		x: number;
 		y: number;
@@ -32,9 +32,9 @@
 		baseB: number;
 	}[] = [];
 
-	let dotRadius = 0.7;
+	let dotRadius = 0.1;
 	const minBrightness = 0.1;
-	const maxBrightness = 0.4;
+	const maxBrightness = 0.3;
 	const cursorDeceleration = 0.9;
 	let maxDotDisplacement = 28;
 	const springK = 0.07;
