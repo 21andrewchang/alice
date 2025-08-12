@@ -489,7 +489,7 @@
 			out:fade={{ duration: 140, easing: cubicIn }}
 		/>
 		<div
-			class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border-1 border-white/10 bg-black p-6"
+			class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border border-white/10 bg-black p-6"
 			in:scale={{ duration: 200, easing: cubicOut, start: 0.9 }}
 			out:scale={{ duration: 140, easing: cubicIn, start: 0.9 }}
 		>
