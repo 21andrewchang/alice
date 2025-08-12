@@ -1650,9 +1650,9 @@
 			{/each}
 		</div>
 	{/if}
-	<div class="fab-row">
+	<div class="fab-row pointer-events-none">
 		<div
-			class="tutorial-container border-2 border-neutral-800"
+			class="tutorial-container pointer-events-auto border-2 border-neutral-800"
 			class:expanded={tutorialExpanded}
 			on:click={() => {
 				if (!tutorialExpanded) tutorialExpanded = true;
@@ -1708,7 +1708,7 @@
 
 		<button
 			type="button"
-			class="inline-flex items-center rounded-full border-2 border-neutral-800/80 bg-black/20 px-2 py-1
+			class="pointer-events-auto inline-flex items-center rounded-full border-2 border-neutral-800/80 bg-black/20 px-2 py-1
             font-medium text-neutral-500 backdrop-blur-md transition
             hover:text-white focus:outline-none"
 			aria-label="Request a topic"
@@ -1719,7 +1719,7 @@
 		</button>
 		<button
 			type="button"
-			class="inline-flex items-center rounded-full border-2 border-red-500/40 bg-black/20 px-2 py-1
+			class="pointer-events-auto inline-flex items-center rounded-full border-2 border-red-500/40 bg-black/20 px-2 py-1
             font-medium text-red-800 backdrop-blur-md transition
             hover:text-red-500 focus:outline-none"
 			aria-label="Request a topic"
@@ -1826,7 +1826,6 @@
 		background: #0a0a0a;
 	}
 
-	/* Row container for floating buttons (bottom-left) */
 	.fab-row {
 		position: fixed;
 		left: 16px;
@@ -1836,53 +1835,6 @@
 		align-items: flex-end;
 		gap: 12px;
 	}
-
-	.request-topic-btn {
-		width: 60px;
-		height: 32px;
-		padding: 0 10px;
-		border-radius: 16px;
-		gap: 6px;
-		font-size: 12px;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.request-topic-btn .icon {
-		width: 14px;
-		height: 14px;
-	}
-	/* Request Topic small circle — matches tutorial’s visual language */
-	.request-btn {
-		width: auto;
-		height: 25px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 50%;
-		border: 0;
-		cursor: pointer;
-		font-size: 12px;
-		line-height: 1;
-		color: #e0e0e0;
-		background: rgba(0, 0, 0, 0.08);
-		backdrop-filter: blur(12px);
-		-webkit-backdrop-filter: blur(12px);
-		box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.5);
-		transition:
-			transform 0.15s ease,
-			color 0.15s ease,
-			background 0.15s ease;
-		border: 2px solid #222;
-	}
-	.request-btn:hover {
-		transform: scale(1.06);
-		color: #ffffff;
-		background: rgba(255, 255, 255, 0.06);
-	}
-
-	/* Tutorial container no longer fixed — the wrapper positions it */
 	.tutorial-container {
 		/* removed: position, bottom, left */
 		overflow: hidden;
@@ -1920,71 +1872,6 @@
 		-webkit-backdrop-filter: blur(12px);
 	}
 
-	/* Request topic modal */
-	.request-overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.6);
-		z-index: 80;
-	}
-
-	.request-modal {
-		position: fixed;
-		left: 50%;
-		top: 50%;
-		transform: translate(-50%, -50%);
-		width: min(92vw, 460px);
-		background: rgba(0, 0, 0, 0.7);
-		border: 1px solid #222;
-		border-radius: 8px;
-		padding: 16px;
-		backdrop-filter: blur(16px);
-		-webkit-backdrop-filter: blur(16px);
-		z-index: 81;
-		color: #e8e8e8;
-	}
-
-	.request-title {
-		margin: 0 0 10px 0;
-		font-size: 16px;
-		font-weight: 600;
-	}
-
-	.request-input {
-		width: 100%;
-		background: #0b0b0b;
-		border: 1px solid #2a2a2a;
-		border-radius: 6px;
-		padding: 10px;
-		color: #e0e0e0;
-		resize: vertical;
-	}
-
-	.request-actions {
-		margin-top: 12px;
-		display: flex;
-		justify-content: flex-end;
-		gap: 8px;
-	}
-
-	.req-btn {
-		border: 1px solid #2a2a2a;
-		background: rgba(255, 255, 255, 0.06);
-		border-radius: 6px;
-		padding: 6px 12px;
-		cursor: pointer;
-		color: #e0e0e0;
-	}
-	.req-btn.ghost {
-		background: transparent;
-	}
-	.req-btn.primary {
-		border-color: #444;
-	}
-	.req-btn[disabled] {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
 	.circle {
 		width: 100%;
 		height: 100%;
