@@ -30,7 +30,7 @@
 			category: 'The Frontier',
 			title: 'Space',
 			icon: '🚀',
-			description: 'Exploring beyond Earth—missions, habitats, satellites.',
+			description: 'Exploring beyond Earth: missions, habitats, satellites.',
 			keywords: ['space', 'aerospace', 'orbital', 'satellite']
 		},
 		{
@@ -471,7 +471,7 @@
 				{#if currentPair}
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<!-- Left card -->
-						<button class="card" on:click={pickLeft} type="button">
+						<button class="card min-h-[180px]" on:click={pickLeft} type="button">
 							<div class="flex h-full flex-col">
 								<div class="mb-2 text-5xl">{currentPair.left.icon}</div>
 								<div class="text-[10px] uppercase opacity-50">{currentPair.left.category}</div>
@@ -481,7 +481,7 @@
 						</button>
 
 						<!-- Right card -->
-						<button class="card" on:click={pickRight} type="button">
+						<button class="card min-h-[180px]" on:click={pickRight} type="button">
 							<div class="flex h-full flex-col">
 								<div class="mb-2 text-5xl">{currentPair.right.icon}</div>
 								<div class="text-[10px] uppercase opacity-50">{currentPair.right.category}</div>
@@ -513,68 +513,69 @@
 				<div>
 					<h2 class="text-2xl font-bold">Checkpoint</h2>
 					<p class="text-sm opacity-70">
-						Here’s your current ranking snapshot. Does this look right, or do you want another 30
-						comparisons to refine it?
+						Here’s your current interests ranking. Would you like to do another round of comparisons
+						and refine it more?
 					</p>
 				</div>
 
 				<!-- Snapshot: Top 6 -->
-				<div class="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain pr-1 pb-6">
-					<div class="grid grid-cols-1 gap-3">
-						{#each ranked.slice(0, 6) as i, idx}
-							<div class="card">
+				<div class="min-h-0 flex-1 space-y-6 pr-1 pb-6">
+					<div class="grid w-full grid-cols-1 items-stretch gap-3">
+						{#each ranked.slice(0, 3) as i, idx}
+							<div class="card w-full max-w-full justify-center overflow-x-hidden">
 								<div class="flex items-start gap-3">
-									<div class="text-2xl">{i.icon}</div>
-									<div class="flex-1">
+									<div class="shrink-0 text-4xl">{i.icon}</div>
+									<!-- prevent text from expanding the row width -->
+									<div class="min-w-0 flex-1">
 										<div class="flex items-center justify-between">
-											<div class="text-sm font-semibold">{idx + 1}. {i.title}</div>
-											<div class="text-xs opacity-50">Elo {Math.round(ratings[i.id])}</div>
+											<div class="truncate text-lg font-semibold">{idx + 1}. {i.title}</div>
 										</div>
-										<div class="text-[10px] uppercase opacity-50">{i.category}</div>
-										<div class="mt-1 text-xs opacity-50">{i.description}</div>
+										<div class="truncate text-[10px] uppercase opacity-50">{i.category}</div>
+										<!-- wrap long sentences/words so they never force width -->
+										<div class="text-md mt-1 break-words opacity-50">{i.description}</div>
 									</div>
 								</div>
 							</div>
 						{/each}
 					</div>
 				</div>
-
-				<div class="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-2">
+				<div class="mt-1 grid grid-cols-1 gap-30 sm:grid-cols-2">
 					<button
-						class="rounded-full bg-neutral-200 py-2 font-medium text-black transition hover:opacity-80"
-						on:click={goToTopInterests}
-						type="button">Looks right → continue</button
-					>
-
-					<button
-						class="rounded-full bg-neutral-200 py-2 font-medium text-black transition hover:opacity-80"
+						class="rounded-full border border-neutral-700 bg-black py-2 font-medium text-neutral-200 transition hover:opacity-80"
 						on:click={continueAnotherBatch}
-						type="button">Keep going (another 30)</button
+						type="button">Keep going</button
+					>
+					<button
+						class="rounded-full bg-neutral-200 py-2 font-medium text-black transition hover:bg-white"
+						on:click={goToTopInterests}
+						type="button">Continue</button
 					>
 				</div>
 			</div>
 		{:else if step === 3}
 			<!-- Top interests -->
-			<div class="flex min-h-0 flex-col gap-0">
+			<div class="flex min-h-0 flex-col gap-4">
 				<div>
-					<h2 class="text-4xl font-bold">Your Top Interests</h2>
-					<p class="text-lg opacity-70">
+					<h2 class="text-2xl font-bold">Your Top Interests</h2>
+					<p class="text-sm opacity-70">
 						These are your top 3 interests. We'll use them to find the best companies for you.
 					</p>
 				</div>
 
-				<div class="my-4 min-h-0 flex-1 space-y-6 pr-1">
-					<div class="grid grid-cols-1 gap-3">
+				<div class="min-h-0 flex-1 space-y-6 pr-1 pb-6">
+					<div class="grid w-full grid-cols-1 items-stretch gap-3">
 						{#each ranked.slice(0, 3) as i, idx}
-							<div class="card justify-center">
-								<div class="flex items-start justify-center gap-10">
-									<div class="text-6xl">{i.icon}</div>
-									<div class="flex-1">
-										<div class="text-[10px] uppercase opacity-50">{i.category}</div>
-										<div class="mt-1 flex items-center justify-between">
-											<div class="text-2xl font-semibold">{idx + 1}. {i.title}</div>
+							<div class="card w-full max-w-full justify-center overflow-x-hidden">
+								<div class="flex items-start gap-3">
+									<div class="shrink-0 text-4xl">{i.icon}</div>
+									<!-- prevent text from expanding the row width -->
+									<div class="min-w-0 flex-1">
+										<div class="flex items-center justify-between">
+											<div class="truncate text-lg font-semibold">{idx + 1}. {i.title}</div>
 										</div>
-										<div class="mt-1 text-lg opacity-50">{i.description}</div>
+										<div class="truncate text-[10px] uppercase opacity-50">{i.category}</div>
+										<!-- wrap long sentences/words so they never force width -->
+										<div class="text-md mt-1 break-words opacity-50">{i.description}</div>
 									</div>
 								</div>
 							</div>
@@ -584,7 +585,7 @@
 
 				<div class="flex flex-col">
 					<button
-						class="rounded-full bg-neutral-200 py-2 font-medium text-black transition hover:opacity-80"
+						class="rounded-full bg-neutral-200 py-2 font-medium text-black transition hover:bg-white"
 						on:click={generateMission}
 						type="button">Find matches</button
 					>
@@ -594,31 +595,32 @@
 			<!-- Results (kept compact) -->
 			<div class="flex min-h-0 flex-col gap-4">
 				<div>
-					<h2 class="text-4xl font-bold">Your Results</h2>
-					<p class="text-lg opacity-70">
+					<h2 class="text-2xl font-bold">Your Results</h2>
+					<p class="text-md opacity-70">
 						We’ll turn these into company targets and a starter project.
 					</p>
 				</div>
 
-				<div class="mt-4 min-h-0 flex-1 space-y-6 pr-1 pb-28">
-					<div class="grid grid-cols-1 gap-3">
+				<div class="min-h-0 flex-1 space-y-6 pr-1 pb-6">
+					<div class="grid w-full grid-cols-1 items-stretch gap-3">
 						{#each ranked.slice(0, 3) as i, idx}
-							<div class="card justify-center">
-								<div class="flex items-start justify-center gap-10">
-									<div class="text-6xl">{i.icon}</div>
-									<div class="flex-1">
-										<div class="text-[10px] uppercase opacity-50">{i.category}</div>
-										<div class="mt-1 flex items-center justify-between">
-											<div class="text-2xl font-semibold">{idx + 1}. {i.title}</div>
+							<div class="card w-full max-w-full justify-center overflow-x-hidden">
+								<div class="flex items-start gap-3">
+									<div class="shrink-0 text-4xl">{i.icon}</div>
+									<!-- prevent text from expanding the row width -->
+									<div class="min-w-0 flex-1">
+										<div class="flex items-center justify-between">
+											<div class="truncate text-lg font-semibold">{idx + 1}. {i.title}</div>
 										</div>
-										<div class="mt-1 text-lg opacity-50">{i.description}</div>
+										<div class="truncate text-[10px] uppercase opacity-50">{i.category}</div>
+										<!-- wrap long sentences/words so they never force width -->
+										<div class="text-md mt-1 break-words opacity-50">{i.description}</div>
 									</div>
 								</div>
 							</div>
 						{/each}
 					</div>
 				</div>
-
 				<div class="mt-1 flex flex-col gap-2">
 					<button
 						class="rounded-full bg-neutral-200 py-2 font-medium text-black transition hover:opacity-80"
@@ -645,7 +647,6 @@
 			box-shadow 0.25s ease;
 		width: 100%;
 		text-align: left;
-		min-height: 180px;
 		position: relative;
 	}
 	.card:hover {
