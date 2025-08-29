@@ -49,7 +49,7 @@
 	const BRIGHTNESS_LERP = 0.08; // smaller = smoother/slower
 
 	// Anisotropic vignette (different widths per edge)
-	const V_TOP_WIDTH = 100; // px
+	const V_TOP_WIDTH = 150; // px
 	const V_BOTTOM_WIDTH = 0; // px
 	const V_SIDE_WIDTH = 50; // px for both left/right (set to 0 to disable side fade)
 	const VIGNETTE_FLOOR = 0.15; // 0–1 brightness floor at the edge
