@@ -22,6 +22,7 @@
 	let dpr = 1;
 
 	const TARGET_DOTS = 900;
+	// Added: b (current brightness), tTarget (target brightness), tNext (next change time)
 	let dots: {
 		x: number;
 		y: number;
@@ -30,15 +31,34 @@
 		vx: number;
 		vy: number;
 		baseB: number;
+		b: number;
+		tTarget: number;
+		tNext: number;
 	}[] = [];
 
 	let dotRadius = 0.1;
 	const minBrightness = 0.1;
-	const maxBrightness = 0.3;
+	const maxBrightness = 0.1;
 	const cursorDeceleration = 0.9;
 	let maxDotDisplacement = 28;
 	const springK = 0.07;
 
+	// Twinkle controls (lower frequency + smoothing)
+	const TWINKLE_MIN_MS = 900;
+	const TWINKLE_MAX_MS = 2400;
+	const BRIGHTNESS_LERP = 0.08; // smaller = smoother/slower
+
+	// Anisotropic vignette (different widths per edge)
+	const V_TOP_WIDTH = 150; // px
+	const V_BOTTOM_WIDTH = 0; // px
+	const V_SIDE_WIDTH = 50; // px for both left/right (set to 0 to disable side fade)
+	const VIGNETTE_FLOOR = 0.15; // 0–1 brightness floor at the edge
+	const VIGNETTE_EXP = 0.8; // >1 tightens rolloff
+
+	function smoothstep(a: number, b: number, x: number) {
+		const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+		return t * t * (3 - 2 * t);
+	}
 	let mouse = { x: -1000, y: -1000 };
 	let cursorX = 0;
 	let cursorY = 0;
@@ -86,10 +106,14 @@
 		dotRadius = clamp(spacing * 0.035, 0.6, 1.2);
 		maxDotDisplacement = spacing * 1.05;
 
+		const nowMs = performance.now();
+
 		if (dots.length < TARGET_DOTS) {
 			const midB = (0.2 + maxBrightness) / 2;
 			const jitter = (maxBrightness - minBrightness) * 0.1;
 			for (let i = dots.length; i < TARGET_DOTS; i++) {
+				const baseB = midB + (Math.random() - 0.5) * jitter;
+				const interval = TWINKLE_MIN_MS + Math.random() * (TWINKLE_MAX_MS - TWINKLE_MIN_MS);
 				dots.push({
 					x: 0,
 					y: 0,
@@ -97,7 +121,10 @@
 					oy: 0,
 					vx: 0,
 					vy: 0,
-					baseB: midB + (Math.random() - 0.5) * jitter
+					baseB,
+					b: baseB,
+					tTarget: baseB,
+					tNext: nowMs + interval
 				});
 			}
 		} else if (dots.length > TARGET_DOTS) {
@@ -143,6 +170,8 @@
 	function loop() {
 		if (!ctx) return;
 
+		const nowMs = performance.now();
+
 		lagCursorX += (cursorX - lagCursorX) * 0.4;
 		lagCursorY += (cursorY - lagCursorY) * 0.4;
 
@@ -173,14 +202,26 @@
 			dot.y += dot.vy;
 
 			// clamp displacement (same)
-			const odx = dot.x - dot.ox;
-			const ody = dot.y - dot.oy;
-			const odist = Math.sqrt(odx * odx + ody * ody);
-			if (odist > maxDotDisplacement) {
-				const a = Math.atan2(ody, odx);
-				dot.x = dot.ox + Math.cos(a) * maxDotDisplacement;
-				dot.y = dot.oy + Math.sin(a) * maxDotDisplacement;
+			{
+				const odx = dot.x - dot.ox;
+				const ody = dot.y - dot.oy;
+				const odist = Math.sqrt(odx * odx + ody * ody);
+				if (odist > maxDotDisplacement) {
+					const a = Math.atan2(ody, odx);
+					dot.x = dot.ox + Math.cos(a) * maxDotDisplacement;
+					dot.y = dot.oy + Math.sin(a) * maxDotDisplacement;
+				}
 			}
+
+			// --- Less frequent twinkle with smoothing ---
+			if (nowMs >= dot.tNext) {
+				const interval = TWINKLE_MIN_MS + Math.random() * (TWINKLE_MAX_MS - TWINKLE_MIN_MS);
+				dot.tNext = nowMs + interval;
+				// same amplitude as before (±0.06 around baseB)
+				dot.tTarget = dot.baseB + (Math.random() - 0.5) * 0.12;
+			}
+			// smooth toward target
+			dot.b += (dot.tTarget - dot.b) * BRIGHTNESS_LERP;
 
 			// brightness + twinkle (same pattern)
 			let brightness = dot.baseB + (Math.random() - 0.5) * 0.12;
@@ -193,6 +234,23 @@
 					brightness += (maxBrightness - dot.baseB) * (1 - dist / maxDist);
 				}
 			}
+			// --- anisotropic edge fade (top/bottom different) ---
+			const distTop = dot.y; // distance to top edge
+			const distBottom = height - dot.y; // distance to bottom edge
+			const distLeft = dot.x;
+			const distRight = width - dot.x;
+
+			const topT = V_TOP_WIDTH > 0 ? smoothstep(0, V_TOP_WIDTH, distTop) : 1;
+			const bottomT = V_BOTTOM_WIDTH > 0 ? smoothstep(0, V_BOTTOM_WIDTH, distBottom) : 1;
+			const leftT = V_SIDE_WIDTH > 0 ? smoothstep(0, V_SIDE_WIDTH, distLeft) : 1;
+			const rightT = V_SIDE_WIDTH > 0 ? smoothstep(0, V_SIDE_WIDTH, distRight) : 1;
+
+			// use the minimum so any single edge can dim; avoids double-multiplying corners
+			let edgeT = Math.min(topT, bottomT, leftT, rightT);
+			edgeT = Math.pow(edgeT, VIGNETTE_EXP);
+
+			const vignette = VIGNETTE_FLOOR + (1 - VIGNETTE_FLOOR) * edgeT;
+			brightness *= vignette;
 			const b = clamp(brightness, 0, 1);
 
 			ctx.beginPath();
@@ -423,7 +481,9 @@
 		id="how-it-works"
 		class="mx-auto grid max-w-screen-2xl gap-8 px-6 py-20 sm:px-10 lg:px-16"
 	>
-		<div class="relative mx-auto aspect-video w-full max-w-screen-xl overflow-hidden rounded-lg">
+		<div
+			class="relative mx-auto aspect-video w-full max-w-screen-xl overflow-hidden rounded-lg border border-white/10"
+		>
 			<video
 				bind:this={videoEl}
 				class="absolute inset-0 h-full w-full object-cover"
@@ -489,7 +549,7 @@
 			out:fade={{ duration: 140, easing: cubicIn }}
 		/>
 		<div
-			class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border-1 border-white/10 bg-black p-6"
+			class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border border-white/10 bg-black p-6"
 			in:scale={{ duration: 200, easing: cubicOut, start: 0.9 }}
 			out:scale={{ duration: 140, easing: cubicIn, start: 0.9 }}
 		>
