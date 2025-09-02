@@ -456,34 +456,10 @@
 					}
 					return 0.05; // Very dim for other links
 				})
-				.style('filter', (d: any) => {
-					// Use new link visual state calculation functions
-					const sourceNode = graphData?.nodes?.find(
-						(n: { id: string | number }) => n.id === (d.source.id || d.source)
-					);
-					const targetNode = graphData?.nodes?.find(
-						(n: { id: string | number }) => n.id === (d.target.id || d.target)
-					);
-
-					const linkState = calculateLinkVisualState(
-						d.source.id || d.source,
-						d.target.id || d.target,
-						sourceNode?.domain || 'tech',
-						sourceNode?.type || 'concept'
-					);
-
-					return null; // No glow for non-mastered connections
-				})
 				.attr('stroke-width', (d: any) => {
-					// Use new link visual state calculation functions
-					const sourceNode = graphData?.nodes?.find(
-						(n: { id: string | number }) => n.id === (d.source.id || d.source)
-					);
 					const linkState = calculateLinkVisualState(
 						d.source.id || d.source,
-						d.target.id || d.target,
-						sourceNode?.domain || 'tech',
-						sourceNode?.type || 'concept'
+						d.target.id || d.target
 					);
 
 					// Use calculated stroke width, but scale with link value
@@ -1444,8 +1420,32 @@
 	let masteryCounts = { M1: 0, M2: 0, M3: 0 };
 	let progress = { earned: 0, total: 5, requiredLevel: 1, next: 'intermediate' as Bracket | null };
 
+	async function loadGraphFromDb() {
+		const { data: nodes, error: nErr } = await supabase
+			.from('nodes')
+			.select('id,label,domain,description,type,difficulty')
+			.order('id', { ascending: true });
+		if (nErr) throw nErr;
+
+		const { data: links, error: lErr } = await supabase.from('links').select('source,target');
+		if (lErr) throw lErr;
+		console.log(nodes);
+
+		mergedGraph = {
+			nodes,
+			links: links.map((l) => ({
+				source: l.source,
+				target: l.target,
+				relation: 'prerequisite',
+				value: 1
+			}))
+		};
+		console.log(mergedGraph);
+		mergedGraphLoaded = true;
+	}
 	onMount(async () => {
-		await loadMergedGraph();
+		// await loadMergedGraph();
+		await loadGraphFromDb();
 		await loadVisitedFromDb();
 		await loadUserFromDb();
 		const res = await getBracketProgress(userBracket as Bracket);
