@@ -1443,6 +1443,8 @@
 		console.log(mergedGraph);
 		mergedGraphLoaded = true;
 	}
+	let node_title = '';
+	let node_content = '';
 	onMount(async () => {
 		// await loadMergedGraph();
 		await loadGraphFromDb();
@@ -1490,8 +1492,37 @@
 		}
 	}
 	let showRequestModal = false;
+	let showNodeModal = false;
 	let requestedTopic = '';
 
+	async function submitNewNode() {
+		try {
+			const { data: sessionData } = await supabase.auth.getSession();
+			const user = sessionData.session?.user;
+
+			if (!user) {
+				alert('Please sign in to add a new node');
+				return;
+			}
+
+			const { error } = await supabase.from('nodes').insert({
+				label: node_title,
+				description: node_content,
+				domain: 'math',
+				difficulty: 0,
+				type: 'content'
+			});
+
+			if (error) throw error;
+
+			node_title = '';
+			node_content = '';
+			showNodeModal = false;
+		} catch (e) {
+			console.error(e);
+			alert('Could not submit right now. Try again later.');
+		}
+	}
 	async function submitTopicRequest() {
 		try {
 			const { data: sessionData } = await supabase.auth.getSession();
@@ -1521,23 +1552,25 @@
 
 <div class="fixed top-4 left-4 z-50 grid w-fit grid-cols-[auto_auto] gap-2">
 	<div class="flex flex-row gap-2">
-		<div
-			class="flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
-			style="background-color: rgba(0,0,0,.95); border: 2px solid {borderColorAlpha}; backdrop-filter: blur(10px);"
-			on:click={handleUserProfileClick}
-		>
-			<p
-				class="flex items-center gap-x-2 text-xs font-semibold capitalize select-none"
-				style="color: {borderColor};"
+		{#if userBracket && borderColorAlpha && borderColor}
+			<button
+				class="flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
+				style="background-color: rgba(0,0,0,.95); border: 1px solid {borderColorAlpha};"
+				on:click={handleUserProfileClick}
 			>
-				{userBracket}
-			</p>
-		</div>
+				<p
+					class="flex items-center gap-x-2 text-xs font-semibold capitalize select-none"
+					style="color: {borderColor};"
+				>
+					{userBracket}
+				</p>
+			</button>
+		{/if}
 
 		{#if recommendedNode && recommendedNode.node}
 			<div
 				class="flex items-center gap-2 rounded-sm px-4 py-2 text-xs select-none"
-				style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
+				style="background-color: rgba(0,0,0,.95); border:1px solid #222; backdrop-filter: blur(10px);"
 			>
 				<span class="font-semibold text-neutral-50">Next Step:</span>
 				<span
@@ -1557,7 +1590,7 @@
 	{#if showProgress}
 		<div
 			class="col-span-2 flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
-			style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
+			style="background-color: rgba(0,0,0,.95); border:1px solid #222; backdrop-filter: blur(10px);"
 			in:scale={{ start: 0.9, duration: 200 }}
 			out:scale={{ start: 0.9, duration: 200 }}
 		>
@@ -1581,30 +1614,7 @@
 		style="background-color: #080808; border: 1px solid #333333;"
 	></div>
 
-	<!-- {#if navigationHistory.length > 0} -->
-	<!-- 	<div class="absolute top-4 left-4 z-50"> -->
-	<!-- 		<div -->
-	<!-- 			class="flex items-center gap-2 rounded-lg px-4 py-2" -->
-	<!-- 			style="background-color: rgba(17, 17, 17, 0.9); border: 1px solid #333333; backdrop-filter: blur(10px);" -->
-	<!-- 		> -->
-	<!-- 			{#each navigationHistory as node, index (node.id)} -->
-	<!-- 				{#if index > 0} -->
-	<!-- 					<span class="text-sm" style="color: #666666;">→</span> -->
-	<!-- 				{/if} -->
-	<!-- 				<button -->
-	<!-- 					on:click={() => navigateToStackIndex(index)} -->
-	<!-- 					class="cursor-pointer text-sm font-medium transition-colors hover:underline" -->
-	<!-- 					style="color: {node.type === 'paper' ? '#BFCAF3' : getNodeDomainColor(node.domain)};" -->
-	<!-- 				> -->
-	<!-- 					{node.label} -->
-	<!-- 				</button> -->
-	<!-- 			{/each} -->
-	<!-- 		</div> -->
-	<!-- 	</div> -->
-	<!-- {/if} -->
-
 	{#if typeof window !== 'undefined'}
-		<!-- Graph container - always full width -->
 		<div class="h-full w-full">
 			<div bind:this={element} class="h-full w-full"></div>
 		</div>
@@ -1652,7 +1662,7 @@
 	{/if}
 	<div class="fab-row pointer-events-none">
 		<div
-			class="tutorial-container pointer-events-auto border-2 border-neutral-800"
+			class="tutorial-container pointer-events-auto border border-neutral-800"
 			class:expanded={tutorialExpanded}
 			on:click={() => {
 				if (!tutorialExpanded) tutorialExpanded = true;
@@ -1705,10 +1715,20 @@
 				</div>
 			{/if}
 		</div>
-
 		<button
 			type="button"
-			class="pointer-events-auto inline-flex items-center rounded-full border-2 border-neutral-800/80 bg-black/20 px-2 py-1
+			class="pointer-events-auto inline-flex items-center rounded-full border border-neutral-800/80 bg-black/20 px-2 py-1
+            font-medium text-neutral-500 backdrop-blur-md transition
+            hover:text-white focus:outline-none"
+			aria-label="Add Node"
+			title="Add Node"
+			on:click={() => (showNodeModal = true)}
+		>
+			<span class="text-[10px]">Add Node</span>
+		</button>
+		<button
+			type="button"
+			class="pointer-events-auto inline-flex items-center rounded-full border border-neutral-800/80 bg-black/20 px-2 py-1
             font-medium text-neutral-500 backdrop-blur-md transition
             hover:text-white focus:outline-none"
 			aria-label="Request a topic"
@@ -1719,7 +1739,7 @@
 		</button>
 		<button
 			type="button"
-			class="pointer-events-auto inline-flex items-center rounded-full border-2 border-red-500/40 bg-black/20 px-2 py-1
+			class="pointer-events-auto inline-flex items-center rounded-full border border-red-500/40 bg-black/20 px-2 py-1
             font-medium text-red-800 backdrop-blur-md transition
             hover:text-red-500 focus:outline-none"
 			aria-label="Request a topic"
@@ -1730,16 +1750,65 @@
 		</button>
 	</div>
 
+	{#if showNodeModal}
+		<div class="fixed inset-0 z-[80] flex items-center justify-center p-4">
+			<div
+				class="absolute inset-0 bg-black/60"
+				on:click={() => (showNodeModal = false)}
+				in:fade={{ duration: 180, easing: cubicOut }}
+				out:fade={{ duration: 140, easing: cubicIn }}
+			/>
+			<div
+				class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border border-white/10 bg-black/70 p-6 backdrop-blur-2xl"
+				style="-webkit-backdrop-filter: blur(24px);"
+				transition:scale={{ start: 0.9, duration: 200, easing: cubicOut }}
+			>
+				<h3 class="mb-2 text-xl font-semibold text-neutral-50">Add Node</h3>
+				<textarea
+					class="mt-1 w-full resize-y rounded-md border border-neutral-800 bg-neutral-900/70 p-2
+               text-sm text-neutral-100 placeholder-neutral-600 outline-none
+               focus:border-neutral-600 focus:ring-0"
+					rows="1"
+					bind:value={node_title}
+					placeholder="Node Title"
+				/>
+				<textarea
+					class="mt-1 w-full resize-y rounded-md border border-neutral-800 bg-neutral-900/70 p-2
+               text-sm text-neutral-100 placeholder-neutral-600 outline-none
+               focus:border-neutral-600 focus:ring-0"
+					rows="1"
+					bind:value={node_content}
+					placeholder="Node Content"
+				/>
+				<div class="mt-3 flex justify-end gap-2">
+					<button
+						type="button"
+						class="rounded-md border border-neutral-800 px-3 py-1.5 text-sm text-neutral-200 hover:bg-white/5"
+						on:click={() => (showNodeModal = false)}
+					>
+						Cancel
+					</button>
+					<button
+						type="button"
+						class="rounded-md border border-neutral-700 bg-white/10 px-3 py-1.5 text-sm
+                 text-white hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
+						on:click={submitNewNode}
+						disabled={!node_title.trim()}
+					>
+						Submit
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 	{#if showRequestModal}
 		<div class="fixed inset-0 z-[80] flex items-center justify-center p-4">
-			<!-- overlay -->
 			<div
 				class="absolute inset-0 bg-black/60"
 				on:click={() => (showRequestModal = false)}
 				in:fade={{ duration: 180, easing: cubicOut }}
 				out:fade={{ duration: 140, easing: cubicIn }}
 			/>
-
 			<div
 				class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border-[2px] border-white/10 bg-black/70 p-6 backdrop-blur-2xl"
 				style="-webkit-backdrop-filter: blur(24px);"
