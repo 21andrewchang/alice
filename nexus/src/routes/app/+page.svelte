@@ -1445,6 +1445,21 @@
 	}
 	let node_title = '';
 	let node_content = '';
+	const domainColors: Record<string, string> = {
+		ai: '#FF6B9D',
+		math: '#5B8DF2',
+		tech: '#73DACA',
+		hardware: '#FFD93D',
+		physics: '#BA6FFF',
+		biology: '#6BCF7F',
+		chemistry: '#FF8C42',
+		default: '#666'
+	};
+
+	const domainOptions = ['math', 'ai', 'tech', 'hardware'];
+
+	let node_domain: string = 'math';
+
 	onMount(async () => {
 		// await loadMergedGraph();
 		await loadGraphFromDb();
@@ -1505,13 +1520,30 @@
 				return;
 			}
 
-			const { error } = await supabase.from('nodes').insert({
-				label: node_title,
-				description: node_content,
-				domain: 'math',
-				difficulty: 0,
-				type: 'content'
-			});
+			const { data, error } = await supabase
+				.from('nodes')
+				.insert({
+					label: node_title,
+					description: node_content,
+					domain: node_domain,
+					difficulty: 0,
+					type: 'content'
+				})
+				.select('id')
+				.single();
+
+			if (error) {
+				console.error(error);
+			}
+			const newId = data?.id;
+			console.log('new id:', newId);
+			const { error: linkError } = await supabase
+				.from('links')
+				.insert({
+					source: newId,
+					target: 0
+				})
+				.single();
 
 			if (error) throw error;
 
@@ -1764,6 +1796,27 @@
 				transition:scale={{ start: 0.9, duration: 200, easing: cubicOut }}
 			>
 				<h3 class="mb-2 text-xl font-semibold text-neutral-50">Add Node</h3>
+				<div class="mb-2">
+					<div class="flex flex-wrap gap-2">
+						{#each domainOptions as d}
+							{#key d}
+								<button
+									type="button"
+									on:click={() => (node_domain = d)}
+									class="rounded-full px-3 py-1 text-xs font-medium transition-all"
+									style="
+							border: 1px solid {domainColors[d]};
+							color: {domainColors[d]};
+							background: {hexToRgba(domainColors[d], node_domain === d ? 0.25 : 0.0)};
+							box-shadow: {node_domain === d ? `0 0 0 2px ${hexToRgba(domainColors[d], 0.15)}` : 'none'};
+						  "
+								>
+									{d[0].toUpperCase() + d.slice(1)}
+								</button>
+							{/key}
+						{/each}
+					</div>
+				</div>
 				<textarea
 					class="mt-1 w-full resize-y rounded-md border border-neutral-800 bg-neutral-900/70 p-2
                text-sm text-neutral-100 placeholder-neutral-600 outline-none
