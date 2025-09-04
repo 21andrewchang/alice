@@ -456,34 +456,10 @@
 					}
 					return 0.05; // Very dim for other links
 				})
-				.style('filter', (d: any) => {
-					// Use new link visual state calculation functions
-					const sourceNode = graphData?.nodes?.find(
-						(n: { id: string | number }) => n.id === (d.source.id || d.source)
-					);
-					const targetNode = graphData?.nodes?.find(
-						(n: { id: string | number }) => n.id === (d.target.id || d.target)
-					);
-
-					const linkState = calculateLinkVisualState(
-						d.source.id || d.source,
-						d.target.id || d.target,
-						sourceNode?.domain || 'tech',
-						sourceNode?.type || 'concept'
-					);
-
-					return null; // No glow for non-mastered connections
-				})
 				.attr('stroke-width', (d: any) => {
-					// Use new link visual state calculation functions
-					const sourceNode = graphData?.nodes?.find(
-						(n: { id: string | number }) => n.id === (d.source.id || d.source)
-					);
 					const linkState = calculateLinkVisualState(
 						d.source.id || d.source,
-						d.target.id || d.target,
-						sourceNode?.domain || 'tech',
-						sourceNode?.type || 'concept'
+						d.target.id || d.target
 					);
 
 					// Use calculated stroke width, but scale with link value
@@ -518,6 +494,14 @@
 		}
 	}
 
+	let isPickingConnection = false;
+	let node_connection: number | null = null;
+	let node_connection_label = '';
+
+	function selectNodeConnection() {
+		showNodeModal = false;
+		isPickingConnection = true;
+	}
 	// Helper function to very aggressively dim colors for focused-out nodes using RGB
 	function veryDimColor(color: any) {
 		// Convert hex to RGB, reduce brightness aggressively, convert back
@@ -815,6 +799,16 @@
 			})
 			.on('click', (event, d: any) => {
 				event.stopPropagation();
+				if (isPickingConnection) {
+					console.log('selected node: ', d);
+					node_connection = d.id;
+					node_connection_label = d.label;
+					console.log(node_connection);
+					console.log(node_connection_label);
+					isPickingConnection = false;
+					showNodeModal = true;
+					return;
+				}
 				selectNode(d);
 			});
 
@@ -1385,7 +1379,6 @@
 		expert: { level: 0, count: 0, next: null }
 	};
 
-	// helper: count nodes at least a mastery level
 	async function countAtLeast(level: number, userId: string): Promise<number> {
 		const { count, error } = await supabase
 			.from('user_nodes')
@@ -1396,7 +1389,6 @@
 		return count ?? 0;
 	}
 
-	// fetch all mastery counts at once
 	export async function getMasteryCounts(): Promise<{ M1: number; M2: number; M3: number }> {
 		const { data: sessionData } = await supabase.auth.getSession();
 		const userId = sessionData.session?.user?.id;
@@ -1444,8 +1436,33 @@
 	let masteryCounts = { M1: 0, M2: 0, M3: 0 };
 	let progress = { earned: 0, total: 5, requiredLevel: 1, next: 'intermediate' as Bracket | null };
 
+	async function loadGraphFromDb() {
+		const { data: nodes, error: nErr } = await supabase
+			.from('nodes')
+			.select('id,label,domain,description,type,difficulty')
+			.order('id', { ascending: true });
+		if (nErr) throw nErr;
+
+		const { data: links, error: lErr } = await supabase.from('links').select('source,target');
+		if (lErr) throw lErr;
+		console.log(nodes);
+
+		mergedGraph = {
+			nodes,
+			links: links.map((l) => ({
+				source: l.source,
+				target: l.target,
+				relation: 'prerequisite',
+				value: 1
+			}))
+		};
+		console.log(mergedGraph);
+		mergedGraphLoaded = true;
+	}
+
 	onMount(async () => {
-		await loadMergedGraph();
+		// await loadMergedGraph();
+		await loadGraphFromDb();
 		await loadVisitedFromDb();
 		await loadUserFromDb();
 		const res = await getBracketProgress(userBracket as Bracket);
@@ -1489,9 +1506,77 @@
 			navigateToStackIndex(currentHistoryIndex + 1);
 		}
 	}
-	let showRequestModal = false;
-	let requestedTopic = '';
+	let node_title = '';
+	let node_content = '';
+	const domainColors: Record<string, string> = {
+		ai: '#FF6B9D',
+		math: '#5B8DF2',
+		tech: '#73DACA',
+		hardware: '#FFD93D',
+		physics: '#BA6FFF',
+		biology: '#6BCF7F',
+		chemistry: '#FF8C42',
+		default: '#666'
+	};
 
+	const domainOptions = ['math', 'ai', 'tech', 'hardware'];
+
+	let node_domain: string = 'math';
+	let showRequestModal = false;
+	let showNodeModal = false;
+	let requestedTopic = '';
+	let node_is_source: boolean = true;
+
+	async function submitNewNode() {
+		try {
+			const { data: sessionData } = await supabase.auth.getSession();
+			const user = sessionData.session?.user;
+
+			if (!user) {
+				alert('Please sign in to add a new node');
+				return;
+			}
+			const { data, error } = await supabase
+				.from('nodes')
+				.insert({
+					label: node_title,
+					description: node_content,
+					domain: node_domain,
+					difficulty: 0,
+					type: 'content'
+				})
+				.select('id')
+				.single();
+
+			if (error) {
+				console.error(error);
+			}
+
+			const newId = data?.id;
+			console.log('new id:', newId);
+
+			if (newId && node_connection != null) {
+				const source = node_is_source ? newId : node_connection;
+				const target = node_is_source ? node_connection : newId;
+
+				const { error: linkError } = await supabase
+					.from('links')
+					.insert({ source, target })
+					.single();
+
+				if (linkError) throw linkError;
+			}
+			node_title = '';
+			node_content = '';
+			node_connection = null;
+			node_connection_label = '';
+			node_is_source = true;
+			showNodeModal = false;
+		} catch (e) {
+			console.error(e);
+			alert('Could not submit right now. Try again later.');
+		}
+	}
 	async function submitTopicRequest() {
 		try {
 			const { data: sessionData } = await supabase.auth.getSession();
@@ -1521,23 +1606,25 @@
 
 <div class="fixed top-4 left-4 z-50 grid w-fit grid-cols-[auto_auto] gap-2">
 	<div class="flex flex-row gap-2">
-		<div
-			class="flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
-			style="background-color: rgba(0,0,0,.95); border: 2px solid {borderColorAlpha}; backdrop-filter: blur(10px);"
-			on:click={handleUserProfileClick}
-		>
-			<p
-				class="flex items-center gap-x-2 text-xs font-semibold capitalize select-none"
-				style="color: {borderColor};"
+		{#if userBracket && borderColorAlpha && borderColor}
+			<button
+				class="flex cursor-pointer items-center gap-2 rounded-sm bg-black/30 px-4 py-2"
+				style=" border: 1px solid {borderColorAlpha};"
+				on:click={handleUserProfileClick}
 			>
-				{userBracket}
-			</p>
-		</div>
+				<p
+					class="flex items-center gap-x-2 text-xs font-semibold capitalize select-none"
+					style="color: {borderColor};"
+				>
+					{userBracket}
+				</p>
+			</button>
+		{/if}
 
 		{#if recommendedNode && recommendedNode.node}
 			<div
-				class="flex items-center gap-2 rounded-sm px-4 py-2 text-xs select-none"
-				style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
+				class="flex items-center gap-2 rounded-sm bg-black/30 px-4 py-2 text-xs select-none"
+				style="border:1px solid #222; backdrop-filter: blur(10px);"
 			>
 				<span class="font-semibold text-neutral-50">Next Step:</span>
 				<span
@@ -1557,7 +1644,7 @@
 	{#if showProgress}
 		<div
 			class="col-span-2 flex items-center gap-2 rounded-sm px-4 py-2 text-xs"
-			style="background-color: rgba(0,0,0,.95); border:2px solid #222; backdrop-filter: blur(10px);"
+			style="background-color: rgba(0,0,0,.95); border:1px solid #222; backdrop-filter: blur(10px);"
 			in:scale={{ start: 0.9, duration: 200 }}
 			out:scale={{ start: 0.9, duration: 200 }}
 		>
@@ -1581,30 +1668,7 @@
 		style="background-color: #080808; border: 1px solid #333333;"
 	></div>
 
-	<!-- {#if navigationHistory.length > 0} -->
-	<!-- 	<div class="absolute top-4 left-4 z-50"> -->
-	<!-- 		<div -->
-	<!-- 			class="flex items-center gap-2 rounded-lg px-4 py-2" -->
-	<!-- 			style="background-color: rgba(17, 17, 17, 0.9); border: 1px solid #333333; backdrop-filter: blur(10px);" -->
-	<!-- 		> -->
-	<!-- 			{#each navigationHistory as node, index (node.id)} -->
-	<!-- 				{#if index > 0} -->
-	<!-- 					<span class="text-sm" style="color: #666666;">→</span> -->
-	<!-- 				{/if} -->
-	<!-- 				<button -->
-	<!-- 					on:click={() => navigateToStackIndex(index)} -->
-	<!-- 					class="cursor-pointer text-sm font-medium transition-colors hover:underline" -->
-	<!-- 					style="color: {node.type === 'paper' ? '#BFCAF3' : getNodeDomainColor(node.domain)};" -->
-	<!-- 				> -->
-	<!-- 					{node.label} -->
-	<!-- 				</button> -->
-	<!-- 			{/each} -->
-	<!-- 		</div> -->
-	<!-- 	</div> -->
-	<!-- {/if} -->
-
 	{#if typeof window !== 'undefined'}
-		<!-- Graph container - always full width -->
 		<div class="h-full w-full">
 			<div bind:this={element} class="h-full w-full"></div>
 		</div>
@@ -1652,7 +1716,7 @@
 	{/if}
 	<div class="fab-row pointer-events-none">
 		<div
-			class="tutorial-container pointer-events-auto border-2 border-neutral-800"
+			class="tutorial-container pointer-events-auto border border-neutral-800"
 			class:expanded={tutorialExpanded}
 			on:click={() => {
 				if (!tutorialExpanded) tutorialExpanded = true;
@@ -1705,10 +1769,20 @@
 				</div>
 			{/if}
 		</div>
-
 		<button
 			type="button"
-			class="pointer-events-auto inline-flex items-center rounded-full border-2 border-neutral-800/80 bg-black/20 px-2 py-1
+			class="pointer-events-auto inline-flex items-center rounded-full border border-neutral-800/80 bg-black/20 px-2 py-1
+            font-medium text-neutral-500 backdrop-blur-md transition
+            hover:text-white focus:outline-none"
+			aria-label="Add Node"
+			title="Add Node"
+			on:click={() => (showNodeModal = true)}
+		>
+			<span class="text-[10px]">Add Node</span>
+		</button>
+		<button
+			type="button"
+			class="pointer-events-auto inline-flex items-center rounded-full border border-neutral-800/80 bg-black/20 px-2 py-1
             font-medium text-neutral-500 backdrop-blur-md transition
             hover:text-white focus:outline-none"
 			aria-label="Request a topic"
@@ -1719,7 +1793,7 @@
 		</button>
 		<button
 			type="button"
-			class="pointer-events-auto inline-flex items-center rounded-full border-2 border-red-500/40 bg-black/20 px-2 py-1
+			class="pointer-events-auto inline-flex items-center rounded-full border border-red-500/40 bg-black/20 px-2 py-1
             font-medium text-red-800 backdrop-blur-md transition
             hover:text-red-500 focus:outline-none"
 			aria-label="Request a topic"
@@ -1730,16 +1804,124 @@
 		</button>
 	</div>
 
+	{#if showNodeModal}
+		<div class="fixed inset-0 z-[80] flex items-center justify-center p-4">
+			<div
+				class="absolute inset-0 bg-black/60"
+				on:click={() => (showNodeModal = false)}
+				in:fade={{ duration: 180, easing: cubicOut }}
+				out:fade={{ duration: 140, easing: cubicIn }}
+			/>
+			<div
+				class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border border-white/10 bg-black/30 backdrop-blur-2xl"
+				style="-webkit-backdrop-filter: blur(24px);"
+				transition:scale={{ start: 0.9, duration: 200, easing: cubicOut }}
+			>
+				<div class="p-6 pb-0">
+					<h3 class="mb-2 text-xl font-semibold text-neutral-50">Add Node</h3>
+					<div class="mb-2">
+						<div class="flex flex-wrap gap-2">
+							{#each domainOptions as d}
+								{#key d}
+									<button
+										type="button"
+										on:click={() => (node_domain = d)}
+										class="rounded-full px-3 py-1 text-xs font-medium transition-all"
+										style="
+							border: 1px solid {domainColors[d]};
+							color: {domainColors[d]};
+							background: {hexToRgba(domainColors[d], node_domain === d ? 0.25 : 0.0)};
+							box-shadow: {node_domain === d ? `0 0 0 2px ${hexToRgba(domainColors[d], 0.15)}` : 'none'};
+						  "
+									>
+										{d[0].toUpperCase() + d.slice(1)}
+									</button>
+								{/key}
+							{/each}
+						</div>
+					</div>
+					<textarea
+						class="mt-1 w-full resize-y rounded-md border border-neutral-800 bg-neutral-900/70 p-2
+               text-sm text-neutral-100 placeholder-neutral-600 outline-none
+               focus:border-neutral-600 focus:ring-0"
+						rows="1"
+						bind:value={node_title}
+						placeholder="Node Title"
+					/>
+					<textarea
+						class="mt-1 w-full resize-y rounded-md border border-neutral-800 bg-neutral-900/70 p-2
+               text-sm text-neutral-100 placeholder-neutral-600 outline-none
+               focus:border-neutral-600 focus:ring-0"
+						rows="1"
+						bind:value={node_content}
+						placeholder="Node Content"
+					/>
+					<div class="mt-2 flex items-center justify-between gap-2">
+						<div class="flex min-w-0 items-center gap-2 text-xs">
+							{#if node_connection != null}
+								<span class="shrink-0 font-medium text-neutral-100"
+									>{node_title ? node_title : 'Unnamed Node'}</span
+								>
+								<button
+									type="button"
+									class="arrow-toggle inline-flex items-center justify-center rounded-full
+               border border-neutral-800 px-2 py-1 text-neutral-100
+               transition hover:bg-white/10 active:scale-95"
+									on:click={() => (node_is_source = !node_is_source)}
+									aria-label={node_is_source
+										? 'New → Selected (click to flip)'
+										: 'Selected → New (click to flip)'}
+									disabled={node_connection == null}
+								>
+									{node_is_source ? '→' : '←'}
+								</button>
+
+								<span
+									class="truncate font-medium text-neutral-100"
+									title={node_connection_label}
+									style="max-width: 14rem;"
+								>
+									{node_connection_label}
+								</span>
+							{:else}
+								<span class="opacity-60">Pick a node to connect (optional)</span>
+							{/if}
+						</div>
+
+						<!-- Right: pick/change connected node -->
+						<button
+							type="button"
+							class="rounded-full border border-neutral-800 px-3 py-1 text-xs font-medium text-neutral-100 transition-all
+           hover:bg-white/5"
+							on:click={selectNodeConnection}
+						>
+							{node_connection ? 'Change connection' : 'Select node'}
+						</button>
+					</div>
+				</div>
+				<div class="mt-3 h-px w-full bg-neutral-800/80"></div>
+				<div class="mt-3 mr-3 mb-3 flex justify-end gap-2">
+					<button
+						type="button"
+						class="rounded-full border bg-neutral-200 px-3 py-1.5 text-xs font-medium
+                 text-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+						on:click={submitNewNode}
+						disabled={!node_title.trim()}
+					>
+						Submit
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 	{#if showRequestModal}
 		<div class="fixed inset-0 z-[80] flex items-center justify-center p-4">
-			<!-- overlay -->
 			<div
 				class="absolute inset-0 bg-black/60"
 				on:click={() => (showRequestModal = false)}
 				in:fade={{ duration: 180, easing: cubicOut }}
 				out:fade={{ duration: 140, easing: cubicIn }}
 			/>
-
 			<div
 				class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border-[2px] border-white/10 bg-black/70 p-6 backdrop-blur-2xl"
 				style="-webkit-backdrop-filter: blur(24px);"
