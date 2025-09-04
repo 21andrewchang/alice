@@ -1443,22 +1443,6 @@
 		console.log(mergedGraph);
 		mergedGraphLoaded = true;
 	}
-	let node_title = '';
-	let node_content = '';
-	const domainColors: Record<string, string> = {
-		ai: '#FF6B9D',
-		math: '#5B8DF2',
-		tech: '#73DACA',
-		hardware: '#FFD93D',
-		physics: '#BA6FFF',
-		biology: '#6BCF7F',
-		chemistry: '#FF8C42',
-		default: '#666'
-	};
-
-	const domainOptions = ['math', 'ai', 'tech', 'hardware'];
-
-	let node_domain: string = 'math';
 
 	onMount(async () => {
 		// await loadMergedGraph();
@@ -1506,9 +1490,28 @@
 			navigateToStackIndex(currentHistoryIndex + 1);
 		}
 	}
+	let node_title = '';
+	let node_content = '';
+	const domainColors: Record<string, string> = {
+		ai: '#FF6B9D',
+		math: '#5B8DF2',
+		tech: '#73DACA',
+		hardware: '#FFD93D',
+		physics: '#BA6FFF',
+		biology: '#6BCF7F',
+		chemistry: '#FF8C42',
+		default: '#666'
+	};
+
+	const domainOptions = ['math', 'ai', 'tech', 'hardware'];
+
+	let node_domain: string = 'math';
 	let showRequestModal = false;
 	let showNodeModal = false;
 	let requestedTopic = '';
+	function selectNodeConnection() {
+		showNodeModal = false;
+	}
 
 	async function submitNewNode() {
 		try {
@@ -1833,18 +1836,17 @@
 					bind:value={node_content}
 					placeholder="Node Content"
 				/>
+				<button
+					type="button"
+					class="mt-2 rounded-full border border-neutral-800 px-3 py-1 text-xs font-medium transition-all"
+				>
+					Select Node to connect
+				</button>
 				<div class="mt-3 flex justify-end gap-2">
 					<button
 						type="button"
-						class="rounded-md border border-neutral-800 px-3 py-1.5 text-sm text-neutral-200 hover:bg-white/5"
-						on:click={() => (showNodeModal = false)}
-					>
-						Cancel
-					</button>
-					<button
-						type="button"
-						class="rounded-md border border-neutral-700 bg-white/10 px-3 py-1.5 text-sm
-                 text-white hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
+						class="rounded-full border bg-neutral-200 px-3 py-1.5 text-xs font-medium
+                 text-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
 						on:click={submitNewNode}
 						disabled={!node_title.trim()}
 					>
