@@ -494,6 +494,14 @@
 		}
 	}
 
+	let isPickingConnection = false;
+	let node_connection: number | null = null;
+	let node_connection_label = '';
+
+	function selectNodeConnection() {
+		showNodeModal = false;
+		isPickingConnection = true;
+	}
 	// Helper function to very aggressively dim colors for focused-out nodes using RGB
 	function veryDimColor(color: any) {
 		// Convert hex to RGB, reduce brightness aggressively, convert back
@@ -791,6 +799,16 @@
 			})
 			.on('click', (event, d: any) => {
 				event.stopPropagation();
+				if (isPickingConnection) {
+					console.log('selected node: ', d);
+					node_connection = d.id;
+					node_connection_label = d.label;
+					console.log(node_connection);
+					console.log(node_connection_label);
+					isPickingConnection = false;
+					showNodeModal = true;
+					return;
+				}
 				selectNode(d);
 			});
 
@@ -1361,7 +1379,6 @@
 		expert: { level: 0, count: 0, next: null }
 	};
 
-	// helper: count nodes at least a mastery level
 	async function countAtLeast(level: number, userId: string): Promise<number> {
 		const { count, error } = await supabase
 			.from('user_nodes')
@@ -1372,7 +1389,6 @@
 		return count ?? 0;
 	}
 
-	// fetch all mastery counts at once
 	export async function getMasteryCounts(): Promise<{ M1: number; M2: number; M3: number }> {
 		const { data: sessionData } = await supabase.auth.getSession();
 		const userId = sessionData.session?.user?.id;
@@ -1509,9 +1525,7 @@
 	let showRequestModal = false;
 	let showNodeModal = false;
 	let requestedTopic = '';
-	function selectNodeConnection() {
-		showNodeModal = false;
-	}
+	let node_is_source: boolean = true;
 
 	async function submitNewNode() {
 		try {
@@ -1522,7 +1536,6 @@
 				alert('Please sign in to add a new node');
 				return;
 			}
-
 			const { data, error } = await supabase
 				.from('nodes')
 				.insert({
@@ -1538,20 +1551,26 @@
 			if (error) {
 				console.error(error);
 			}
+
 			const newId = data?.id;
 			console.log('new id:', newId);
-			const { error: linkError } = await supabase
-				.from('links')
-				.insert({
-					source: newId,
-					target: 0
-				})
-				.single();
 
-			if (error) throw error;
+			if (newId && node_connection != null) {
+				const source = node_is_source ? newId : node_connection;
+				const target = node_is_source ? node_connection : newId;
 
+				const { error: linkError } = await supabase
+					.from('links')
+					.insert({ source, target })
+					.single();
+
+				if (linkError) throw linkError;
+			}
 			node_title = '';
 			node_content = '';
+			node_connection = null;
+			node_connection_label = '';
+			node_is_source = true;
 			showNodeModal = false;
 		} catch (e) {
 			console.error(e);
@@ -1589,8 +1608,8 @@
 	<div class="flex flex-row gap-2">
 		{#if userBracket && borderColorAlpha && borderColor}
 			<button
-				class="flex cursor-pointer items-center gap-2 rounded-sm px-4 py-2"
-				style="background-color: rgba(0,0,0,.95); border: 1px solid {borderColorAlpha};"
+				class="flex cursor-pointer items-center gap-2 rounded-sm bg-black/30 px-4 py-2"
+				style=" border: 1px solid {borderColorAlpha};"
 				on:click={handleUserProfileClick}
 			>
 				<p
@@ -1604,8 +1623,8 @@
 
 		{#if recommendedNode && recommendedNode.node}
 			<div
-				class="flex items-center gap-2 rounded-sm px-4 py-2 text-xs select-none"
-				style="background-color: rgba(0,0,0,.95); border:1px solid #222; backdrop-filter: blur(10px);"
+				class="flex items-center gap-2 rounded-sm bg-black/30 px-4 py-2 text-xs select-none"
+				style="border:1px solid #222; backdrop-filter: blur(10px);"
 			>
 				<span class="font-semibold text-neutral-50">Next Step:</span>
 				<span
@@ -1794,55 +1813,94 @@
 				out:fade={{ duration: 140, easing: cubicIn }}
 			/>
 			<div
-				class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border border-white/10 bg-black/70 p-6 backdrop-blur-2xl"
+				class="relative z-10 flex max-h-[80vh] w-full max-w-lg flex-col justify-center overflow-auto rounded-md border border-white/10 bg-black/30 backdrop-blur-2xl"
 				style="-webkit-backdrop-filter: blur(24px);"
 				transition:scale={{ start: 0.9, duration: 200, easing: cubicOut }}
 			>
-				<h3 class="mb-2 text-xl font-semibold text-neutral-50">Add Node</h3>
-				<div class="mb-2">
-					<div class="flex flex-wrap gap-2">
-						{#each domainOptions as d}
-							{#key d}
-								<button
-									type="button"
-									on:click={() => (node_domain = d)}
-									class="rounded-full px-3 py-1 text-xs font-medium transition-all"
-									style="
+				<div class="p-6 pb-0">
+					<h3 class="mb-2 text-xl font-semibold text-neutral-50">Add Node</h3>
+					<div class="mb-2">
+						<div class="flex flex-wrap gap-2">
+							{#each domainOptions as d}
+								{#key d}
+									<button
+										type="button"
+										on:click={() => (node_domain = d)}
+										class="rounded-full px-3 py-1 text-xs font-medium transition-all"
+										style="
 							border: 1px solid {domainColors[d]};
 							color: {domainColors[d]};
 							background: {hexToRgba(domainColors[d], node_domain === d ? 0.25 : 0.0)};
 							box-shadow: {node_domain === d ? `0 0 0 2px ${hexToRgba(domainColors[d], 0.15)}` : 'none'};
 						  "
+									>
+										{d[0].toUpperCase() + d.slice(1)}
+									</button>
+								{/key}
+							{/each}
+						</div>
+					</div>
+					<textarea
+						class="mt-1 w-full resize-y rounded-md border border-neutral-800 bg-neutral-900/70 p-2
+               text-sm text-neutral-100 placeholder-neutral-600 outline-none
+               focus:border-neutral-600 focus:ring-0"
+						rows="1"
+						bind:value={node_title}
+						placeholder="Node Title"
+					/>
+					<textarea
+						class="mt-1 w-full resize-y rounded-md border border-neutral-800 bg-neutral-900/70 p-2
+               text-sm text-neutral-100 placeholder-neutral-600 outline-none
+               focus:border-neutral-600 focus:ring-0"
+						rows="1"
+						bind:value={node_content}
+						placeholder="Node Content"
+					/>
+					<div class="mt-2 flex items-center justify-between gap-2">
+						<div class="flex min-w-0 items-center gap-2 text-xs">
+							{#if node_connection != null}
+								<span class="shrink-0 font-medium text-neutral-100"
+									>{node_title ? node_title : 'Unnamed Node'}</span
 								>
-									{d[0].toUpperCase() + d.slice(1)}
+								<button
+									type="button"
+									class="arrow-toggle inline-flex items-center justify-center rounded-full
+               border border-neutral-800 px-2 py-1 text-neutral-100
+               transition hover:bg-white/10 active:scale-95"
+									on:click={() => (node_is_source = !node_is_source)}
+									aria-label={node_is_source
+										? 'New → Selected (click to flip)'
+										: 'Selected → New (click to flip)'}
+									disabled={node_connection == null}
+								>
+									{node_is_source ? '→' : '←'}
 								</button>
-							{/key}
-						{/each}
+
+								<span
+									class="truncate font-medium text-neutral-100"
+									title={node_connection_label}
+									style="max-width: 14rem;"
+								>
+									{node_connection_label}
+								</span>
+							{:else}
+								<span class="opacity-60">Pick a node to connect (optional)</span>
+							{/if}
+						</div>
+
+						<!-- Right: pick/change connected node -->
+						<button
+							type="button"
+							class="rounded-full border border-neutral-800 px-3 py-1 text-xs font-medium text-neutral-100 transition-all
+           hover:bg-white/5"
+							on:click={selectNodeConnection}
+						>
+							{node_connection ? 'Change connection' : 'Select node'}
+						</button>
 					</div>
 				</div>
-				<textarea
-					class="mt-1 w-full resize-y rounded-md border border-neutral-800 bg-neutral-900/70 p-2
-               text-sm text-neutral-100 placeholder-neutral-600 outline-none
-               focus:border-neutral-600 focus:ring-0"
-					rows="1"
-					bind:value={node_title}
-					placeholder="Node Title"
-				/>
-				<textarea
-					class="mt-1 w-full resize-y rounded-md border border-neutral-800 bg-neutral-900/70 p-2
-               text-sm text-neutral-100 placeholder-neutral-600 outline-none
-               focus:border-neutral-600 focus:ring-0"
-					rows="1"
-					bind:value={node_content}
-					placeholder="Node Content"
-				/>
-				<button
-					type="button"
-					class="mt-2 rounded-full border border-neutral-800 px-3 py-1 text-xs font-medium transition-all"
-				>
-					Select Node to connect
-				</button>
-				<div class="mt-3 flex justify-end gap-2">
+				<div class="mt-3 h-px w-full bg-neutral-800/80"></div>
+				<div class="mt-3 mr-3 mb-3 flex justify-end gap-2">
 					<button
 						type="button"
 						class="rounded-full border bg-neutral-200 px-3 py-1.5 text-xs font-medium
