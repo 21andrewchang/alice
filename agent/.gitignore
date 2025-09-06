@@ -1,0 +1,11 @@
+# Environment
+.env
+.env.*
+*.env
+
+# Virtual environments
+.venv/
+venv/
+**/.venv/
+**/venv/
+
