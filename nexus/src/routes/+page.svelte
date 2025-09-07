@@ -386,7 +386,7 @@
 	});
 </script>
 
-<div class="landing-bg">
+<div class="landing-bg bg-black">
 	<canvas bind:this={canvasEl}></canvas>
 </div>
 
