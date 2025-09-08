@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 
 
 ARXIV_API = "http://export.arxiv.org/api/query"
-# also works with https://ar5iv.labs.arxiv.org/html/{arxiv_id}
 AR5IV_HTML = "https://ar5iv.org/html/{arxiv_id}"
 
 

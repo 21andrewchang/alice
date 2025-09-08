@@ -1,4 +1,4 @@
-#!/Users/andrewchang/dev/alice/agent/.venv/bin/python
+#!/Users/andrewchang/dev/alice/agent/.venv/bin/python3.13
 import sys
 from openai.cli import main
 if __name__ == '__main__':
