@@ -223,9 +223,6 @@
 			<!-- Page content -->
 			{#if pages[currentPage].type === 'section'}
 				<div class="mb-6">
-					<h3 class="mb-3 text-lg font-semibold" style="color: #BFCAF3;">
-						{pages[currentPage].title}
-					</h3>
 					<div class="text-sm leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
 						{#key $nodeStatusVersion}
 							{@html parseNodeLinks(pages[currentPage].content || '')}
