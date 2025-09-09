@@ -456,7 +456,7 @@
 
 				<div class="mt-6 flex justify-end">
 					<button
-						class="self-end rounded-full bg-neutral-200 px-4 py-2 font-medium text-black transition hover:opacity-80"
+						class="self-end rounded-full bg-neutral-200 px-4 py-2 font-medium text-black transition hover:bg-white"
 						on:click={startPairs}
 						type="button">Start</button
 					>
@@ -496,14 +496,14 @@
 
 				<div class="flex flex-row items-center justify-end gap-2">
 					<button
-						class="rounded-full bg-neutral-200 px-4 py-2 font-medium text-black transition hover:opacity-80"
-						on:click={pickTie}
-						type="button">Can’t decide</button
-					>
-					<button
-						class="rounded-full bg-neutral-200 px-4 py-2 font-medium text-black transition hover:opacity-80"
+						class="rounded-full border border-white/10 bg-black px-4 py-2 font-medium text-neutral-400 transition hover:border-white/20 hover:text-neutral-200"
 						on:click={undoLast}
 						type="button">Undo</button
+					>
+					<button
+						class="rounded-full bg-neutral-200 px-4 py-2 font-medium text-black transition hover:bg-white"
+						on:click={pickTie}
+						type="button">Can’t decide</button
 					>
 				</div>
 			</div>
