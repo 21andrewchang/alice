@@ -427,7 +427,6 @@
 		const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
 		if (error) alert(error.message);
 	}
-
 	// ---------- Mount ----------
 	onMount(() => {
 		(async () => {
@@ -738,7 +737,6 @@
 {/if}
 
 <style>
-	/* background host */
 	.landing-bg {
 		position: fixed;
 		inset: 0;
@@ -749,7 +747,6 @@
 		position: relative;
 		z-index: 3;
 	}
-
 	.magnet {
 		transform: scale(1);
 		transition: transform 3s cubic-bezier(0.22, 1, 0.36, 1);

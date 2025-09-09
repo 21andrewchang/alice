@@ -5,6 +5,7 @@
 	import { goto } from '$app/navigation';
 
 	// Rank styling configuration
+
 	const rankStyles: Record<
 		string,
 		{
