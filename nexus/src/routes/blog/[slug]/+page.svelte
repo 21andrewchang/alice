@@ -1,16 +1,9 @@
 <script lang="ts">
-	let updates = [
-		{
-			date: 'Aug 8, 2025',
-			title: 'Skill Bracket Progress Bars',
-			body: 'We added new progress bars to track mastery towards your next bracket level.'
-		},
-		{
-			date: 'Aug 5, 2025',
-			title: 'Recommendation Improvements',
-			body: 'Recommendations now adapt faster based on recent mastery gains.'
-		}
-	];
+	export let data: {
+		component: unknown;
+		metadata: { title: string; date: string; excerpt?: string };
+	};
+	const Post = data.component as any;
 </script>
 
 <div class="min-h-screen bg-black text-neutral-200">
@@ -32,9 +25,9 @@
 				>Our Mission</a
 			>
 			<a
-				href="/updates"
+				href="/blog"
 				class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
-				>Updates</a
+				>Blog</a
 			>
 			<a
 				href="/contact"
@@ -54,22 +47,37 @@
 			</button>
 		</div>
 	</div>
-	<section class="container mx-auto px-18 py-16">
-		<h1 class="mb-2 text-4xl font-bold text-white">Updates</h1>
-		<p class="mb-12 text-lg text-neutral-400">
-			Latest improvements, features, and changes to Alice.
-		</p>
+	<div class="container mx-auto px-18 py-8 text-neutral-200">
+		<a
+			href="/blog"
+			rel="prefetch"
+			class="group inline-flex items-center gap-2 rounded-full py-1.5 text-sm text-neutral-700 transition hover:text-neutral-100 hover:ring-white/25"
+		>
+			<svg
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				class=" h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+			</svg>
+			<span>Back to all posts</span>
+		</a>
 
-		<div class="space-y-12">
-			{#each updates as update}
-				<article class="border-b border-neutral-800 pb-8">
-					<p class="text-sm text-neutral-500">{update.date}</p>
-					<h2 class="mt-1 text-xl font-semibold text-white">
-						{update.title}
-					</h2>
-					<p class="mt-2 text-neutral-300">{update.body}</p>
-				</article>
-			{/each}
-		</div>
-	</section>
+		<p class="mt-6 text-sm text-neutral-500">
+			{new Date(data.metadata.date).toLocaleDateString()}
+		</p>
+		<h1 class="mb-6 text-4xl font-bold text-white">{data.metadata.title}</h1>
+
+		<article class="prose prose-invert max-w-none">
+			<svelte:component this={Post} />
+		</article>
+	</div>
 </div>
+
+<style>
+	/* minimal prose tweaks (optional) */
+	.prose :where(a):not(:where([class~='not-prose'] *)) {
+		color: #a3a3a3;
+	}
+</style>

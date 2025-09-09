@@ -1,22 +1,11 @@
 <script lang="ts">
-	let updates = [
-		{
-			date: 'Aug 8, 2025',
-			title: 'Skill Bracket Progress Bars',
-			body: 'We added new progress bars to track mastery towards your next bracket level.'
-		},
-		{
-			date: 'Aug 5, 2025',
-			title: 'Recommendation Improvements',
-			body: 'Recommendations now adapt faster based on recent mastery gains.'
-		}
-	];
+	export let data: { posts: { slug: string; title: string; date: string; excerpt?: string }[] };
 </script>
 
 <div class="min-h-screen bg-black text-neutral-200">
 	<div
 		class="sticky top-0 left-0 z-50 grid w-full grid-cols-[1fr_2fr_1fr] items-center bg-black/70
-         p-4 px-24 backdrop-blur-sm"
+         p-4 px-24 backdrop-blur-3xl"
 	>
 		<a href="/" class="text-white">Alice</a>
 
@@ -32,12 +21,12 @@
 				>Our Mission</a
 			>
 			<a
-				href="/updates"
+				href="/blog"
 				class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
-				>Updates</a
+				>Blog</a
 			>
 			<a
-				href="/#contact"
+				href="/contact"
 				class="rounded-md px-2 py-1 text-[12px] text-neutral-400 transition hover:bg-neutral-800"
 				>Contact Us</a
 			>
@@ -55,10 +44,24 @@
 		</div>
 	</div>
 	<section class="container mx-auto px-18 py-16">
-		<h1 class="mb-2 text-4xl font-bold text-white">Contact us</h1>
-		<p class=" text-lg text-neutral-400">
-			Have something you want to learn? Let us know and we'll add it for you.
-		</p>
-		<p class="mb-12 text-lg text-neutral-200">founders@tryalice.co</p>
+		<h1 class="mb-2 text-4xl font-bold text-white">Blog</h1>
+		<p class="mb-12 text-lg text-neutral-400">Latest posts from the Founders of Alice.</p>
+
+		<div class="space-y-10">
+			{#each data.posts as p}
+				<article class="border-b border-neutral-800 pb-8">
+					<p class="text-sm text-neutral-500">{new Date(p.date).toLocaleDateString()}</p>
+					<a
+						href={`/blog/${p.slug}`}
+						class="mt-1 block text-xl font-semibold text-white hover:underline"
+					>
+						{p.title}
+					</a>
+					{#if p.excerpt}
+						<p class="mt-2 text-neutral-300">{p.excerpt}</p>
+					{/if}
+				</article>
+			{/each}
+		</div>
 	</section>
 </div>
