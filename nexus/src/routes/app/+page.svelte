@@ -583,7 +583,7 @@
 				d3
 					.forceCollide()
 					.radius((d: any) => {
-						const base = d.type === 'paper' ? 12 : 8;
+						const base = d.type === 'topic' ? 16 : 8;
 						return base + 20;
 					})
 					.strength(0.8)
@@ -747,7 +747,7 @@
 			.selectAll('circle')
 			.data(nodes)
 			.join('circle')
-			.attr('r', (d: any) => (d.type === 'paper' ? 12 : 8)) // Larger radius for research papers
+			.attr('r', (d: any) => (d.domain === 'topic' ? 16 : 8)) // Larger radius for research papers
 			.attr('fill', (d: any) => {
 				// Use new visual state calculation functions
 				const visualState = getNodeVisualState(d.id, d.domain || 'tech', d.type || 'concept');
@@ -780,7 +780,7 @@
 				d3.select(event.target)
 					.transition()
 					.duration(150)
-					.attr('r', (d: any) => (d.type === 'paper' ? 12 : 8) * 1.15); // 15% bigger
+					.attr('r', (d: any) => (d.domain === 'topic' ? 16 : 8) * 1.15); // 15% bigger
 			})
 			.on('mousemove', (event) => {
 				d3.select(tooltipEl)
@@ -795,7 +795,7 @@
 				d3.select(event.target)
 					.transition()
 					.duration(150)
-					.attr('r', d.type === 'paper' ? 12 : 8); // Back to original size
+					.attr('r', d.domain === 'topic' ? 16 : 8); // Back to original size
 			})
 			.on('click', (event, d: any) => {
 				event.stopPropagation();
@@ -872,7 +872,7 @@
 				.attr('cy', (d: any) => d.y);
 			g.selectAll('text')
 				.attr('x', (d: any) => d.x)
-				.attr('y', (d: any) => d.y + (d.type === 'paper' ? 26 : 20)); // Position labels farther below paper nodes
+				.attr('y', (d: any) => d.y + (d.domain === 'topic' ? 26 : 20)); // Position labels farther below paper nodes
 		});
 
 		function dragstarted(e: any) {
@@ -1123,7 +1123,7 @@
 			.replace(
 				/^#### (.+)$/gm,
 				(m: any, t: any) =>
-					`<h4 id="${slugify(t)}" class="text-base font-semibold mb-2 mt-3" style="color: #D0D0D0;">${t}</h4>`
+					`<h4 id="${slugify(t)}" class="text-base font-semibold" style="color: #D0D0D0;">${t}</h4>`
 			)
 			.replace(
 				/^### (.+)$/gm,
@@ -1133,12 +1133,12 @@
 			.replace(
 				/^## (.+)$/gm,
 				(m: any, t: any) =>
-					`<h2 id="${slugify(t)}" class="text-xl font-bold mb-3 mt-6" style="color: #F0F0F0;">${t}</h2>`
+					`<h2 id="${slugify(t)}" class="text-xl font-bold" style="color: #F0F0F0;">${t}</h2>`
 			)
 			.replace(
 				/^# (.+)$/gm,
 				(m: any, t: any) =>
-					`<h1 id="${slugify(t)}" class="text-2xl font-bold mb-4 mt-8" style="color: #FFFFFF;">${t}</h1>`
+					`<h1 id="${slugify(t)}" class="text-2xl font-bold" style="color: #FFFFFF;">${t}</h1>`
 			)
 			// Convert bold text (**text** to <strong>)
 			.replace(/\*\*(.+?)\*\*/g, '<strong style="color: #FFFFFF;">$1</strong>')
@@ -1514,12 +1514,13 @@
 		tech: '#73DACA',
 		hardware: '#FFD93D',
 		physics: '#BA6FFF',
-		biology: '#6BCF7F',
+		biology: '#6BCF8F',
 		chemistry: '#FF8C42',
+		topic: '#FFFFFF',
 		default: '#666'
 	};
 
-	const domainOptions = ['math', 'ai', 'tech', 'hardware'];
+	const domainOptions = ['math', 'ai', 'tech', 'hardware', 'topic'];
 
 	let node_domain: string = 'math';
 	let showRequestModal = false;

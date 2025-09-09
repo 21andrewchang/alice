@@ -57,7 +57,7 @@
 	<section class="container mx-auto px-18 py-16">
 		<h1 class="mb-2 text-4xl font-bold text-white">Contact us</h1>
 		<p class=" text-lg text-neutral-400">
-			Have something you want to learn? Let us know and we'll at it for you.
+			Have something you want to learn? Let us know and we'll add it for you.
 		</p>
 		<p class="mb-12 text-lg text-neutral-200">founders@tryalice.co</p>
 	</section>
