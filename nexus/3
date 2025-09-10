@@ -232,7 +232,7 @@
 		const cursorForce = (() => {
 			let nn: any[] = nodes;
 			let radius = 280; // px in viewBox space
-			let strength = 8.0; // push strength
+			let strength = 10.0; // push strength
 			let repel = true; // flip to false to attract
 
 			function force(alpha: number) {
