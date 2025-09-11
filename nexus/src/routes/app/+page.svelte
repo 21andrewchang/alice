@@ -518,6 +518,132 @@
 		return `#${dimR.toString(16).padStart(2, '0')}${dimG.toString(16).padStart(2, '0')}${dimB.toString(16).padStart(2, '0')}`;
 	}
 
+	// --- Onion layout seeds (hacky, no schema change) ---
+	const ROOT_ID = 2; // Computer Science
+	const REGION_IDS = [7, 5]; // [Machine Learning, Computer Vision]
+
+	// sectorId -> regionId
+	const SECTOR_TO_REGION = new Map<number, number>([
+		[18, 7], // Reinforcement Learning -> ML
+		[19, 7], // Imitation Learning -> ML
+		[27, 5], // Representation -> CV
+		[29, 5], // Calibration  -> CV
+		[30, 5], // Semantics    -> CV
+		[26, 5], // Perception   -> CV
+		[28, 5] // Tracking     -> CV
+	]);
+
+	// ring radii (px)
+	const RING_RADIUS = [0, 140, 280, 420];
+	// angular spread (radians)
+	const SECTOR_WEDGE = (70 * Math.PI) / 180; // sectors around their region
+	const TOPIC_WEDGE = (28 * Math.PI) / 180; // topics around their sector
+	// Build undirected adjacency from links
+	function buildUndirectedAdj(links: any[]) {
+		const adj = new Map<number, Set<number>>();
+		links.forEach((l: any) => {
+			const a = typeof l.source === 'object' ? l.source.id : l.source;
+			const b = typeof l.target === 'object' ? l.target.id : l.target;
+			if (!adj.has(a)) adj.set(a, new Set());
+			if (!adj.has(b)) adj.set(b, new Set());
+			adj.get(a)!.add(b);
+			adj.get(b)!.add(a);
+		});
+		return adj;
+	}
+
+	// BFS to nearest seed
+	function bfsNearestSeed(start: number, seeds: number[], adj: Map<number, Set<number>>) {
+		const seedSet = new Set(seeds);
+		if (seedSet.has(start)) return start;
+		const q: number[] = [start];
+		const seen = new Set<number>([start]);
+		while (q.length) {
+			const u = q.shift()!;
+			for (const v of adj.get(u) || []) {
+				if (seen.has(v)) continue;
+				if (seedSet.has(v)) return v;
+				seen.add(v);
+				q.push(v);
+			}
+		}
+		return seeds[0];
+	}
+
+	// Compute target ring/angle for every node
+	function computeOnionTargets(nodes: any[], links: any[]) {
+		const adj = buildUndirectedAdj(links);
+		const sectorIds = Array.from(SECTOR_TO_REGION.keys());
+
+		// 1) region ownership
+		const regionOf = new Map<number, number>();
+		nodes.forEach((n) => {
+			if (n.id === ROOT_ID) return;
+			if (REGION_IDS.includes(n.id)) regionOf.set(n.id, n.id);
+			else if (SECTOR_TO_REGION.has(n.id)) regionOf.set(n.id, SECTOR_TO_REGION.get(n.id)!);
+			else regionOf.set(n.id, bfsNearestSeed(n.id, REGION_IDS, adj));
+		});
+
+		// 2) sector ownership (only inside the same region)
+		const sectorOf = new Map<number, number>();
+		nodes.forEach((n) => {
+			if (SECTOR_TO_REGION.has(n.id)) sectorOf.set(n.id, n.id);
+		});
+		nodes.forEach((n) => {
+			if (n.id === ROOT_ID || REGION_IDS.includes(n.id) || SECTOR_TO_REGION.has(n.id)) return;
+			const r = regionOf.get(n.id)!;
+			const localSeeds = sectorIds.filter((sid) => SECTOR_TO_REGION.get(sid) === r);
+			if (localSeeds.length) sectorOf.set(n.id, bfsNearestSeed(n.id, localSeeds, adj));
+		});
+
+		// 3) angles
+		const regionAngles = new Map<number, number>();
+		REGION_IDS.forEach((rid, i) => {
+			regionAngles.set(rid, -Math.PI / 2 + (i * 2 * Math.PI) / REGION_IDS.length);
+		});
+
+		const sectorsByRegion = new Map<number, number[]>();
+		for (const [sid, rid] of SECTOR_TO_REGION) {
+			if (!sectorsByRegion.has(rid)) sectorsByRegion.set(rid, []);
+			sectorsByRegion.get(rid)!.push(sid);
+		}
+
+		const sectorAngles = new Map<number, number>();
+		for (const [rid, sids] of sectorsByRegion) {
+			const center = regionAngles.get(rid)!;
+			const n = sids.length || 1;
+			for (let i = 0; i < n; i++) {
+				const offset = ((i - (n - 1) / 2) / Math.max(1, n - 1)) * SECTOR_WEDGE;
+				sectorAngles.set(sids[i], center + offset);
+			}
+		}
+
+		// 4) final targets
+		const targets = new Map<number, { x: number; y: number; layer: number }>();
+		nodes.forEach((n) => {
+			let layer = 3,
+				angle = 0;
+			if (n.id === ROOT_ID) {
+				layer = 0;
+				angle = 0;
+			} else if (REGION_IDS.includes(n.id)) {
+				layer = 1;
+				angle = regionAngles.get(n.id)!;
+			} else if (SECTOR_TO_REGION.has(n.id)) {
+				layer = 2;
+				angle = sectorAngles.get(n.id) ?? regionAngles.get(regionOf.get(n.id)!)!;
+			} else {
+				layer = 3;
+				const sid = sectorOf.get(n.id);
+				const base = sid ? sectorAngles.get(sid)! : regionAngles.get(regionOf.get(n.id)!)!;
+				angle = base + (Math.random() - 0.5) * TOPIC_WEDGE;
+			}
+			const r = RING_RADIUS[layer] + (layer >= 2 ? Math.random() * 24 - 12 : 0);
+			targets.set(n.id, { x: r * Math.cos(angle), y: r * Math.sin(angle), layer });
+		});
+		return targets;
+	}
+
 	function chart(data: any) {
 		const width = 928;
 		const height = 680;
