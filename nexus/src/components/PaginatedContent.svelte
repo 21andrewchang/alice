@@ -19,31 +19,25 @@
 	export let nodesVisited: number = 0;
 
 	let mastery = 0;
-
 	const dispatch = createEventDispatcher();
 
 	function masteryIcon(level: number | null) {
-		// you can adjust filenames as needed
-		// e.g. /icons/mastery_0.png, /icons/mastery_1.png, etc.
 		if (level === null) return '';
-		const key = level;
-		return `/mastery${key}.png`;
+		return `/mastery${level}.png`;
 	}
 
 	function openChallenge(e: MouseEvent) {
-		e.stopPropagation;
+		e.stopPropagation(); // fixed
 		console.log('starting challenge for node: ', node.id);
-		dispatch('challenge', { node: node });
+		dispatch('challenge', { node });
 	}
-	// Create a reactive store to track node status changes
-	const nodeStatusVersion = writable(0);
 
-	// Function to force re-render of content when node status changes
+	// Track node-status re-renders
+	const nodeStatusVersion = writable(0);
 	function updateContentWithLatestNodeStatus() {
 		nodeStatusVersion.update((v) => v + 1);
 	}
 
-	// Add getDomainColor utility (copy from app page)
 	function getDomainColor(domain: string) {
 		const domainColors = {
 			math: '#5B8DF2',
@@ -53,21 +47,122 @@
 			ai: '#FF6B9D',
 			hardware: '#FFD93D',
 			'research-papers': '#BFCAF3'
-		};
-		return domainColors[domain as keyof typeof domainColors] || '#3A5A8F';
+		} as const;
+		return (domainColors as any)[domain] || '#3A5A8F';
 	}
 
-	// Dynamically build pages based on available content sections
-	let pages: Array<{ title: string; content: string | null; type: 'section' | 'quiz' }> = [];
+	// ---------- YouTube helpers (robust + simple string transforms) ----------
+	function normalizeUrl(u: string): string {
+		// Add https:// if missing so URL() doesn't throw
+		if (!/^https?:\/\//i.test(u)) return `https://${u}`;
+		return u;
+	}
 
-	// Add abstract/description as first page
+	function extractYouTube(urlStr: string): { id: string; start: number } | null {
+		try {
+			let u: URL;
+			try {
+				u = new URL(urlStr);
+			} catch {
+				u = new URL(normalizeUrl(urlStr));
+			}
+
+			const host = u.hostname.replace(/^www\./, '');
+			if (!['youtube.com', 'youtu.be', 'm.youtube.com', 'youtube-nocookie.com'].includes(host))
+				return null;
+
+			let id = '';
+			const p = u.pathname;
+
+			if (host === 'youtu.be') {
+				id = p.split('/')[1] || '';
+			} else if (p === '/watch') {
+				id = u.searchParams.get('v') || '';
+			} else if (p.startsWith('/shorts/')) {
+				id = p.split('/')[2] || '';
+			} else if (p.startsWith('/embed/')) {
+				id = p.split('/')[2] || '';
+			} else if (p.startsWith('/live/')) {
+				id = p.split('/')[2] || '';
+			}
+
+			// Typical 11-char YouTube IDs; accept 10–15 to be tolerant
+			if (!/^[A-Za-z0-9_-]{10,15}$/.test(id)) return null;
+
+			// Parse start time (supports ?t=123, ?t=1h2m3s, ?start=45)
+			const t = u.searchParams.get('t') || u.searchParams.get('start') || '';
+			let start = 0;
+			if (/^\d+$/.test(t)) start = parseInt(t, 10);
+			else if (t) {
+				const m = t.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);
+				if (m)
+					start =
+						parseInt(m[1] || '0', 10) * 3600 +
+						parseInt(m[2] || '0', 10) * 60 +
+						parseInt(m[3] || '0', 10);
+			}
+
+			return { id, start };
+		} catch {
+			return null;
+		}
+	}
+
+	function makeEmbedHTML(origUrl: string, id: string, start: number): string {
+		const qs = start ? `?start=${start}&rel=0&modestbranding=1` : `?rel=0&modestbranding=1`;
+		// Use nocookie for fewer tracking cookies
+		const src = `https://www.youtube-nocookie.com/embed/${id}${qs}`;
+		return `
+<div class="yt-embed" data-yt-url="${origUrl}">
+  <div class="yt-ratio">
+    <iframe
+      src="${src}"
+      title="YouTube video"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen
+    ></iframe>
+  </div>
+</div>`;
+	}
+
+	// 1) Replace anchor tags with embeds when href is a YouTube URL
+	// 2) Replace bare YouTube URLs in text nodes with embeds
+	function embedYouTubes(html: string): string {
+		// Replace anchors first (double/single quotes in href)
+		html = html.replace(
+			/<a\s+[^>]*href=(?:"([^"]+)"|'([^']+)')[^>]*>(.*?)<\/a>/gim,
+			(_m, h1: string, h2: string, inner: string) => {
+				const href = (h1 || h2 || '').trim();
+				const parsed = extractYouTube(href);
+				if (!parsed) return _m;
+				return makeEmbedHTML(href, parsed.id, parsed.start);
+			}
+		);
+
+		// Replace bare URLs (avoid those that are already inside attributes)
+		// Matches start-of-line or whitespace or '>' before the URL to reduce false positives
+		html = html.replace(
+			/(^|[\s>])((?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be|youtube-nocookie\.com)\/[^\s<"']+)/gim,
+			(_m, pre: string, urlLike: string) => {
+				const parsed = extractYouTube(urlLike);
+				if (!parsed) return _m;
+				return `${pre}${makeEmbedHTML(urlLike, parsed.id, parsed.start)}`;
+			}
+		);
+
+		return html;
+	}
+	// ---------- end YouTube helpers ----------
+
+	// Build pages dynamically from node content
+	let pages: Array<{ title: string; content: string | null; type: 'section' | 'quiz' }> = [];
 	if (node.content?.abstract) {
 		pages.push({ title: 'Abstract', content: node.content.abstract, type: 'section' });
 	} else if (node.description) {
 		pages.push({ title: 'Description', content: node.description, type: 'section' });
 	}
-
-	// Add other content sections if available
 	if (node.content) {
 		for (const key in node.content) {
 			if (key !== 'abstract' && key !== 'description' && key !== 'original_paper_url') {
@@ -79,26 +174,18 @@
 			}
 		}
 	}
-
-	console.log(node);
-
 	const totalPages = pages.length;
 
-	// Subscribe to the current page store for this node
+	// Current page store
 	let currentPage: number;
 	currentPageStore.subscribe((pagesStore) => {
 		currentPage = pagesStore[node.id] || 0;
 	});
-
 	function setPage(pageNum: number) {
 		if (pageNum >= 0 && pageNum < totalPages) {
-			currentPageStore.update((pagesStore) => ({
-				...pagesStore,
-				[node.id]: pageNum
-			}));
+			currentPageStore.update((pagesStore) => ({ ...pagesStore, [node.id]: pageNum }));
 		}
 	}
-
 	function nextPage() {
 		setPage(currentPage + 1);
 	}
@@ -107,37 +194,27 @@
 	}
 
 	function handleMouseEnter(e: MouseEvent) {
-		const target = e.target as HTMLButtonElement;
-		target.style.color = '#222222';
+		(e.target as HTMLButtonElement).style.color = '#222222';
 	}
 	function handleMouseLeave(e: MouseEvent) {
-		const target = e.target as HTMLButtonElement;
-		target.style.color = '#777777';
+		(e.target as HTMLButtonElement).style.color = '#777777';
 	}
 	function handleFinishButtonHover(e: MouseEvent) {
-		const target = e.target as HTMLButtonElement;
-		target.style.backgroundColor = '#8A9BB8';
+		(e.target as HTMLButtonElement).style.backgroundColor = '#8A9BB8';
 	}
 	function handleFinishButtonLeave(e: MouseEvent) {
-		const target = e.target as HTMLButtonElement;
-		target.style.backgroundColor = '#BFCAF3';
+		(e.target as HTMLButtonElement).style.backgroundColor = '#BFCAF3';
 	}
 
 	function handleNodeStatusUpdate() {
-		// Force re-render of content with updated node statuses
 		updateContentWithLatestNodeStatus();
 	}
 
 	onMount(() => {
-		// Listen for custom node status update events
 		window.addEventListener('nodeStatusUpdated', handleNodeStatusUpdate);
-
-		// Also listen for focus/blur events to catch when user returns to the page
 		window.addEventListener('focus', handleNodeStatusUpdate);
-
 		updateContentWithLatestNodeStatus();
 	});
-
 	onDestroy(() => {
 		window.removeEventListener('nodeStatusUpdated', handleNodeStatusUpdate);
 		window.removeEventListener('focus', handleNodeStatusUpdate);
@@ -194,7 +271,6 @@
 	<!-- Content -->
 	<div class="relative flex-1 overflow-y-auto">
 		<div class="px-6 pb-6">
-			<!-- Link to original paper -->
 			{#if node.content?.original_paper_url}
 				<div class="mb-6 rounded-lg">
 					<div class="flex items-center gap-3">
@@ -211,31 +287,29 @@
 								target="_blank"
 								rel="noopener noreferrer"
 								class="text-sm hover:underline"
-								style="color: #888888;"
+								style="color: #888888;">View on arXiv →</a
 							>
-								View on arXiv →
-							</a>
 						</div>
 					</div>
 				</div>
 			{/if}
 
-			<!-- Page content -->
 			{#if pages[currentPage].type === 'section'}
 				<div class="mb-6">
 					<div class="text-sm leading-relaxed whitespace-pre-line" style="color: #B3B3B3;">
 						{#key $nodeStatusVersion}
-							{@html parseNodeLinks(pages[currentPage].content || '')}
+							{@html embedYouTubes(parseNodeLinks(pages[currentPage].content || ''))}
 						{/key}
 					</div>
 				</div>
 			{/if}
 		</div>
 	</div>
+
+	<!-- Footer -->
 	<div class="pointer-events-auto relative">
 		<div
-			class="relative flex items-center justify-between gap-4
-             border-t border-white/10 bg-black/80 px-4 py-3 backdrop-blur-2xl"
+			class="relative flex items-center justify-between gap-4 border-t border-white/10 bg-black/80 px-4 py-3 backdrop-blur-2xl"
 		>
 			<div class="flex items-center">
 				{#if node.mastery !== 0}
@@ -262,6 +336,30 @@
 	:global(.onboarding-content *) {
 		color: #fff !important;
 	}
+
+	/* YouTube embed styles */
+	.yt-embed {
+		margin: 12px 0;
+	}
+	.yt-ratio {
+		position: relative;
+		height: 0;
+		padding-bottom: 56.25%;
+	}
+	.yt-ratio iframe {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		border: 0;
+		border-radius: 12px;
+	}
+
+	.yt-fallback-link {
+		color: #88a;
+		text-decoration: underline;
+	}
+
 	@keyframes glowPulse {
 		0%,
 		100% {
