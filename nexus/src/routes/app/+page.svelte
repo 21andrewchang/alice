@@ -548,9 +548,9 @@
 
 		const anchors: Record<string, [number, number]> = {
 			physics: [-width / 2.8, height / 6], // bottom-left (your original intent)
-			hardware: [-width / 4.2, -height / 8], // upper-left (separate from math)
+			ai: [-width / 4.2, -height / 8], // upper-left (separate from math)
 			math: [-width / 5.0, height / 5], // lower-left middle (optional)
-			ai: [width / 4.0, -height / 10], // right/top-right
+			hardware: [width / 4.0, -height / 10], // right/top-right
 			tech: [width / 6.0, 0], // near center-right
 			biology: [width / 5.0, height / 6],
 			chemistry: [width / 5.0, -height / 6],
@@ -576,8 +576,8 @@
 			)
 			.force('charge', d3.forceManyBody().strength(-200))
 			.force('center', d3.forceCenter(0, 0))
-			.force('x', d3.forceX((d: any) => anchorX(d)).strength(0.25))
-			.force('y', d3.forceY((d: any) => anchorY(d)).strength(0.22))
+			.force('x', d3.forceX((d: any) => anchorX(d)).strength(0.08))
+			.force('y', d3.forceY((d: any) => anchorY(d)).strength(0.08))
 			.force(
 				'collide',
 				d3
