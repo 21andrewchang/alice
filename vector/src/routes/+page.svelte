@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { blur } from 'svelte/transition';
 	import vectorUrl from '$lib/assets/vector.svg?url';
 
-	const NAMES = ['zuck', 'musk', 'jobs', 'bezos', 'huang'];
-	const longest = Math.max(...NAMES.map((n) => n.length));
-	const colWidth = longest + 1;
+	const NAMES = [
+		'steve jobs',
+		'mark zuckerberg',
+		'elon musk',
+		'jeff bezos',
+		'sam altman',
+		'jensen huang'
+	];
 
 	let text = '';
 	let i = 0,
@@ -20,6 +24,18 @@
 	let t: number | null = null;
 	let joinRequested = false;
 	let joinCompleted = false;
+
+	let emailEl: HTMLInputElement | null = null;
+	onMount(() => {
+		// Defer to next tick to avoid SSR/hydration race
+		const id = window.setTimeout(() => {
+			if (emailEl) {
+				emailEl.focus({ preventScroll: true });
+				emailEl.select();
+			}
+		}, 0);
+		return () => window.clearTimeout(id);
+	});
 
 	function tick() {
 		if (joinCompleted) return;
@@ -51,14 +67,7 @@
 		}
 	}
 
-	function requestJoin() {
-		if (joinRequested || joinCompleted) return;
-		joinRequested = true;
-		if (t !== null) {
-			window.clearTimeout(t);
-		}
-		tick();
-	}
+	function requestJoin() {}
 
 	onMount(tick);
 	onDestroy(() => {
@@ -66,33 +75,59 @@
 	});
 </script>
 
-<div class="flex h-screen w-full flex-col items-center justify-center gap-6 bg-yellow-50 px-6">
-	<div class="flex w-full max-w-md flex-col items-start gap-6">
-		<div class="flex flex-row items-center gap-3">
-			<img src={vectorUrl} alt="vector" class="h-8 w-8" />
-			<div class="font-mono text-4xl">vector</div>
-		</div>
+<div class="flex h-screen w-full flex-col items-center justify-center gap-12 bg-yellow-50 px-6">
+	<div class="flex w-full max-w-sm flex-col gap-2">
+		<div>
+			<div class="flex flex-row items-center gap-3">
+				<img src={vectorUrl} alt="vector" class="h-8 w-8" />
+				<div class="font-mono text-4xl">vector</div>
+			</div>
 
-		<div class="w-full font-mono text-lg text-black/70">
-			<div class="headline flex items-baseline" aria-live="polite">
-				<span class="prefix mr-1">become the next</span>
-				<span class="type-box text-black/90">
-					{#if joinCompleted}
-						<input
-							in:blur={{ duration: 300 }}
-							type="email"
-							class="waitlist-input"
-							placeholder="your email"
-						/>
-					{:else}
+			<div class="w-full justify-center font-mono text-lg text-black/70">
+				<div class="headline flex items-baseline" aria-live="polite">
+					<span class="prefix mr-1">become the next</span>
+					<span class="type-box text-black/90">
 						<span class="typed">{text}</span>
-					{/if}
-				</span>
+					</span>
+				</div>
 			</div>
 		</div>
+	</div>
 
-		<button class="self-center rounded-lg bg-black px-4 pb-1" on:click={requestJoin}>
-			<text class="text-xs text-yellow-50">join waitlist</text>
+	<div class="flex w-full max-w-sm flex-row items-end gap-2">
+		<input
+			bind:this={emailEl}
+			class="waitlist-input w-full border-0 bg-transparent font-mono transition focus:ring-0 focus:outline-none"
+			placeholder="your email"
+			type="email"
+			inputmode="email"
+			autocomplete="email"
+		/>
+		<button
+			class="flex flex-row place-items-center gap-3 rounded-md px-4 pt-2 font-mono text-[8px] text-black/80 transition hover:translate-x-1 hover:text-black"
+			aria-label="Next"
+			on:click={requestJoin}
+		>
+			<svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" aria-hidden="true">
+				<line
+					x1="4"
+					y1="12"
+					x2="18"
+					y2="12"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+				/>
+				<line
+					x1="18"
+					y1="12"
+					x2="11"
+					y2="5"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+				/>
+			</svg>
 		</button>
 	</div>
 </div>
@@ -113,21 +148,17 @@
 	}
 
 	.typed {
-		/* gutter for caret */
-		padding-right: 1px; /* no top/bottom padding */
+		padding-right: 1px;
 		padding-bottom: 1px;
-		border-right: 0.07em solid currentColor;
-		line-height: 1em; /* caret = text height */
-		display: inline-block; /* baseline aligns reliably */
+		line-height: 1em;
+		display: inline-block;
 		animation: caret-blink 1s step-end infinite;
 	}
 
 	.waitlist-input {
 		width: 100%;
-		border: none;
 		background: transparent;
 		padding: 0;
-		font: inherit;
 		color: color-mix(in srgb, black 60%, transparent);
 	}
 
@@ -141,7 +172,6 @@
 		color: color-mix(in srgb, black 35%, transparent);
 	}
 
-	/* keep your keyframes */
 	@keyframes caret-blink {
 		0%,
 		20%,
